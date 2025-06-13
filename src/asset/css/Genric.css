@@ -1,0 +1,213 @@
+.genric-page-container {
+    margin: auto;
+    overflow-x: hidden;
+}
+
+.landing.-page-banner img {
+    width: 100%;
+    height: 550px;
+    object-fit: cover;
+    display: block;
+}
+
+.partners .partners-gallary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row-reverse;
+    max-width: 1280px;
+    margin: auto;
+    padding: 0 10px;
+}
+
+.partners h3 {
+    margin: 0 0 5px;
+}
+
+.partners {
+    padding: 6px 0px 10px;
+    transform: rotate(2.44deg);
+    background: #F9F9F9;
+    margin-top: -30px;
+    text-align: center;
+    border: 2px solid black;
+    border-left: none;
+    border-right: none;
+}
+
+.partners:before {
+    content: "";
+    position: absolute;
+    width: 1000px;
+    height: 100%;
+    left: -990px;
+    top: 0px;
+    background: white;
+}
+
+.partners:after {
+    content: "";
+    position: absolute;
+    width: 1000px;
+    height: 100%;
+    right: -990px;
+    top: 0px;
+    background: white;
+}
+
+.partners .partners-gallary img {
+    height: 36px;
+    width: auto;
+}
+.part-section-parent {
+    background: #f9f9f9;
+}
+.part-section {
+    max-width: 1280px;
+    margin: auto;
+    padding: 80px 10px;
+}
+
+.dyn-con {
+    display: flex;
+    gap: 81px;
+    padding-top: 24px;
+    position: relative;
+}
+
+.dyn-con:before {
+    content: "......................................................................................................................................................................................................................................................................................";
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    height: 216px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 10px;
+    margin-top: -5px;
+}
+
+.dyn-con .featuring-imgs {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.dyn-con .featuring-imgs img {
+    height: 216px;
+    width: 216px;
+    display: inline-block;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.dyn-con .part-item {
+    position: relative;
+    flex: 0 0 calc(33.333% - 54px);
+}
+
+.part-item:nth-child(2):before {
+    content: "";
+    font-family: fontawesome;
+    width: 81px;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 216px;
+    top: 0;
+    font-size: 40px;
+    left: -80px;
+}
+
+.part-item:nth-child(2):after {
+    content: "";
+    font-family: fontawesome;
+    width: 81px;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 216px;
+    top: 0;
+    font-size: 40px;
+    right: -80px;
+}
+
+.all-heads {
+    margin: 0 0 24px;
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 60.60px;
+    text-transform: uppercase;
+    letter-spacing: 1.80px;
+}
+
+.all-heads span {
+    display: block;
+    font-weight: 100;
+}
+
+
+.category-display {
+    background-image: url('../images/Frame 2087325961.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 80px 0;
+}
+
+.category-display-inner {
+    max-width: 1280px;
+    margin: auto;
+    padding: 0 10px;
+}
+
+.category-display-inner .filter-head {
+    color: white;
+}
+
+.category-display-inner ul {
+    list-style: none;
+    padding: 0;
+}
+.category-display-inner ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0;
+    margin-top: 40px;
+}
+
+.category-display-inner ul li {
+    flex: 0 0 calc(33.333% - 10.6666666667px);
+    background: #292929;
+    border: 1px solid #656565;
+    border-radius: 5px;
+    padding: 16px;
+    color: white;
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+}
+.category-display-inner ul li i {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.category-display-inner ul li h4, .category-display-inner ul li p {
+    margin: 0;
+}
+
+
+.category-display-inner ul li p {
+    color: white;
+}
+
+.dyn-con .part-item h4 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 28.80px;
+}

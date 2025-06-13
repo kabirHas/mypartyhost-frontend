@@ -1,0 +1,26 @@
+
+form input[type="text"], form input[type="file"], form textarea, form select, .form input[type="text"], .form input[type="file"], .form textarea, .form select {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0 20px 0;
+    border: 1.8px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    resize: vertical;
+}
+
+
+form textarea, .form textarea {
+    min-height: 100px;
+}
+
+form button, .form button {
+    padding: 10px 20px;
+    background: #fce7f3;
+    border-radius: 8px;
+    color: rgb(219 39 119);
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 30px !important;
+}

@@ -1,0 +1,54 @@
+.header-wrap {
+  background: #fdfdfd;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10px;
+  max-width: 1280px;
+  margin: auto;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+  color: black;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+}
+
+.btns {
+  padding: 6px 14px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.login {
+  color: #333;
+}
+
+.signup {
+  color: #ff416c;
+  border-color: #ff416c;
+}
+
+.signup:hover {
+  background-color: #ff416c;
+  color: white;
+}

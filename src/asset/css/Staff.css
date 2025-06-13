@@ -1,0 +1,345 @@
+.staff-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.60px;
+    word-wrap: break-word;
+}
+
+.stars {
+    margin-top: 10px;
+    display: flex;
+    justify-content: left;
+    gap: 5px;
+}
+
+.stars svg {
+    height: 13px !important;
+    width: 13px !important;
+}
+
+
+
+
+.staff-card .staff-info {
+    height: 333px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0 10px;
+    padding: 15px;
+}
+
+.boost-staff {
+    background: linear-gradient(to right, #fff0f5, #fff);
+    padding-top: 140px;
+    margin-top: -64px;
+}
+
+.boost-staff-inner.d-flex {
+    max-width: 1280px;
+    padding: 0 10px;
+    margin: auto;
+}
+
+.left-boost {
+    width: 35%;
+}
+
+.right-boost {
+    width: 65%;
+}
+
+.slider-container button.slick-arrow {
+    position: absolute;
+    left: -85px;
+    top: 85%;
+}
+
+.slick-list {
+    margin: 0 -10px 0 0 !important;
+}
+
+.staff-info .icons {
+    position: absolute;
+    bottom: 0;
+    padding: 5px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 20px;
+}
+
+.staff-card .staff-info h3 {
+    margin: 0;
+    color: white;
+    width: 50%;
+}
+
+.slider-container button.slick-arrow.slick-prev {
+    left: -160px;
+}
+
+.slider-container button.slick-arrow {
+    width: 63px;
+    height: 63px;
+    border-radius: 50%;
+    border: 2px solid black;
+    background: transparent;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-container button.slick-arrow.slick-prev:before {
+    content: "";
+    color: black;
+    font-family: 'FontAwesome';
+    font-size: 14px;
+}
+
+.slider-container button.slick-arrow.slick-next:before {
+    content: "";
+    color: black;
+    font-family: 'FontAwesome';
+    font-size: 14px;
+}
+
+.slider-container button.slick-arrow:hover {
+    background: black;
+}
+
+.slider-container button.slick-arrow:hover::before {
+    color: white;
+}
+
+.left-boost p.all-para {
+    width: 90%;
+}
+
+.search-staff {
+    max-width: 1280px;
+    padding: 80px 10px;
+    margin: auto;
+}
+
+.filters .Search-container .staff-card {
+    flex: 0 0 calc(25% - 15px);
+}
+
+.filters .Search-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.filters .Search-container .staff-card .staff-info {
+    margin: 0;
+    position: relative;
+}
+
+.filters .Search-container .staff-card .staff-info h3 {
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.name-stars {
+    position: absolute;
+    bottom: 15px;
+}
+.name-stars span {
+    display: inline-block;
+    font-weight: 400;
+    font-size: 12px;
+}
+
+
+
+.filter-bar {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    padding: 10px 0px 10px 10px;
+    font-size: 16px !important;
+    font-weight: 500;
+    color: black !important;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tooltip specific to icon */
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.info-icon {
+    font-size: 14px;
+    color: #777;
+    cursor: pointer;
+    padding: 2px;
+    border: 1px solid black;
+    width: 22px;
+    display: inline-flex;
+    height: 22px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+span.info-icon i {
+    font-size: 12px;
+}
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  width: 220px;
+  background-color: #ffeaea;
+  color: #000;
+  text-align: left;
+  border-radius: 8px;
+  padding: 8px 10px;
+  position: absolute;
+  z-index: 10;
+  top: 24px;
+  left: -100px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: #e11d48;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* Dropdowns */
+.filter-select {
+    padding: 8px 16px;
+    border: 2px solid black !important;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none !important;
+}
+
+/* Optional location icon in dropdown */
+.location-select {
+  padding-left: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 11c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z'%3E%3C/path%3E%3Cpath d='M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0z'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 8px center;
+  background-size: 14px;
+}
+
+
+.filter-div.d-flex {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.filter-head {
+    margin: 0;
+    font-size: 40px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 42.40px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.pagination .active-page {
+  background-color: black;
+  color: white;
+}
+
+
+.limit-dropdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px;
+  gap: 10px;
+}
+
+.limit-dropdown select {
+  padding: 4px 10px;
+}
+
+.pagination-cont.d-flex {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.limit-dropdown select {
+    padding: 4px 10px;
+    border: 1px solid black;
+    border-radius: 8px;
+}

@@ -1,0 +1,50 @@
+.TestimonialSlider {
+  background: #f9f9f9;
+  padding: 60px 0px;
+}
+
+.TestimonialSlider .all-heads span {
+  display: inline;
+}
+
+.TestimonialSlider .all-heads {
+  font-size: 40px;
+  line-height: 101%;
+}
+
+.TestimonialSlider .stars svg {
+  height: 27px !important;
+  width: 27px !important;
+}
+
+.TestimonialSlider .left-boost {
+  width: 35%;
+  flex: 0 0 35%;
+}
+
+.TestimonialSlider .right-boost {
+  width: 95%;
+}
+
+.testimonial-card {
+  padding: 10px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  padding: 20px;
+  text-align: center;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card h3 {
+  font-weight: bold;
+}
+
+.card p {
+  font-size: 14px;
+  margin: 10px 0;
+}
