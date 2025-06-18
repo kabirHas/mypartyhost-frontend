@@ -29,26 +29,37 @@ export default function DashboardLayout() {
     }
   };
 
+  const role = localStorage.getItem("role");
+
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: "ri-dashboard-line" },
     {
       to: "/dashboard/all-pages",
       label: "All Page",
       icon: "ri-briefcase-line",
+      hidden: role === "staff" || role === "organiser",
+    },
+    {
+      to: "/dashboard/manage-jobs",
+      label: "Manage Jobs",
+      icon: "ri-briefcase-line",
+      hidden: role === "staff",
     },
     {
       to: "/dashboard/create-category",
       label: "Create Category",
       icon: "ri-briefcase-line",
+      hidden: role === "staff " || role === "organiser",
     },
     {
       to: "/dashboard/create-faq",
       label: "Create FAQs",
       icon: "ri-briefcase-line",
+      hidden: role === "staff" || role === "organiser",
     },
     { to: "/dashboard/profile", label: "Your Profile", icon: "ri-user-line" },
     {
-      to: "/dashboard/dashboards",
+      to: "/dashboard/saved-profile",
       label: "Saved Profiles",
       icon: "ri-heart-line",
     },
@@ -69,12 +80,12 @@ export default function DashboardLayout() {
       label: "Help & Support",
       icon: "ri-question-line",
     },
-  ];
+  ].filter((item) => !item.hidden);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#f9f9f9]">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg">
+      <aside className="w-72 bg-white shadow-lg">
         <div className="p-6 text-2xl font-bold">MYPARTYHOSTESS</div>
         <nav className="mt-4 flex flex-col text-sm text-gray-700 navs-kab">
           {navItems.map((item) => (
@@ -91,8 +102,8 @@ export default function DashboardLayout() {
                   }`
                 }
               >
-                <i className={`${item.icon} text-xl text-blue-600`}></i>
-                {item.label}
+                <i className={`${item.icon} text-sm text-blue-600`}></i>
+               <span className="text-sm"> {item.label}</span>
               </NavLink>
             </>
           ))}
