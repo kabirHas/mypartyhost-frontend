@@ -114,7 +114,7 @@ const CreatePage = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/dashboard");
+      navigate("/dashboard/all-pages");
     } catch (error) {
       console.error("Error creating page:", error);
       alert("Page creation failed.");

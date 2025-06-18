@@ -10,10 +10,12 @@ import CreateCategory from "../pages/CreateCategory";
 import Genric from "../pages/Genric";
 import UpdatePage from "../pages/UpdatePage";
 import CreateFaq from "../pages/CreateFaq";
-import Dashboards from "../pages/Dashboard"
+import DashboardHome from "../pages/Dashboard"
 import SuccessScreen from "../components/SuccessScreen";
 import ProfileUpdate from "../pages/ProfileUpdate";
 import ManagePages from "../components/ManagePages";
+import MessagePage from "../pages/MessagePage";
+import PaymentPage from "../pages/PaymentPage";
 
 export const getStaticRoutes = (isLoggedIn) => [
   <Route path="/login" element={<Login />} key="login" />,
@@ -24,6 +26,7 @@ export const getStaticRoutes = (isLoggedIn) => [
     element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
     key="dashboard"
   >
+    <Route index element={<DashboardHome />} /> 
     <Route
     path="/dashboard/all-pages"
     element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
@@ -46,13 +49,23 @@ export const getStaticRoutes = (isLoggedIn) => [
   />,
   <Route
     path="/dashboard/dashboards"
-    element={isLoggedIn ? <Dashboards /> : <Navigate to="/login" />}
+    element={isLoggedIn ? <DashboardHome /> : <Navigate to="/login" />}
     key="dashboards"
   />,
   <Route
     path="/dashboard/profile"
     element={isLoggedIn ? <ProfileUpdate /> : <Navigate to="/login" />}
     key="profile"
+  />,
+  <Route
+    path="/dashboard/messages"
+    element={isLoggedIn ? <MessagePage /> : <Navigate to="/login" />}
+    key="messages"
+  />,
+  <Route
+    path="/dashboard/billing"
+    element={isLoggedIn ? <PaymentPage /> : <Navigate to="/login" />}
+    key="billing"
   />,
     </Route>,
   

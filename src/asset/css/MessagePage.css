@@ -1,0 +1,315 @@
+.kaab-message-page {
+  display: flex;
+  height: 90vh;
+  font-family: Arial, sans-serif;
+}
+
+.kaab-sidebar {
+  width: 327px;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  border-radius: 16px;
+  background: white;
+  margin-right: 24px;
+}
+
+.kaab-search {
+  display: flex;
+}
+
+.kaab-search input {
+    flex: 1 1;
+    padding: 8px;
+    border: 1px solid #ececec;
+    border-radius: 8px 0 0 8px;
+    border-right: none;
+}
+
+.kaab-search button {
+    padding: 8px 12px;
+    background: #e61e4d;
+    color: white;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
+
+.kaab-messages-title {
+  padding: 24px 0;
+  font-size: 24px;
+  font-family: Inter;
+  font-weight: 700;
+  line-height: 28.8px;
+  word-wrap: break-word;
+  color: #292929;
+}
+
+.kaab-message-list {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.kaab-message-list::-webkit-scrollbar {
+  display: none;
+}
+
+.kaab-message-item {
+  display: flex;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.kaab-message-item.active {
+  background: #fff0f5;
+}
+
+.kaab-message-item img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.kaab-message-info {
+  flex: 1;
+  position: relative;
+}
+.kaab-message-info:before {
+    content: "";
+    position: absolute;
+    background: #41D37E;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    top: 30px;
+    left: -18px;
+}
+
+.kaab-message-name-time {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.kaab-message-preview {
+  color: #656565;
+  font-size: 14px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 18.9px;
+  word-wrap: break-word;
+  width: 70%;
+}
+
+.kaab-message-preview.typing {
+  color: #e61e4d;
+  font-size: 14px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 18.9px;
+  word-wrap: break-word;
+}
+
+.kaab-check {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.kaab-unread-count {
+  background: #e61e4d;
+  color: white;
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: 8px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter";
+}
+
+.kaab-message-name-time span:first-child {
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21.6px;
+  word-wrap: break-word;
+  color: #3d3d3d;
+}
+.kaab-message-name-time span {
+  font-size: 12px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.6px;
+  word-wrap: break-word;
+  color: #656565;
+}
+
+.kaab-chat-panel {
+    flex: 1 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    border: 1px solid #ECECEC;
+    overflow: hidden;
+}
+
+.kaab-chat-header {
+    padding: 12px;
+    border-radius: 8px;
+    background: white;
+}
+
+.kaab-chat-title {
+    font-size: 20px;
+    font-family: Inter;
+    font-weight: 700;
+    line-height: 24px;
+    word-wrap: break-word;
+    color: #292929;
+}
+
+.kaab-chat-subtitle {
+    color: #3d3d3d;
+    font-size: 12px;
+    font-family: Inter;
+    font-weight: 400;
+    line-height: 14.40px;
+    word-wrap: break-word;
+    padding-top: 8px;
+}
+
+.kaab-chat-body {
+    flex: 1 1;
+    padding: 24px 16px;
+    overflow-y: auto;
+    background: transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.kaab-chat-body::-webkit-scrollbar {
+  display: none;
+}
+
+.kaab-chat-message {
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.kaab-chat-message.sender {
+  flex-direction: row;
+}
+
+.kaab-chat-message.receiver {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+
+
+
+.kaab-chat-text {
+  background: #f1f1f1;
+  padding: 10px 15px;
+  border-radius: 10px;
+  max-width: 70%;
+}
+
+.kaab-chat-input {
+  display: flex;
+}
+
+.kaab-chat-input input {
+    flex: 1 1;
+    padding: 10px 26px 10px 10px;
+    border: 1px solid #ECECEC;
+    border-radius: 8px 0px 0px 8px;
+    background: white;
+    outline: none;
+    border-right: 0;
+}
+
+.kaab-chat-input button {
+    cursor: pointer;
+    outline: none;
+    border: 1px solid #ececec;
+    border-left: 0;
+    border-radius: 0px 8px 0px 0px;
+    overflow: hidden;
+}
+
+
+img.kaab-read {
+    margin: 0;
+    position: absolute;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    top: 35px;
+}
+
+.kaab-chat-body .kaab-chat-message.sender img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.kaab-chat-name-time {
+    font-size: 16px;
+    font-family: Inter;
+    font-weight: 700;
+    line-height: 21.60px;
+    word-wrap: break-word;
+    color: #3d3d3d;
+}
+
+.kaab-chat-name-time span {
+    margin-left: 8px;
+    font-size: 12px;
+    font-family: Inter;
+    font-weight: 400;
+    line-height: 21.60px;
+    word-wrap: break-word;
+    color: #656565;
+}
+
+.kaab-chat-body .kaab-chat-message.sender .kaab-chat-text {
+    max-width: 100%;
+    padding: 12px 0 0 0;
+    font-size: 14px;
+    font-family: Inter;
+    font-weight: 400;
+    line-height: 18.90px;
+    word-wrap: break-word;
+    color: #3d3d3d;
+}
+
+.kaab-chat-body .kaab-chat-message.sender {
+    margin-bottom: 32px;
+}
+
+.kaab-chat-message.sender >div:before {
+    content: "";
+    position: absolute;
+    background: #41D37E;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    top: 30px;
+    left: -18px;
+}
+
+.kaab-chat-message.sender >div {
+    position: relative;
+}

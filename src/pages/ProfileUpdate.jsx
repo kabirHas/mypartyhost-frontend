@@ -4,6 +4,7 @@ import Base_URLS from "../config";
 import "../asset/css/ProfileUpdate.css";
 import Notify from "../utils/notify";
 import Switch from "@mui/material/Switch";
+import ReviewSection from "../components/ReviewSection";
 
 const ProfileUpdate = () => {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ const ProfileUpdate = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [checked, setChecked] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchProfile = () => {
     axios
@@ -155,6 +157,7 @@ const ProfileUpdate = () => {
         withCredentials: true,
       })
       .then((data) => {
+        setIsEditing(false);
         Notify.success(data.data.message);
         fetchProfile();
       })
@@ -164,62 +167,122 @@ const ProfileUpdate = () => {
       });
   };
 
+  const handleToggleChange = async (e) => {
+    const { name, checked } = e.target;
+
+    // Update local state
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+
+    // Send update to server
+    try {
+      const updatePayload = { [name]: checked };
+      const response = await axios.patch(
+        `${Base_URLS.API}/auth/profile`,
+        updatePayload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      Notify.success("Settings updated successfully");
+      fetchProfile();
+    } catch (err) {
+      console.error("Failed to update toggle setting", err);
+      Notify.error("Failed to update setting");
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div className="profile-update-container">
       <div className="left-panel">
-        <div className="profile-img-box">
-          {formData.profileImage ? (
-            <img
-              src={
-                newImage
-                  ? URL.createObjectURL(newImage) // show selected image immediately
-                  : `${Base_URLS.STATIC}${formData.profileImage}`
-              }
-              alt="Profile"
-            />
-          ) : (
-            <img
-              src={`/images/464760996_1254146839119862_3605321457742435801_n.jpg`}
-              alt="Profile"
-            />
-          )}
-          <div className="img-actions">
-            {formData.profileImage && (
-              <button type="button" onClick={handleImageDelete}>
-                <i class="fa-solid fa-trash" style={{ color: "red" }}></i>
-              </button>
-            )}
-            <div className="file-icons">
-              <label htmlFor="fileInput" className="custom-file-upload">
-                <i class="fa-solid fa-camera"></i>
-              </label>
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: "none" }}
+        <div className="profile-data-wrap">
+          <div className="profile-img-box">
+            {formData.profileImage ? (
+              <img
+                src={
+                  newImage
+                    ? URL.createObjectURL(newImage) // show selected image immediately
+                    : `${formData.profileImage}`
+                }
+                alt="Profile"
               />
+            ) : (
+              <img
+                src={`/images/464760996_1254146839119862_3605321457742435801_n.jpg`}
+                alt="Profile"
+              />
+            )}
+            {isEditing && (
+              <div className="img-actions">
+                <button type="button" onClick={handleImageDelete}>
+                  <i className="fa-solid fa-trash" style={{ color: "red" }}></i>
+                </button>
+                <div className="file-icons">
+                  <label htmlFor="fileInput" className="custom-file-upload">
+                    <i className="fa-solid fa-camera"></i>
+                  </label>
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: "none" }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="head-profile-data">
+            <h2>
+              {formData.firstName} {formData.lastName}
+            </h2>
+            <p className="location">
+              <i class="ri-map-pin-line"></i> {formData.suburb},{" "}
+              {formData.state}, {formData.country}
+            </p>
+          </div>
+
+          <p className="events-org">
+            <img src="/images/Confetti8.png" /> Events Organized: 50
+          </p>
+          <hr />
+          <div className="bio-section">
+            <div className="wrap-form-header">
+              <h6>Short Bio</h6>
+              {!isEditing ? (
+                <div className="edit-btn" onClick={() => setIsEditing(true)}>
+                  <i className="fa-solid fa-pen-to-square"></i>
+                </div>
+              ) : (
+                <button type="submit" className="save-btn"
+                onClick={(e) => handleFormSubmit(e)}
+                >
+                  Save Changes <i className="fa-solid fa-check"></i>
+                </button>
+              )}
             </div>
+
+            {isEditing ? (
+              <textarea
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+              />
+            ) : (
+              <p>{formData.bio || "No bio provided."}</p>
+            )}
           </div>
         </div>
-        <h2>
-          {formData.firstName} {formData.lastName}
-        </h2>
-        <p className="location">
-          {formData.suburb}, {formData.state}, {formData.country}
-        </p>
-        <p>
-          <b>📍 Events Organized:</b> 50
-        </p>
-
-        <div className="bio-section">
-          <label>Short Bio</label>
-          <textarea name="bio" value={formData.bio} onChange={handleChange} />
-        </div>
+        <ReviewSection />
       </div>
 
       <div className="right-panel">
@@ -229,77 +292,45 @@ const ProfileUpdate = () => {
               <h2>Profile Info</h2>
               <p>Contact Details will not be shown to Event Staff</p>
             </div>
-            <button className="save-btn" type="submit">
-              Save Changes ✓
-            </button>
+            {!isEditing ? (
+              <div className="edit-btn" onClick={() => setIsEditing(true)}>
+                Edit Profile <i className="fa-solid fa-pen-to-square"></i>
+              </div>
+            ) : (
+              <button type="submit" className="save-btn">
+                Save Changes <i className="fa-solid fa-check"></i>
+              </button>
+            )}
           </div>
           <hr />
           <div className="form-grid">
-            <label for="First Name">First Name</label>
-            <input
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="First Name"
-            />
-            <label>Last Name</label>
-            <input
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Last Name"
-            />
-            <label>Country</label>
-            <input
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              placeholder="Country"
-            />
-            <label>Suburb</label>
-            <input
-              name="suburb"
-              value={formData.suburb}
-              onChange={handleChange}
-              placeholder="Suburb"
-            />
-            <label>State</label>
-            <input
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              placeholder="State"
-            />
-            <label>Post Code</label>
-            <input
-              name="postCode"
-              value={formData.postCode}
-              onChange={handleChange}
-              placeholder="Post Code"
-            />
-            <label>Mobile Number</label>
-            <input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="Mobile Number"
-            />
-            <label>Email</label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-            />
-            <label>Address</label>
-            <input
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="Address"
-            />
+            {[
+              "firstName",
+              "lastName",
+              "country",
+              "suburb",
+              "state",
+              "postCode",
+              "phone",
+              "email",
+              "address",
+            ].map((field) => (
+              <React.Fragment key={field}>
+                <label>{field.replace(/([A-Z])/g, " $1")}</label>
+                {isEditing ? (
+                  <input
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    placeholder={field}
+                  />
+                ) : (
+                  <p>{formData[field]}</p>
+                )}
+              </React.Fragment>
+            ))}
           </div>
-<hr />
+          <hr />
           <div className="toggles">
             <h3>Setting</h3>
             <h6>Notification Setting</h6>
@@ -308,15 +339,7 @@ const ProfileUpdate = () => {
               <Switch
                 name="getSMS"
                 checked={formData.getSMS}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    [e.target.name]:
-                      e.target.type === "checkbox"
-                        ? e.target.checked
-                        : e.target.value,
-                  }))
-                }
+                onChange={handleToggleChange}
               />
             </div>
             <div>
@@ -324,15 +347,7 @@ const ProfileUpdate = () => {
               <Switch
                 name="jobNotifications"
                 checked={formData.jobNotifications}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    [e.target.name]:
-                      e.target.type === "checkbox"
-                        ? e.target.checked
-                        : e.target.value,
-                  }))
-                }
+                onChange={handleToggleChange}
               />
             </div>
 
@@ -341,15 +356,7 @@ const ProfileUpdate = () => {
               <Switch
                 name="chatNotifications"
                 checked={formData.chatNotifications}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    [e.target.name]:
-                      e.target.type === "checkbox"
-                        ? e.target.checked
-                        : e.target.value,
-                  }))
-                }
+                onChange={handleToggleChange}
               />
             </div>
           </div>
