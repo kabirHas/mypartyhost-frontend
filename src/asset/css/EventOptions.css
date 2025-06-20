@@ -58,16 +58,20 @@
 
 .event-column .btns {
     margin-top: 30px;
-    padding: 10px 20px;
+    padding: 12px 24px;
+    font-family: 'Inter';
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 135%;
+    border-radius: 8px;
+    color: white;
     border: none;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
 }
 
 .event-column .pink {
-    background-color: #f91880;
     color: white;
+    background: linear-gradient(272deg, #E31F87 1.58%, #E61E4D 98.73%);
 }
 
 

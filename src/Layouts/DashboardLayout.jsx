@@ -33,37 +33,37 @@ export default function DashboardLayout() {
 
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: "ri-dashboard-line" },
-    {
-      to: "/dashboard/all-pages",
-      label: "All Page",
-      icon: "ri-briefcase-line",
-      hidden: role === "staff" || role === "organiser",
-    },
+    // {
+    //   to: "/dashboard/all-pages",
+    //   label: "All Page",
+    //   icon: "ri-briefcase-line",
+    //   hidden: role === "staff" || role === "organiser",
+    // },
     {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",
       icon: "ri-briefcase-line",
-      hidden: role === "staff",
+      // hidden: role === "staff",
     },
-    {
-      to: "/dashboard/create-category",
-      label: "Create Category",
-      icon: "ri-briefcase-line",
-      hidden: role === "staff " || role === "organiser",
-    },
-    {
-      to: "/dashboard/create-faq",
-      label: "Create FAQs",
-      icon: "ri-briefcase-line",
-      hidden: role === "staff" || role === "organiser",
-    },
-    { to: "/dashboard/profile", label: "Your Profile", icon: "ri-user-line" },
+    // {
+    //   to: "/dashboard/create-category",
+    //   label: "Create Category",
+    //   icon: "ri-briefcase-line",
+    //   hidden: role === "staff " || role === "organiser",
+    // },
+    // {
+    //   to: "/dashboard/create-faq",
+    //   label: "Create FAQs",
+    //   icon: "ri-briefcase-line",
+    //   hidden: role === "staff" || role === "organiser",
+    // },
+    
     {
       to: "/dashboard/saved-profile",
       label: "Saved Profiles",
       icon: "ri-heart-line",
     },
-    
+{ to: "/dashboard/profile", label: "Your Profile", icon: "ri-user-line" },
     {
       to: "/dashboard/alerts",
       label: "Alerts & Updates",

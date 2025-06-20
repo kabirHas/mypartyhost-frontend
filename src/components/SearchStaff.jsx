@@ -8,7 +8,7 @@ const SearchStaff = () => {
   const [availableNow, setAvailableNow] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(8);
+  const [limit, setLimit] = useState(6);
 
   const handleToggle = () => setAvailableNow(!availableNow);
 

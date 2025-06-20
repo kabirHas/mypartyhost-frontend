@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import DashboardLayout from './Layouts/DashboardLayout'
 import Home from './Pages/Home'
-import ManageJobs from './Pages/ManageJobs'
+import ManageJobs from './pages/ManageJobs'
 function App() {
   return (
     <>
