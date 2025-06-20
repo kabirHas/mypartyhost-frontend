@@ -23,6 +23,9 @@ import ManageJobsLayout from "../Layouts/ManageJobLayout";
 import SavedProfiles from "../pages/SavedProfiles";
 import Alerts from "../pages/Alerts";
 import FindJobs from "../pages/FindJobs";
+import Contact from "../pages/Contact";
+import ContactSupport from "../pages/ContactSupport";
+import AllProfiles from "../pages/AllProfiles";
 import SupportPage from "../pages/SupportPage";
 import AdminDashboard from "../pages/AdminDashboard";
 
@@ -80,6 +83,24 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         element={isLoggedIn ? <FindJobs /> : <Navigate to="/login" />}
         key="create-faq"
       />
+    <Route
+      path="/dashboard/support/ticket"
+      element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
+      key="support"
+    >
+     
+    </Route>
+    <Route
+        path="/dashboard/support/new-ticket"
+        element={isLoggedIn ? <ContactSupport /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/all-profiles"
+        element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    
       ,
       <Route
         path="/dashboard/profile"

@@ -40,6 +40,11 @@ export default function DashboardLayout() {
     //   hidden: role === "staff" || role === "organiser",
     // },
     {
+      to: "/dashboard/all-profiles",
+      label: "All Profiles",
+      icon: "ri-briefcase-line",
+    },
+    {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",
       icon: "ri-briefcase-line",
