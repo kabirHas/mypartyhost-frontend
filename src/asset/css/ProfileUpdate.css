@@ -1,29 +1,37 @@
 .profile-update-container {
   display: flex;
   gap: 2rem;
-  padding: 2rem;
   font-family: sans-serif;
 }
 
 .left-panel {
-  width: 30%;
-  text-align: center;
+  width: calc(50% - 1rem);
 }
 
 .right-panel {
-  flex: 1;
-  background: #fafafa;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  width: calc(50% - 1rem);
 }
+
 
 .profile-img-box img {
     width: 100%;
-    border-radius: 10px;
+    border-radius: 20px;
     object-fit: cover;
     height: 350px;
     object-position: top center;
     border: 1px solid black;
+}
+
+form.profile-form {
+    margin: 0;
+    padding: 16px;
+}
+
+.profile-data-wrap {
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
 }
 
 .bio-section textarea {
@@ -110,6 +118,8 @@
 
 .wrap-form-header p {
     margin: 0;
+    font-size: 14px;
+    line-height: 20px;
 }
 
 span.MuiSwitch-thumb {
@@ -123,6 +133,12 @@ span.MuiSwitch-track {
 span.MuiSwitch-root.MuiSwitch-sizeMedium {
     background: #656565;
     border-radius: 15px;
+    width: 50px;
+    height: 30px;
+}
+
+span.MuiButtonBase-root.MuiSwitch-switchBase.MuiSwitch-colorPrimary.PrivateSwitchBase-root.MuiSwitch-switchBase.MuiSwitch-colorPrimary {
+    padding: 5px;
 }
 
 
@@ -135,8 +151,111 @@ span.MuiSwitch-root.MuiSwitch-sizeMedium {
 
 hr {
     margin: 2rem 0;
-    color: #656565;
+    color: #ECECEC !important;
+    opacity: 1 !important;
     border: 0;
     border-top: var(--bs-border-width) solid;
-    opacity: .5;
+}
+
+
+.profile-form h2 {
+    font-size: 20px;
+    line-height: 120%;
+    margin: 0;
+}
+
+
+.wrap-form-header button.save-btn {
+    margin: 0 !important;
+    border-radius: 999px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 16px !important;
+    background-color: #f9f9f9;
+    color: #656565;
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid #ECECEC;
+    line-height: 27px;
+}
+
+.wrap-form-header .edit-btn {
+  margin: 0 !important;
+    border-radius: 999px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 16px !important;
+    background-color: #f9f9f9;
+    color: #656565;
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid #ECECEC;
+    line-height: 27px;
+    cursor: pointer;
+}
+
+
+.profile-data-wrap h2 {
+    font-size: 20px;
+    line-height: 29px;
+    margin: 0;
+    text-align: left;
+    text-transform: capitalize;
+}
+ 
+.head-profile-data {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+
+.head-profile-data .location {
+  margin: 0;
+}
+
+.profile-form .form-grid p {
+    text-align: right;
+}
+
+p.events-org img {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+}
+
+
+p.events-org {
+    display: flex;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 15px 0 0;
+    align-items: center;
+}
+
+.profile-data-wrap hr {
+    margin: 24px 0;
+    color: #ECECEC !important;
+    opacity: 1 !important;
+}
+
+.bio-section h6 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.bio-section .wrap-form-header {
+    margin-bottom: 15px;
+}
+
+.bio-section .wrap-form-header .edit-btn {
+    background: transparent;
+    border: none;
+    padding: 0 !important;
 }

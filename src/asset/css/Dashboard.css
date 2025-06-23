@@ -1,0 +1,260 @@
+.dashboard {
+  margin: auto;
+  color: #333;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.left-card {
+  background: linear-gradient(to top, #ffe4e6, #ffffff);
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.left-card h3 {
+  font-size: 24px;
+  line-height: 28.8px;
+  margin: 0;
+  font-weight: 700;
+  color: #292929;
+}
+.left-card p {
+  margin: 0;
+  font-size: 16px;
+  font-family: "Inter";
+  color: #3d3d3d;
+  line-height: 21.6px;
+}
+
+.avatars {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+  padding-left: 15px;
+}
+
+.avatars img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-left: -15px;
+}
+
+.avatars span {
+  font-size: 12px;
+  color: #656565;
+  font-family: "Inter";
+  font-weight: 400;
+  line-height: 14.4px;
+  padding-left: 10px;
+}
+
+.btn-group {
+  margin-top: 10px;
+}
+
+.post-btn {
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 17.6px;
+  background: linear-gradient(90deg, #e31f87, #e61e4d);
+  width: 100%;
+}
+
+.browse-btn {
+  background: white;
+  border: 1px solid #ff3366;
+  color: #ff3366;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 17.6px;
+  width: 100%;
+}
+
+.stats {
+  display: flex;
+  gap: 15px;
+  flex: 2 1;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: white;
+  border-radius: 16px;
+}
+
+.stat-card {
+  flex: 1 1;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card .icon {
+  font-size: 16px;
+  color: #e61e4d;
+}
+
+.stat-card .icons {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffccd3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.stat-card h2 {
+  font-size: 24px;
+  font-family: Inter;
+  font-weight: 700;
+  line-height: 28.8px;
+  word-wrap: break-word;
+  margin: 0;
+  color: #292929;
+}
+
+.stat-card button {
+  margin-top: 24px;
+  background: white;
+  border: 1px solid #ff3366;
+  color: #ff3366;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 17.6px;
+  width: 100%;
+}
+
+.notifications {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  margin-top: 48px;
+  border: 1px solid #ececec;
+}
+
+.notifications h3 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28.8px;
+  word-wrap: break-word;
+  color: #292929;
+  margin-bottom: 8px;
+}
+
+.flame-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.link {
+  color: #e61e4d;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.left-card .btn-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 40px;
+}
+
+.stat-card p {
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.6px;
+  word-wrap: break-word;
+  color: #3d3d3d;
+  margin: 0;
+  min-height: 44px;
+}
+
+.notification div {
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.6px;
+  word-wrap: break-word;
+  color: #292929;
+}
+
+.notification div strong {
+  font-weight: 700;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 24px;
+  padding-top: 24px;
+  border-bottom: 1px solid #ececec;
+  margin: 0;
+}
+
+.notifications .notification:last-child {
+  padding-bottom: 0;
+  border: none;
+}
+main {
+  overflow: hidden;
+}
+.boost-staff-inners.d-flex {
+  margin-left: -10px;
+}
+
+.staff-kabs {
+  padding-top: 80px;
+}
+.staff-kabs h3 {
+  font-size: 24px;
+  font-family: Inter;
+  font-weight: 700;
+  line-height: 28.8px;
+  word-wrap: break-word;
+  color: #292929;
+  margin-bottom: 24px;
+}
+
+.staff-card .staff-info h3 {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 21px;
+  letter-spacing: 0.6px;
+  word-wrap: break-word;
+}
+.slider-container button.slick-arrow.slick-prev {
+  left: 94%;
+}
+
+.slider-container button.slick-arrow {
+  width: 24px;
+  height: 24px;
+}
+.slider-container button.slick-arrow {
+  position: absolute;
+  left: 97%;
+  top: -38px;
+}
+
+.slider-container button.slick-arrow.slick-prev:before,
+.slider-container button.slick-arrow.slick-next:before {
+  font-size: 10px;
+}
