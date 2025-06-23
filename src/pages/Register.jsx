@@ -91,6 +91,7 @@ const Register = () => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.user.role);
       Notify.success("Account created successfully!");
+      window.dispatchEvent(new Event("user-logged-in"));
       navigate("/success");
     } catch (err) {
       console.error(err);

@@ -36,6 +36,8 @@ const ProfileUpdate = () => {
   const [error, setError] = useState("");
   const [checked, setChecked] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   const fetchProfile = () => {
     axios
@@ -198,6 +200,28 @@ const ProfileUpdate = () => {
     }
   };
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.patch(
+        `${Base_URLS.API}/auth/profile`,
+        { password: newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          withCredentials: true,
+        }
+      );
+      Notify.success("Password changed successfully");
+      setShowPasswordForm(false);
+      setNewPassword("");
+    } catch (err) {
+      console.error("Password update failed", err);
+      Notify.error("Failed to change password");
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
@@ -263,8 +287,10 @@ const ProfileUpdate = () => {
                   <i className="fa-solid fa-pen-to-square"></i>
                 </div>
               ) : (
-                <button type="submit" className="save-btn"
-                onClick={(e) => handleFormSubmit(e)}
+                <button
+                  type="submit"
+                  className="save-btn"
+                  onClick={(e) => handleFormSubmit(e)}
                 >
                   Save Changes <i className="fa-solid fa-check"></i>
                 </button>
@@ -286,85 +312,127 @@ const ProfileUpdate = () => {
       </div>
 
       <div className="right-panel">
-        <form className="profile-form" onSubmit={handleFormSubmit}>
-          <div className="wrap-form-header">
-            <div>
-              <h2>Profile Info</h2>
-              <p>Contact Details will not be shown to Event Staff</p>
-            </div>
-            {!isEditing ? (
-              <div className="edit-btn" onClick={() => setIsEditing(true)}>
-                Edit Profile <i className="fa-solid fa-pen-to-square"></i>
+        <div className="profile-form-panel">
+          <form className="profile-form" onSubmit={handleFormSubmit}>
+            <div className="wrap-form-header">
+              <div>
+                <h2>Profile Info</h2>
+                <p>Contact Details will not be shown to Event Staff</p>
               </div>
-            ) : (
-              <button type="submit" className="save-btn">
-                Save Changes <i className="fa-solid fa-check"></i>
-              </button>
+              {!isEditing ? (
+                <div className="edit-btn" onClick={() => setIsEditing(true)}>
+                  Edit Profile <i className="fa-solid fa-pen-to-square"></i>
+                </div>
+              ) : (
+                <button type="submit" className="save-btn">
+                  Save Changes <i className="fa-solid fa-check"></i>
+                </button>
+              )}
+            </div>
+            <hr />
+            <div className="form-grid">
+              {[
+                "firstName",
+                "lastName",
+                "country",
+                "suburb",
+                "state",
+                "postCode",
+                "phone",
+                "email",
+                "address",
+              ].map((field) => (
+                <React.Fragment key={field}>
+                  <label>
+                    {field
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                  </label>
+                  {isEditing ? (
+                    <input
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      // placeholder={field}
+                      placeholder={field
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())}
+                    />
+                  ) : (
+                    <p>{formData[field]}</p>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+            <hr className="hr-2" />
+            <div className="toggles">
+              <h3>Setting</h3>
+              <h6>Notification Setting</h6>
+              <div>
+                <label>SMS</label>
+                <Switch
+                  name="getSMS"
+                  checked={formData.getSMS}
+                  onChange={handleToggleChange}
+                />
+              </div>
+              <div>
+                <label>JOB</label>
+                <Switch
+                  name="jobNotifications"
+                  checked={formData.jobNotifications}
+                  onChange={handleToggleChange}
+                />
+              </div>
+
+              <div>
+                <label>Chat Message</label>
+                <Switch
+                  name="chatNotifications"
+                  checked={formData.chatNotifications}
+                  onChange={handleToggleChange}
+                />
+              </div>
+            </div>
+          </form>
+          <div className="change-password">
+            <button
+              type="button"
+              onClick={() => setShowPasswordForm(!showPasswordForm)}
+              className="toggle-password-btn"
+            >
+              Change Password
+            </button>
+
+            {showPasswordForm && (
+              <form onSubmit={handlePasswordSubmit} className="password-form">
+                {/* <label>New Password</label> */}
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                />
+                <div className="d-flex justify-content-between">                
+                <button type="submit" className="saves-btn" style={{marginright:'10px'}}>
+                  Update Password
+                </button>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowPasswordForm(false);
+                    setNewPassword("");
+                  }}
+                >
+                  Cancel
+                </button>
+                </div>
+              </form>
             )}
           </div>
-          <hr />
-          <div className="form-grid">
-            {[
-              "firstName",
-              "lastName",
-              "country",
-              "suburb",
-              "state",
-              "postCode",
-              "phone",
-              "email",
-              "address",
-            ].map((field) => (
-              <React.Fragment key={field}>
-                <label>{field.replace(/([A-Z])/g, " $1")}</label>
-                {isEditing ? (
-                  <input
-                    name={field}
-                    value={formData[field]}
-                    onChange={handleChange}
-                    placeholder={field}
-                  />
-                ) : (
-                  <p>{formData[field]}</p>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-          <hr />
-          <div className="toggles">
-            <h3>Setting</h3>
-            <h6>Notification Setting</h6>
-            <div>
-              <label>SMS</label>
-              <Switch
-                name="getSMS"
-                checked={formData.getSMS}
-                onChange={handleToggleChange}
-              />
-            </div>
-            <div>
-              <label>JOB</label>
-              <Switch
-                name="jobNotifications"
-                checked={formData.jobNotifications}
-                onChange={handleToggleChange}
-              />
-            </div>
-
-            <div>
-              <label>Chat Message</label>
-              <Switch
-                name="chatNotifications"
-                checked={formData.chatNotifications}
-                onChange={handleToggleChange}
-              />
-            </div>
-          </div>
-
-          <div className="change-password">
-            <a href="/change-password">Change Password</a>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

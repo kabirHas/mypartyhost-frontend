@@ -39,11 +39,11 @@ export default function DashboardLayout() {
     //   icon: "ri-briefcase-line",
     //   hidden: role === "staff" || role === "organiser",
     // },
-    {
-      to: "/dashboard/all-profiles",
-      label: "All Profiles",
-      icon: "ri-briefcase-line",
-    },
+    // {
+    //   to: "/dashboard/all-profiles",
+    //   label: "All Profiles",
+    //   icon: "ri-briefcase-line",
+    // },
     {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",

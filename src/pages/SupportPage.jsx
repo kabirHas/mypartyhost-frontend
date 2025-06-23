@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../asset/css/SupportPage.css";
+import { useNavigate } from 'react-router-dom';
 
 const faqData = [
   {
@@ -44,6 +45,7 @@ const faqData = [
 const tabs = ["All", "Booking", "Profile", "Privacy", "Payments", "Technical", "Policies"];
 
 export default function SupportPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("All");
   const [openIndex1, setOpenIndex1] = useState(null);
   const [openIndex2, setOpenIndex2] = useState(null);
@@ -72,7 +74,7 @@ export default function SupportPage() {
             View the status of any tickets you’ve submitted
           </p>
         </div>
-        <button className="kaab-view-tickets-btn">View Your Tickets</button>
+        <button className="kaab-view-tickets-btn" onClick={() => navigate('/dashboard/support/ticket')}>View Your Tickets</button>
       </div>
 
       <div className="search-box-c d-flex">
