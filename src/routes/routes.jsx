@@ -32,9 +32,15 @@ import AdminDashboard from "../pages/AdminDashboard";
 export const getStaticRoutes = (isLoggedIn, userRole) => {
   const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
   return [
-    <Route path="/login" element={<Login />} key="login" />,
-    <Route path="/register" element={<Register />} key="register" />,
+  <Route path="/login" element={<Login />} key="login" />,
+  <Route path="/register" element={<Register />} key="register" />,
 
+  <Route
+    path="/dashboard"
+    element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
+    key="dashboard"
+  >
+    <Route index element={<OrganizerDashboard />} /> 
     <Route
       path="/dashboard/all-pages"
       element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
@@ -74,6 +80,11 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       key="create-faq"
     />
     <Route
+      path="/dashboard/support"
+      element={isLoggedIn ? <SupportPage /> : <Navigate to="/login" />}
+      key="support"
+    ></Route>
+    <Route
       path="/dashboard/support/ticket"
       element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
       key="support"
@@ -94,7 +105,7 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     ,
     <Route
       path="/dashboard/dashboards"
-      element={isLoggedIn ? <DashboardHome /> : <Navigate to="/login" />}
+      element={isLoggedIn ? <OrganizerDashboard /> : <Navigate to="/login" />}
       key="dashboards"
     />
     ,
@@ -104,131 +115,252 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       key="profile"
     />
     ,
-      path="/dashboard"
-      element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
-      key="dashboard"
-    >
-
-   
-      
-      <Route index element={<OrganizerDashboard />} />
-      {/* {hasAccess(["superadmin"]) && <Route index element={<AdminDashboard />} />} */}
-      <Route
-        path="/dashboard/all-pages"
-        element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
-        key="all-pages"
-      />
-      ,
-      <Route
-        path="/dashboard/all-pages/create-page"
-        element={isLoggedIn ? <CreatePage /> : <Navigate to="/login" />}
-        key="create-page"
-      />
-      ,
-      <Route
-        path="/dashboard/create-category"
-        element={isLoggedIn ? <CreateCategory /> : <Navigate to="/login" />}
-        key="create-category"
-      />
-      <Route
-        path="/dashboard/saved-profile"
-        element={isLoggedIn ? <SavedProfiles /> : <Navigate to="/login" />}
-        key="saved-profiles"
-      />
-      ,
-      <Route
-        path="/dashboard/create-faq"
-        element={isLoggedIn ? <CreateFaq /> : <Navigate to="/login" />}
-        key="create-faq"
-      />
-      <Route
-        path="/dashboard/alerts"
-        element={isLoggedIn ? <Alerts /> : <Navigate to="/login" />}
-        key="create-faq"
-      />
-      <Route
-        path="/dashboard/jobs"
-        element={isLoggedIn ? <FindJobs /> : <Navigate to="/login" />}
-        key="create-faq"
-      />
     <Route
-      path="/dashboard/support/ticket"
-      element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
-      key="support"
+      path="/dashboard/manage-jobs"
+      element={isLoggedIn ? <ManageJobsLayout /> : <Navigate to="/login" />}
+      key="profile"
     >
-     
+      <Route index element={<ManageJobs />} />
+      <Route path=":id/view" element={<ViewJobDetails />} />
     </Route>
-    <Route
-        path="/dashboard/support/new-ticket"
-        element={isLoggedIn ? <ContactSupport /> : <Navigate to="/login" />}
-        key="contact"
-      />
-    <Route
-        path="/dashboard/all-profiles"
-        element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
-        key="contact"
-      />
-    
-      ,
-      <Route
-        path="/dashboard/profile"
-        element={isLoggedIn ? <ProfileUpdate /> : <Navigate to="/login" />}
-        key="profile"
-      />
-      ,
-      <Route
-        path="/dashboard/manage-jobs"
-        element={isLoggedIn ? <ManageJobsLayout /> : <Navigate to="/login" />}
-        key="profile"
-      >
-        <Route index element={<ManageJobs />} />
-        <Route path=":id/view" element={<ViewJobDetails />} />
-      </Route>
-      {/* <Route
+    {/* <Route
       path="/dashboard/manage-jobs/:id/view"
       element={isLoggedIn ? <ViewJobDetails /> : <Navigate to="/login" />}
       key="profile"
     /> */}
-      <Route
-        path="/dashboard/messages"
-        element={isLoggedIn ? <MessagePage /> : <Navigate to="/login" />}
-        key="messages"
-      />
-      ,
-      <Route
-        path="/dashboard/billing"
-        element={isLoggedIn ? <PaymentPage /> : <Navigate to="/login" />}
-        key="billing"
-      />
-      ,
-      <Route
-        path="/dashboard/support"
-        element={isLoggedIn ? <SupportPage /> : <Navigate to="/login" />}
-        key="support"
-      />
-      ,
-    </Route>,
+    
+  <Route
+    path="/dashboard/messages"
+    element={isLoggedIn ? <MessagePage /> : <Navigate to="/login" />}
+    key="messages"
+  />,
+  <Route
+    path="/dashboard/billing"
+    element={isLoggedIn ? <PaymentPage /> : <Navigate to="/login" />}
+    key="billing"
+  />,
+  </Route>,
 
-    <Route
-      path="/update-page/:id"
-      element={isLoggedIn ? <UpdatePage /> : <Navigate to="/login" />}
-      key="update-page"
-    />,
-    <Route
-      path="/create-job"
-      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
-      key="event"
-    />,
-    <Route
-      path="/dashboard"
-      element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
-      key="dashboard"
-    />,
-    <Route path="/success" element={<SuccessScreen />} />,
-  ];
+  <Route
+    path="/update-page/:id"
+    element={isLoggedIn ? <UpdatePage /> : <Navigate to="/login" />}
+    key="update-page"
+  />,
+  <Route path="/create-job" element={isLoggedIn ? <CreateJobs/> : <Navigate to='/login'/>} key='event'/>,
+  <Route
+    path="/dashboard"
+    element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
+    key="dashboard"
+  />,
+  <Route path="/success" element={<SuccessScreen />} />,
+];
 };
 
+
+
+
+// export const getStaticRoutes = (isLoggedIn, userRole) => {
+//   const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
+//   return [
+//     <Route path="/login" element={<Login />} key="login" />,
+//     <Route path="/register" element={<Register />} key="register" />,
+
+//     <Route
+//       path="/dashboard/all-pages"
+//       element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
+//       key="all-pages"
+//     />
+//     ,
+//     <Route
+//       path="/dashboard/all-pages/create-page"
+//       element={isLoggedIn ? <CreatePage /> : <Navigate to="/login" />}
+//       key="create-page"
+//     />
+//     ,
+//     <Route
+//       path="/dashboard/create-category"
+//       element={isLoggedIn ? <CreateCategory /> : <Navigate to="/login" />}
+//       key="create-category"
+//     />
+//     <Route
+//       path="/dashboard/saved-profile"
+//       element={isLoggedIn ? <SavedProfiles /> : <Navigate to="/login" />}
+//       key="saved-profiles"
+//     />
+//     ,
+//     <Route
+//       path="/dashboard/create-faq"
+//       element={isLoggedIn ? <CreateFaq /> : <Navigate to="/login" />}
+//       key="create-faq"
+//     />
+//     <Route
+//       path="/dashboard/alerts"
+//       element={isLoggedIn ? <Alerts /> : <Navigate to="/login" />}
+//       key="create-faq"
+//     />
+//     <Route
+//       path="/dashboard/jobs"
+//       element={isLoggedIn ? <FindJobs /> : <Navigate to="/login" />}
+//       key="create-faq"
+//     />
+//     <Route
+//       path="/dashboard/support/ticket"
+//       element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
+//       key="support"
+//     >
+     
+//     </Route>
+//     <Route
+//         path="/dashboard/support/new-ticket"
+//         element={isLoggedIn ? <ContactSupport /> : <Navigate to="/login" />}
+//         key="contact"
+//       />
+//     <Route
+//         path="/dashboard/all-profiles"
+//         element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
+//         key="contact"
+//       />
+    
+//     ,
+//     <Route
+//       path="/dashboard/dashboards"
+//       element={isLoggedIn ? <DashboardHome /> : <Navigate to="/login" />}
+//       key="dashboards"
+//     />
+//     ,
+//     <Route
+//       path="/dashboard/profile"
+//       element={isLoggedIn ? <ProfileUpdate /> : <Navigate to="/login" />}
+//       key="profile"
+//     />
+//     ,
+//       path="/dashboard"
+//       element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
+//       key="dashboard"
+//     >
+
+   
+      
+//       <Route index element={<OrganizerDashboard />} />
+//       {/* {hasAccess(["superadmin"]) && <Route index element={<AdminDashboard />} />} */}
+//       <Route
+//         path="/dashboard/all-pages"
+//         element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
+//         key="all-pages"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/all-pages/create-page"
+//         element={isLoggedIn ? <CreatePage /> : <Navigate to="/login" />}
+//         key="create-page"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/create-category"
+//         element={isLoggedIn ? <CreateCategory /> : <Navigate to="/login" />}
+//         key="create-category"
+//       />
+//       <Route
+//         path="/dashboard/saved-profile"
+//         element={isLoggedIn ? <SavedProfiles /> : <Navigate to="/login" />}
+//         key="saved-profiles"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/create-faq"
+//         element={isLoggedIn ? <CreateFaq /> : <Navigate to="/login" />}
+//         key="create-faq"
+//       />
+//       <Route
+//         path="/dashboard/alerts"
+//         element={isLoggedIn ? <Alerts /> : <Navigate to="/login" />}
+//         key="create-faq"
+//       />
+//       <Route
+//         path="/dashboard/jobs"
+//         element={isLoggedIn ? <FindJobs /> : <Navigate to="/login" />}
+//         key="create-faq"
+//       />
+//     <Route
+//       path="/dashboard/support/ticket"
+//       element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
+//       key="support"
+//     >
+     
+//     </Route>
+//     <Route
+//         path="/dashboard/support/new-ticket"
+//         element={isLoggedIn ? <ContactSupport /> : <Navigate to="/login" />}
+//         key="contact"
+//       />
+//     <Route
+//         path="/dashboard/all-profiles"
+//         element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
+//         key="contact"
+//       />
+    
+//       ,
+//       <Route
+//         path="/dashboard/profile"
+//         element={isLoggedIn ? <ProfileUpdate /> : <Navigate to="/login" />}
+//         key="profile"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/manage-jobs"
+//         element={isLoggedIn ? <ManageJobsLayout /> : <Navigate to="/login" />}
+//         key="profile"
+//       >
+//         <Route index element={<ManageJobs />} />
+//         <Route path=":id/view" element={<ViewJobDetails />} />
+//       </Route>
+//       {/* <Route
+//       path="/dashboard/manage-jobs/:id/view"
+//       element={isLoggedIn ? <ViewJobDetails /> : <Navigate to="/login" />}
+//       key="profile"
+//     /> */}
+//       <Route
+//         path="/dashboard/messages"
+//         element={isLoggedIn ? <MessagePage /> : <Navigate to="/login" />}
+//         key="messages"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/billing"
+//         element={isLoggedIn ? <PaymentPage /> : <Navigate to="/login" />}
+//         key="billing"
+//       />
+//       ,
+//       <Route
+//         path="/dashboard/support"
+//         element={isLoggedIn ? <SupportPage /> : <Navigate to="/login" />}
+//         key="support"
+//       />
+//       ,
+//     </Route>,
+
+//     <Route
+//       path="/update-page/:id"
+//       element={isLoggedIn ? <UpdatePage /> : <Navigate to="/login" />}
+//       key="update-page"
+//     />,
+//     <Route
+//       path="/create-job"
+//       element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
+//       key="event"
+//     />,
+//     <Route
+//       path="/dashboard"
+//       element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
+//       key="dashboard"
+//     />,
+//     <Route path="/success" element={<SuccessScreen />} />,
+//   ];
+// };
+
 // Dynamic page routes like /home, /tets
+
+
 export const generateDynamicRoutes = (pages) => {
   return pages.map((page) => (
     <Route

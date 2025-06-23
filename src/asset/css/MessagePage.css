@@ -292,6 +292,7 @@ img.kaab-read {
     line-height: 18.90px;
     word-wrap: break-word;
     color: #3d3d3d;
+    background: none;
 }
 
 .kaab-chat-body .kaab-chat-message.sender {

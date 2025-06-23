@@ -42,12 +42,6 @@ function ContactSupport() {
           </p>
         </div>
         <button className="border-2 border-[#E61E4D] font-semibold text-[#E61E4D] px-4 py-2 text-sm rounded-md hover:bg-pink-50">
-          <h1 className="text-2xl font-semibold">Contact Support</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            We're here to help! Let us know what you need assistance with.
-          </p>
-        </div>
-        <button className="border-2 border-pink-600 font-semibold text-pink-600 px-4 py-2 text-sm rounded-md hover:bg-pink-50">
           5 Tickets
         </button>
       </div>
@@ -126,8 +120,6 @@ function ContactSupport() {
         {/* File Upload */}
         <div className="border-2 w-36 h-12 border-dashed border-[#E61E4D] rounded-md p-4 flex items-center justify-center">
           <label className="cursor-pointer text-[#E61E4D] flex flex-nowrap items-center gap-1">
-        <div className="border-2 w-36 h-12 border-dashed border-pink-600 rounded-md p-4 flex items-center justify-center">
-          <label className="cursor-pointer text-pink-600 flex flex-nowrap items-center gap-1">
             <i className="ri-attachment-2 text-xl" />
             <span className="text-xs font-medium">Attach file</span>
             <input
@@ -148,7 +140,6 @@ function ContactSupport() {
         <button
           type="submit"
           className="bg-gradient-to-l from-pink-600 to-rose-600 text-white px-6 py-3 rounded-md text-sm hover:bg-pink-700"
-          className="bg-pink-600 text-white px-6 py-2 rounded-md text-sm hover:bg-pink-700"
         >
           Submit Request
         </button>
@@ -160,7 +151,6 @@ function ContactSupport() {
         <p>
           2. You may also find answers to common questions in our{" "}
           <a href="#" className="text-[#E61E4D] underline">
-          <a href="#" className="text-pink-600 underline">
             Help Center
           </a>
           .
