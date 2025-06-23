@@ -240,21 +240,21 @@ main {
   letter-spacing: 0.6px;
   word-wrap: break-word;
 }
-.slider-container button.slick-arrow.slick-prev {
+.staff-kabs .slider-container button.slick-arrow.slick-prev {
   left: 94%;
 }
 
-.slider-container button.slick-arrow {
+.staff-kabs .slider-container button.slick-arrow {
   width: 24px;
   height: 24px;
 }
-.slider-container button.slick-arrow {
+.staff-kabs .slider-container button.slick-arrow {
   position: absolute;
   left: 97%;
   top: -38px;
 }
 
-.slider-container button.slick-arrow.slick-prev:before,
-.slider-container button.slick-arrow.slick-next:before {
+.staff-kabs .slider-container button.slick-arrow.slick-prev:before,
+.staff-kabs .slider-container button.slick-arrow.slick-next:before {
   font-size: 10px;
 }

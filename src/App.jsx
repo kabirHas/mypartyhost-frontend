@@ -2,7 +2,7 @@
 // import { Routes, Route } from 'react-router-dom'
 // import DashboardLayout from './Layouts/DashboardLayout'
 // import Home from './Pages/Home'
-// import Mana geJobs from './Pages/ManageJobs'
+
 // function App() {
 //   return (
 //     <>

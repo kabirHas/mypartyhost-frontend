@@ -8,7 +8,11 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const [pages, setPages] = useState(null);
-  const isLoggedIn = !!localStorage.getItem('token') ;
+  // const isLoggedIn = !!localStorage.getItem('token') ;
+  // const userRole = localStorage.getItem('role') ;
+
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
 
 
   useEffect(() => {
@@ -21,13 +25,24 @@ const App = () => {
       });
   }, []);
 
+
+  useEffect(() => {
+    const handleLogin = () => {
+      setIsLoggedIn(true);
+      setUserRole(localStorage.getItem('role'));
+    };
+
+    window.addEventListener("user-logged-in", handleLogin);
+    return () => window.removeEventListener("user-logged-in", handleLogin);
+  }, []);
+
   if (pages === null) return <div>Loading...</div>;
 
   return (
     <Router>
       <ToastContainer/>
       <Routes>
-        {getStaticRoutes(isLoggedIn)}
+        {getStaticRoutes(isLoggedIn, userRole)}
         {generateDynamicRoutes(pages)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 import ManageCategories from "../components/ManageCategories";
-import "../asset/css/Dashboard.css";
+import "../asset/css/OrganizerDashboard.css";
 import { FaFire, FaBriefcase, FaFileAlt, FaStar } from "react-icons/fa";
 import BASE_URLS from "../config";
 import Slider from "react-slick";
@@ -39,7 +39,7 @@ const notifications = [
   },
 ];
 
-const Dashboard = () => {
+const OrganizerDashboard = () => {
   // const [pages, setPages] = useState([]);
   // const navigate = useNavigate();
 
@@ -249,4 +249,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default OrganizerDashboard;

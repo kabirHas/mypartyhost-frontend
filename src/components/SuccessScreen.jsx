@@ -11,12 +11,14 @@ const SuccessScreen = () => {
   };
 
   return (
+    <div className="justify-its">
     <div className="success-screen">
       <img src="/images/Confetti.png" alt="Success" className="success-icon" />
       <h2>Your account has been successfully created</h2>
       <button className="setup-button" onClick={handleProfileSetup}>
-        <span role="img" aria-label="profile">👤</span> Set Up Your Profile
+        <img src="/images/UserCircle.svg" alt="profile" /> Set Up Your Profile
       </button>
+    </div>
     </div>
   );
 };

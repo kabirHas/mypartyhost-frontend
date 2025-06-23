@@ -86,7 +86,7 @@ const Login = () => {
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.user.role);
-      
+      window.dispatchEvent(new Event("user-logged-in"));
       navigate('/dashboard');
     } catch (err) {
       console.error('Login failed:', err);
@@ -101,6 +101,7 @@ const Login = () => {
           <h2>Login</h2>
           <Link to="/register" className="create-account">Create Account</Link>
         </div>
+        <label>Email</label>
         <input
           type="email"
           placeholder="Enter Email"
@@ -108,6 +109,7 @@ const Login = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+        <label>Password</label>
         <input
           type="password"
           placeholder="Enter Password"
@@ -125,10 +127,10 @@ const Login = () => {
         <div className="divider">or</div>
         <div className="social-buttons">
           <button type="button" className="google-button">
-            <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google" /> Continue with Google
+            <img src="https://img.icons8.com/?size=512&id=V5cGWnc9R4xj&format=png" alt="Google" /> Continue with Google
           </button>
           <button type="button" className="apple-button">
-            <img src="https://img.icons8.com/ios-filled/16/000000/mac-os.png" alt="Apple" /> Continue with Apple
+            <img src="https://img.icons8.com/?size=512&id=30840&format=png" alt="Apple" /> Continue with Apple
           </button>
         </div>
       </form>

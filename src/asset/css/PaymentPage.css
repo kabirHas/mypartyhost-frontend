@@ -5,7 +5,7 @@
     font-weight: 700;
     line-height: 42.40px;
     word-wrap: break-word;
-    margin: 0;
+    margin-bottom: 5px;
     color: #292929;
 }
 
@@ -16,6 +16,7 @@
     line-height: 21.60px;
     word-wrap: break-word;
     color: #292929;
+    margin: 0;
 }
 
 .kaab-credit-box {
@@ -47,10 +48,16 @@
     color: #292929;
 }
 
-.kaab-transaction-section {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
+.table-heads >div {
+    height: 43px;
+}
+
+.table-bodies >div {
+    height: 84px;
+}
+
+.table-bodies:last-child {
+    border-bottom: none;
 }
 
 .kaab-transaction-heading {
@@ -62,17 +69,32 @@
 }
 
 .kaab-search-filter-bar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    margin-top: 24px;
+    align-items: center;
 }
 
 .kaab-search-input {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  max-width: 300px;
+    padding: 10px 12px;
+    border: none;
+    font-size: 14px;
+    font-family: Inter;
+    font-weight: 400;
+    line-height: 18.90px;
+    word-wrap: break-word;
+    outline: none;
+    width: 100%;
+    background: transparent;
+}
+
+.search-box-c.d-flex {
+    max-width: 300px;
+    flex: 1 1;
+    border: 1px solid #656565;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .kaab-filter-buttons {
@@ -81,62 +103,24 @@
 }
 
 .kaab-filter-select {
-  padding: 10px 14px;
-  border-radius: 20px;
-  border: none;
-  background: #f1f1f1;
-  cursor: pointer;
+    font-size: 14px;
+    font-family: Inter;
+    font-weight: 500;
+    line-height: 18.90px;
+    word-wrap: break-word;
+    padding: 8px 12px;
+    border: 1px solid #656565;
+    border-radius: 999px;
+    background: white;
+    outline: none;
 }
 
-.kaab-transaction-table {
-  width: 100%;
-  border-collapse: collapse;
-}
 
-.kaab-transaction-table th,
-.kaab-transaction-table td {
-  padding: 14px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-.kaab-event-link {
-  color: #e10042;
-  cursor: pointer;
-}
-
-.kaab-status {
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.kaab-status-completed {
-  background-color: #dcfce7;
-  color: #15803d;
-}
-
-.kaab-status-pending {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.kaab-status-canceled {
-  background-color: #fde2e2;
-  color: #b91c1c;
-}
-
-.kaab-invoice-btn {
-  padding: 6px 12px;
-  border: none;
-  background: #f3f3f3;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.kaab-pagination {
+.pagnations {
   margin-top: 20px;
-  font-size: 14px;
-  color: #666;
+}
+
+.pagnations select {
+    border: none;
+    outline: none;
 }

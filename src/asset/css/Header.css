@@ -11,10 +11,15 @@
   margin: auto;
 }
 
-.logo {
-  font-weight: bold;
-  font-size: 20px;
-  color: black;
+.header .logo {
+    color: #000;
+    font-family: Poppins;
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 89%;
+    letter-spacing: -0.256px;
+    margin: 0;
 }
 
 .nav {
@@ -24,31 +29,40 @@
 }
 
 .nav a {
-  text-decoration: none;
-  color: #333;
-  font-size: 16px;
+    color: #3D3D3D;
+    font-family: 'Inter';
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 135%;
+    text-decoration: none;
 }
 
 .btns {
-  padding: 6px 14px;
-  font-size: 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  background: white;
-  transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #292929;
+    background: #FFF1F2;
+    transition: all 0.3s ease;
+    color: #292929;
+    font-family: 'Inter';
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 135%;
 }
 
 .login {
-  color: #333;
+  color: #292929;
 }
 
 .signup {
-  color: #ff416c;
-  border-color: #ff416c;
+    color: #E61E4D;
+    border-color: #E61E4D;
+    background: transparent;
 }
 
-.signup:hover {
+/* .signup:hover {
   background-color: #ff416c;
   color: white;
-}
+} */
