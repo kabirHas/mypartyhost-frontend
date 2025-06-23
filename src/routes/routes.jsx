@@ -36,6 +36,74 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     <Route path="/register" element={<Register />} key="register" />,
 
     <Route
+      path="/dashboard/all-pages"
+      element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
+      key="all-pages"
+    />
+    ,
+    <Route
+      path="/dashboard/all-pages/create-page"
+      element={isLoggedIn ? <CreatePage /> : <Navigate to="/login" />}
+      key="create-page"
+    />
+    ,
+    <Route
+      path="/dashboard/create-category"
+      element={isLoggedIn ? <CreateCategory /> : <Navigate to="/login" />}
+      key="create-category"
+    />
+    <Route
+      path="/dashboard/saved-profile"
+      element={isLoggedIn ? <SavedProfiles /> : <Navigate to="/login" />}
+      key="saved-profiles"
+    />
+    ,
+    <Route
+      path="/dashboard/create-faq"
+      element={isLoggedIn ? <CreateFaq /> : <Navigate to="/login" />}
+      key="create-faq"
+    />
+    <Route
+      path="/dashboard/alerts"
+      element={isLoggedIn ? <Alerts /> : <Navigate to="/login" />}
+      key="create-faq"
+    />
+    <Route
+      path="/dashboard/jobs"
+      element={isLoggedIn ? <FindJobs /> : <Navigate to="/login" />}
+      key="create-faq"
+    />
+    <Route
+      path="/dashboard/support/ticket"
+      element={isLoggedIn ? <Contact /> : <Navigate to="/login" />}
+      key="support"
+    >
+     
+    </Route>
+    <Route
+        path="/dashboard/support/new-ticket"
+        element={isLoggedIn ? <ContactSupport /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/all-profiles"
+        element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    
+    ,
+    <Route
+      path="/dashboard/dashboards"
+      element={isLoggedIn ? <DashboardHome /> : <Navigate to="/login" />}
+      key="dashboards"
+    />
+    ,
+    <Route
+      path="/dashboard/profile"
+      element={isLoggedIn ? <ProfileUpdate /> : <Navigate to="/login" />}
+      key="profile"
+    />
+    ,
       path="/dashboard"
       element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
       key="dashboard"

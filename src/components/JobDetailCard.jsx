@@ -15,26 +15,28 @@ function JobDetailCard({
   city,
 }) {
   return (
-    <div className="bg-white mt-4 p-4 rounded-xl  space-y-4 text-sm">
+    <div className="bg-white mt-4 p-6 rounded-xl  space-y-4 text-sm">
       <div>
-        <h3 className="font-bold text-lg text-zinc-800 tracking-tight">
+        <h3 className="justify-start text-gray-700 text-base font-bold font-['Inter'] leading-snug">
           Job Details
         </h3>
-        <p className="text-zinc-700 mt-2">{jobDescription}</p>
+        <p className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">{jobDescription}</p>
       </div>
 
-      <hr className="border-zinc-500" />
+      <hr className="border-[#ECECEC]" />
 
       <div className="text-zinc-700 my-3">
-        <p className="mb-2">
-          <strong>Positions Available:</strong> {numberOfPositions}
+        <p className="self-stretch justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+          Positions Available: {numberOfPositions}
         </p>
-        <div className="flex flex-wrap gap-4 text-zinc-600 items-center">
-          <span className="flex items-center gap-1">
+        <div className="flex flex-wrap gap-6 text-[#3D3D3D] items-center">
+          <span className="flex items-center gap-3">
             <i className="ri-map-pin-line text-lg" />
+            <span className="justify-start text-Token-Text-Secondary text-base font-normal font-['Inter'] leading-snug">
             {`${suburb}, ${city}`}
+            </span>
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-3">
             <i className="ri-calendar-line text-lg" />
             {new Date(jobDate).toLocaleDateString("en-GB", {
               day: "2-digit",
@@ -42,7 +44,7 @@ function JobDetailCard({
               year: "numeric",
             })}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-3">
             <i className="ri-time-line text-lg" />
             {`${startTime} – ${endTime}`}
           </span>
@@ -50,24 +52,24 @@ function JobDetailCard({
       </div>
       <hr className="border-zinc-500" />
       <div className="text-zinc-700 space-y-1">
-        <p>
-          <strong>Gender:</strong> {lookingFor || "Any"}
+        <p className="self-stretch justify-start text-Token-Text-Secondary text-base font-normal font-['Inter'] leading-snug">
+          Gender: {lookingFor || "Any"}
         </p>
         {travelAllowance &&
           (travelAllowance === "none" ? (
-            <p className="flex items-center gap-2">
+            <p className="flex items-center gap-2 self-stretch justify-start text-Token-Text-Secondary text-base font-normal font-['Inter'] leading-snug">
               No Travel Compensation
-              <i className="ri-close-circle-fill text-pink-600 text-base" />
+              <i className="ri-close-circle-fill text-[#E61E4D] text-base" />
             </p>
           ) : (
             <p className="flex items-center gap-2">
               Travel Compensation: {travelAllowance.toUpperCase()}
-              <i className="ri-checkbox-circle-fill text-pink-600 text-base" />
+              <i className="ri-checkbox-circle-fill text-[#E61E4D] text-base" />
             </p>
           ))}
       </div>
       <button
-        className="my-16  px-3 py-2 border-2 border-pink-600 rounded-md flex place-content-center gap-2 no-underline font-semibold hover:bg-pink-600 hover:text-white transition-colors text-pink-600"
+        className="px-4 py-2 text-[#E61E4D] font-medium  rounded-lg outline outline-2 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
         to={"/"}
       >
         Edit Post <i class="ri-pencil-line"></i>

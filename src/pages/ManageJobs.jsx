@@ -103,27 +103,54 @@ function ManageJobs() {
   });
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Manage Jobs</h1>
+        <h1 className="self-stretch h-9 justify-start text-Token-Text-Primary text-3xl font-medium font-['Inter'] leading-9 tracking-tight">Manage Jobs</h1>
         <div className="flex items-center gap-2">
-          <select
-            className="border rounded-full p-2 w-20 border-zinc-400 text-sm"
-            value={filter}
-            onChange={handleFilterChange}
-          >
-            <option value="all">All</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-          <select
-            className="border rounded-full border-zinc-400 px-4 py-2 text-sm"
-            value={sort}
-            onChange={handleSortChange}
-          >
-            <option value="new-to-old">New to Old</option>
-            <option value="old-to-new">Old to New</option>
-          </select>
+          <div className="relative w-20 inline-flex items-center px-2 py-1 rounded-3xl outline outline-1 outline-offset-[-1px] outline-zinc-300 bg-white">
+            <select
+              className="appearance-none bg-transparent text-base font-normal font-['Inter'] leading-snug text-zinc-600 pr-8 w-full focus:outline-none"
+              value={filter}
+              onChange={handleFilterChange}
+            >
+              <option value="all">All</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+            <div className="absolute right-2 pointer-events-none">
+              <svg
+                className="w-3.5 h-2 text-zinc-800"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 14 8"
+              >
+                <path d="M1 1l6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+          <div className="relative inline-flex items-center px-2 py-1 rounded-3xl outline outline-1 outline-offset-[-1px] outline-zinc-300 bg-white">
+      <select
+        className="appearance-none bg-transparent text-base font-normal font-['Inter'] leading-snug text-zinc-600 pr-8 w-full focus:outline-none"
+        value={sort}
+        onChange={handleSortChange}
+      >
+        <option value="new-to-old">New to Old</option>
+        <option value="old-to-new">Old to New</option>
+      </select>
+      <div className="absolute right-2 pointer-events-none w-6 h-4">
+        <svg
+          className="w-6 h-4 text-zinc-800"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path d="M8 7l4-4 4 4" />
+          <path d="M8 17l4 4 4-4" />
+        </svg>
+      </div>
+    </div>
         </div>
       </div>
 
@@ -133,16 +160,16 @@ function ManageJobs() {
         <div className="text-center text-gray-500">Loading jobs...</div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full  bg-white text-sm">
-            <thead className="text-left text-gray-600 bg-white border-50">
+          <table className="min-w-full border-collapse border-1    text-sm">
+            <thead className="text-left  text-gray-600 bg-white border-zinc-500 border-50">
               <tr>
-                <th className="px-6 py-4 font-medium">Event Name</th>
-                <th className="px-6 py-4 font-medium">Job Title</th>
-                <th className="px-6 py-4 font-medium">Date</th>
-                <th className="px-6 py-4 font-medium">Position</th>
-                <th className="px-6 py-4 font-medium">Applications</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium">Actions</th>
+                <th className="px-6 w-48 py-3 border-1 border-zinc-200 self-stretch justify-start  text-sm font-medium font-['Inter'] leading-tight">Event Name</th>
+                <th className="px-6 w-32 py-3 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Job Title</th>
+                <th className="px-6 py-3 w-32 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Date</th>
+                <th className="px-6 py-3 w-32 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Position</th>
+                <th className="px-6 py-3 w-32 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Applications</th>
+                <th className="px-6 py-3 w-32 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Status</th>
+                <th className="px-6 py-3 border-1 border-zinc-200 self-stretch justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">Actions</th>
               </tr>
             </thead>
             <tbody className="text-gray-800 ">
@@ -150,43 +177,26 @@ function ManageJobs() {
                 sortedJobs.map((job) => (
                   <tr
                     key={job._id}
-                    className="border-t border-b border-gray-500 border-gray-200 even:bg-white odd:bg-gray-50"
+                    className=" text-xs text-gray-800 border-b-[1.2px] border-gray-900 hover:bg-gray-50 last:border-b-0 "
                   >
-                    <td className="px-6 py-4 font-semibold">{job.eventName}</td>
-                    <td className="px-6 py-4">{job.jobTitle || "--"}</td>
-                    <td className="px-6 py-4">{formatDate(job.jobDate)}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 border-r border-zinc-200 py-4 font-semibold">{job.eventName}</td>
+                    <td className="px-6 border-r border-zinc-200 py-4">{job.jobTitle || "--"}</td>
+                    <td className="px-6 border-r border-zinc-200 py-4">{formatDate(job.jobDate)}</td>
+                    <td className="px-6 border-r border-zinc-200 py-4">
                       {job.hiredStaff.length}/{job.numberOfPositions} Filled
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 border-r border-zinc-200 py-4">
                       <Link
                         to={"/dashboard/manage-jobs/" + job._id + "/view"}
-                        className="text-pink-600 hover:underline"
+                        className="text-[#e61e4c] hover:underline font-medium"
                       >
                         {job.applicants.length} applications
                       </Link>
                     </td>
-                    <td className="px-6 py-4">
-                      {/* <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={job.isActive}
-                          readOnly
-                        />
-                        <div
-                          className={`w-11 h-6 rounded-full ${
-                            job.isActive ? "bg-pink-600" : "bg-gray-400"
-                          } flex items-center px-1 transition-colors`}
-                        >
-                          <div
-                            className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                              job.isActive ? "translate-x-5" : ""
-                            }`}
-                          ></div>
-                        </div>
-                      </label> */}
+                    <td className="px-6 border-r border-zinc-200 py-4">
+                     
                       <label className="inline-flex items-center cursor-pointer">
+                        <span className="text-zinc-500 mr-2">{job.isActive ? "Active" : "Inactive"}</span>
                         <input
                           type="checkbox"
                           className="sr-only"
@@ -197,7 +207,7 @@ function ManageJobs() {
                         />
                         <div
                           className={`w-11 h-6 rounded-full ${
-                            job.isActive ? "bg-pink-600" : "bg-gray-400"
+                            job.isActive ? "bg-[#E61E4D]" : "bg-gray-400"
                           } flex items-center px-1 transition-colors`}
                         >
                           <div
@@ -208,10 +218,10 @@ function ManageJobs() {
                         </div>
                       </label>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 border-r border-zinc-200 py-4">
                       <Link
                         to={"/dashboard/manage-jobs/" + job._id + "/view"}
-                        className="border-[1px] no-underline border-pink-600 text-pink-600 rounded-full px-4 py-2 hover:bg-pink-600 hover:text-white transition"
+                        className="border-[1px] no-underline border-[#e61e4c] text-zinc-600 rounded-full px-4 py-2 hover:bg-[#e61e4c] hover:text-white transition"
                       >
                         View
                       </Link>

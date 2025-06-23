@@ -45,6 +45,11 @@ export default function DashboardLayout() {
       icon: "ri-briefcase-line",
     },
     {
+      to: "/dashboard/all-profiles",
+      label: "All Profiles",
+      icon: "ri-briefcase-line",
+    },
+    {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",
       icon: "ri-briefcase-line",

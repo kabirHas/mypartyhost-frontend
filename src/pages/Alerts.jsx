@@ -102,9 +102,9 @@ function Alerts() {
     switch (notif.type) {
       case "job_applied":
         return (
-          <div className="flex flex-col md:flex-row justify-between items-start">
+          <div className="flex font-['Inter'] leading-snug flex-col md:flex-row justify-between items-start">
             <div>
-              <p className="tracking-tight text-gray-800">
+              <p className="tracking-tight font-['Inter'] leading-snug text-gray-800">
                 <span className="font-semibold capitalize">
                   {notif?.sender?.name || "Someone"}
                 </span>{" "}
@@ -118,13 +118,13 @@ function Alerts() {
                 <span className="text-gray-600">Offer Rate:</span> $
                 {notif?.metadata?.offerRate || "N/A"}/hr
               </p>
-              <p className="mt-1 text-gray-700 text-sm">
+              <p className="mt-1 self-stretch h-10 justify-start text-[#3D3D3D] text-sm font-normal  text-sm">
                 {notif?.metadata?.applicationMessage || "No message provided."}
               </p>
               <div className="mt-3 md:mt-0">
                 <a
                   href={`/application/${notif?.data?.applicationId}`}
-                  className="text-pink-600 font-medium no-underline hover:underline"
+                  className="text-[#E61E4D] font-medium no-underline hover:underline"
                 >
                   View Application
                 </a>
@@ -142,7 +142,7 @@ function Alerts() {
 
       case "job_invite":
         return (
-          <div className="bg-white rounded-2xl">
+          <div className="bg-white text-base font-medium font-['Inter'] leading-snug text-[#292929] rounded-2xl">
             {/* Top: Profile & Rate */}
             <div className="flex items-start justify-between">
               <div className="flex gap-2">
@@ -155,7 +155,7 @@ function Alerts() {
                   <h2 className="font-semibold text-base">
                     {notif?.user?.name}
                   </h2>
-                  <div className="flex items-center text-gray-500 text-sm -mt-2 ">
+                  <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
                     <i className="ri-map-pin-line mr-1 text-lg" />
                     {notif?.user?.city},
                     {notif?.user?.country || "Location not specified"}
@@ -169,7 +169,7 @@ function Alerts() {
 
             {/* Event Info */}
             <div className="mt-4">
-              <p className="text-gray-700 text-sm mb-2">
+              <p className="text-[#3D3D3D] text-sm mb-2">
                 Invitation Sent for{" "}
                 <span className="font-medium">
                   {notif?.metadata?.jobId?.eventName}
@@ -188,7 +188,7 @@ function Alerts() {
             {/* Status */}
             <div className="mt-4 ">
               {notif?.metadata?.inviteId?.status === "pending" && (
-                <span className="text-xs bg-pink-100 text-zinc-800 px-3 py-1 rounded-full inline-block">
+                <span className="text-xs bg-[#FFF1F2] px-4 py-2  rounded-full inline-flex justify-center items-center inline-block">
                   Waiting for response
                 </span>
               )}
@@ -198,7 +198,7 @@ function Alerts() {
                 </span>
               )}
             </div>
-            <hr className="border-1 border-zinc-700" />
+            <hr className="border-1 border-zinc-200" />
             {/* Buttons */}
             <div className="mt-2 flex justify-end gap-4 items-center">
               {notif?.metadata?.inviteId?.status === "pending" ? (
@@ -206,7 +206,7 @@ function Alerts() {
                   <button className="text-sm text-gray-500 hover:text-black">
                     Withdraw Invite
                   </button>
-                  <button className="text-sm text-pink-600 font-semibold border-2 border-pink-600 px-4 py-2  rounded-md hover:bg-pink-600 hover:text-white ease-in duration-100 flex items-center gap-1">
+                  <button className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1">
                     Send Reminder
                   </button>
                 </>
@@ -215,7 +215,7 @@ function Alerts() {
                   <button className="text-sm text-gray-600 hover:text-black">
                     Cancel
                   </button>
-                  <button className="text-sm text-pink-600 border border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50">
+                  <button className="text-sm text-[#E61E4D] border border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50">
                     Complete Booking
                   </button>
                 </>
@@ -226,7 +226,7 @@ function Alerts() {
 
       case "booking":
         return (
-          <div className="bg-white rounded-2xl">
+          <div className="bg-white rounded-2xl font-['Inter'] leading-tight">
             {/* Top: Profile & Rate */}
             <div className="flex items-start justify-between">
               <div className="flex gap-2">
@@ -271,26 +271,26 @@ function Alerts() {
 
             {/* Status */}
             <div className="mt-4">
-              <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full inline-block">
+              <span className="text-xs font-normal font-['Inter'] leading-none bg-[#D8F1BF] capitalize text-[#3D3D3D] px-4 py-2 rounded-full inline-block">
                 {notif?.metadata?.bookingStatus || "Confirmed"}
               </span>
             </div>
 
-            <hr className="border-2 border-zinc-700" />
+            <hr className="border-1 border-zinc-200" />
 
             {/* Buttons */}
             <div className="mt-2 flex justify-end gap-4 items-center">
               <div className="px-1.5 py-1 flex place-items-center rounded-full border border-zinc-700">
-                <i className="ri-heart-fill  text-pink-500 mr-1" />
+                <i className="ri-heart-fill  text-red-500 mr-1" />
               </div>
               <button
                 onClick={() => handleCancelBooking(notif._id)}
-                className="text-sm text-pink-600 font-semibold border-1 border-pink-600 px-4 py-2 rounded-lg  hover:text-white hover:bg-pink-600 ease-in duration-100  flex items-center gap-1"
+                className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
               >
                 {/* <i className="ri-close-line text-lg" /> */}
                 Cancel Booking
               </button>
-              <button className="text-sm text-white bg-[#e51e64] border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
+              <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
                 Message Hostess
               </button>
             </div>
@@ -310,7 +310,7 @@ function Alerts() {
 
   return (
     <div className="mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-1">Notifications</h1>
+      <h1 className="text-3xl font-bold mb-1 ">Notifications</h1>
       <p className="text-gray-500 text-sm mb-6">
         Stay updated with all your event activities in one place!
       </p>
@@ -327,7 +327,7 @@ function Alerts() {
             onClick={() => setActiveTab(type)}
             className={`px-4 py-2 font-medium capitalize ${
               activeTab === type
-                ? "border-b-2 border-pink-600 text-pink-600"
+                ? "border-b-2 border-[#E61E4D] text-[#E61E4D]"
                 : "text-gray-500"
             }`}
           >
@@ -346,13 +346,13 @@ function Alerts() {
             className="bg-white rounded-lg p-4 mb-4 shadow-sm"
           >
             {renderNotificationCard(notif)}
-            {notif?.createdAt && (
+            {/* {notif?.createdAt && (
               <p className="text-xs text-gray-500 mt-2">
                 {formatDistanceToNow(new Date(notif.createdAt), {
                   addSuffix: true,
                 })}
               </p>
-            )}
+            )} */}
           </div>
         ))
       )}
@@ -372,13 +372,13 @@ function Alerts() {
             <div className="flex justify-center gap-4 mt-6">
               <button
                 onClick={() => setShowCancelPopup(false)}
-                className="px-4 py-2 text-sm text-pink-600 border-1 border-pink-600 rounded-md hover:bg-gray-100"
+                className="px-4 py-2 text-sm text-[#E61E4D] border-1 border-[#E61E4D] rounded-md hover:bg-gray-100"
               >
                 Contact admin
               </button>
               <button
                 onClick={confirmCancelBooking}
-                className="px-4 py-2 text-sm text-white bg-red-500 rounded-md hover:bg-red-600"
+                className="px-4 py-2 text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 rounded-md hover:bg-red-600"
               >
                  Cancel Booking
               </button>
