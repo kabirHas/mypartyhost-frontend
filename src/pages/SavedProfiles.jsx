@@ -49,16 +49,23 @@ function SavedProfiles() {
     setLoading((prev) => ({ ...prev, [staffId]: true }));
 
     axios
-      .put(`${BASE_URLS.BACKEND_BASEURL}save-profile/${staffId}`, {},{
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .put(
+        `${BASE_URLS.BACKEND_BASEURL}save-profile/${staffId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      )
       .then((res) => {
         console.log("Remove Profile Response:", res.data);
         // Update staffList by filtering out the removed profile
         setStaffList((prev) => prev.filter((staff) => staff._id !== staffId));
       })
       .catch((err) => {
-        console.error("Error removing profile:", err.response?.data || err.message);
+        console.error(
+          "Error removing profile:",
+          err.response?.data || err.message
+        );
       })
       .finally(() => {
         setLoading((prev) => ({ ...prev, [staffId]: false }));
@@ -66,9 +73,11 @@ function SavedProfiles() {
   };
 
   const sortedList = [...staffList].sort((a, b) => {
-    if (sortBy === "Rating") return (b.averageRating || 0) - (a.averageRating || 0);
+    if (sortBy === "Rating")
+      return (b.averageRating || 0) - (a.averageRating || 0);
     if (sortBy === "Location") return a.city.localeCompare(b.city);
-    if (sortBy === "Rate") return (a.staffProfile?.baseRate || 0) - (b.staffProfile?.baseRate || 0);
+    if (sortBy === "Rate")
+      return (a.staffProfile?.baseRate || 0) - (b.staffProfile?.baseRate || 0);
     return 0;
   });
 
@@ -78,27 +87,45 @@ function SavedProfiles() {
 
   return (
     <div className="mx-auto py-6">
-      <h2 className="text-3xl font-bold mb-1">Saved Event Staff</h2>
-      <p className="text-gray-700 text-sm mb-4">
-        Keep track of your top-rated event staff for quick and easy bookings when you need them.
+      <h2 className="self-stretch justify-start text-[#292929] text-3xl font-bold font-['Inter'] leading-9 tracking-tight">
+        Saved Event Staff
+      </h2>
+      <p className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+        Keep track of your top-rated event staff for quick and easy bookings
+        when you need them.
       </p>
 
       <div className="flex items-center justify-end gap-4 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700">Availability</span>
-          <Switch checked={availabilityOnly} onCheckedChange={setAvailabilityOnly} />
+          <Switch
+            checked={availabilityOnly}
+            onCheckedChange={setAvailabilityOnly}
+          />
         </div>
 
-        <div className="relative">
+        <div className="relative px-3 py-2 bg-zinc-100 rounded-full outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-2">
           <select
-            className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none"
+            className="appearance-none bg-transparent text-base font-medium font-['Inter'] leading-snug text-zinc-600 pr-8 focus:outline-none"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option>Rating</option>
-            <option>Location</option>
-            <option>Rate</option>
+            <option value="rating">Rating</option>
+            <option value="location">Location</option>
+            <option value="rate">Rate</option>
           </select>
+          <div className="absolute right-2 pointer-events-none w-6 h-4">
+            <svg
+              className="w-6 h-4 text-zinc-800"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M8 7l4-4 4 4" />
+              <path d="M8 17l4 4 4-4" />
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -173,7 +200,13 @@ function SavedProfiles() {
             //     </div>
             //   </div>
             // </div>
-            <SavedProfileCard key={staff._id + index} staff={staff} index={index} handleRemove={handleRemove} loading={loading}/>
+            <SavedProfileCard
+              key={staff._id + index}
+              staff={staff}
+              index={index}
+              handleRemove={handleRemove}
+              loading={loading}
+            />
           ))
         )}
       </div>

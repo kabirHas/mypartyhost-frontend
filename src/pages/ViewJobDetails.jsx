@@ -105,8 +105,8 @@ function ViewJobDetails() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold">{eventName}</h2>
-          <p className="text-zinc-500 text-sm">{jobTitle}</p>
+          <h2 className="self-stretch justify-start text-[#292929] text-2xl font-bold font-['Inter'] leading-7">{eventName}</h2>
+          <p className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">{jobTitle}</p>
         </div>
         <Link
           to={`/dashboard/manage-jobs/${id}/edit`}
@@ -122,9 +122,9 @@ function ViewJobDetails() {
           onClick={() => setActiveTab("details")}
           className={`pb-2 ${
             activeTab === "details"
-              ? "border-b-2 border-pink-500 text-pink-600 font-semibold"
+              ? "border-b-2 border-[#E61E4D] text-[#E61E4D] font-semibold"
               : "text-zinc-600"
-          }`}
+          } font-medium font-['Inter'] leading-tight`}
         >
           Job Details
         </button>
@@ -132,9 +132,9 @@ function ViewJobDetails() {
           onClick={() => setActiveTab("applications")}
           className={`pb-2 ${
             activeTab === "applications"
-              ? "border-b-2 border-pink-500 text-pink-600 font-semibold"
+              ? "border-b-2 border-[#E61E4D] text-[#E61E4D] font-semibold"
               : "text-zinc-600"
-          }`}
+          } font-medium font-['Inter'] leading-tight`}
         >
           Application ({applicants?.length || 0})
         </button>
@@ -156,12 +156,12 @@ function ViewJobDetails() {
       ) : (
         <div className="bg-white rounded-lg">
           {applicants?.length > 0 ? (
-            <div className="text-sm p-4">
+            <div className="text-sm p-6">
               {applicants.map((a, i) => (
                 <div key={i} className="border-b last:border-b-0">
                   <div className="flex items-center gap-4 py-3 justify-between">
                     <div>
-                      <h6 className="capitalize font-bold text-lg text-zinc-700">
+                      <h6 className="self-stretch justify-start text-[#292929] capitalize text-xl font-bold font-['Inter'] leading-normal">
                         {a.staff.name}
                       </h6>
                       <div className="flex items-center gap-2 text-zinc-500">
@@ -169,7 +169,7 @@ function ViewJobDetails() {
                           <i className="ri-star-s-fill"></i>
                           {a.averageRating || "4.9"}
                         </span>
-                        <span className="underline">
+                        <span className="underline text-[#656565]">
                           ({a.staff.reviews.length} Reviews)
                         </span>
                       </div>
@@ -184,20 +184,20 @@ function ViewJobDetails() {
                           className={`text-2xl ${
                             savedProfiles.includes(a.staff._id)
                               ? "ri-heart-fill text-red-500"
-                              : "ri-heart-line text-pink-600"
+                              : "ri-heart-line text-[#E61E4D]"
                           }`}
                         ></i>
                       </button>
-                      <button className="bg-[#e31f82] font-semibold text-white py-2 px-4 rounded-lg">
+                      <button className="bg-gradient-to-l from-pink-600 to-rose-600 font-semibold text-white py-2 px-4 rounded-lg">
                         View Profile
                       </button>
                     </div>
                   </div>
-                  <span className="flex items-center gap-2 text-md -mt-4 text-zinc-500">
+                  <span className="flex items-center gap-2 text-md -mt-2  justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                     <i className="ri-map-pin-line" />
                     {a.staff.city}, {a.staff.country}
                   </span>
-                  <p className="pt-4 font-medium text-lg text-zinc-700 text-md">
+                  <p className="self-stretch justify-start mt-3 text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                     Offer: ${a.offer}/hr
                   </p>
                   <p className="mb-4">{a.message}</p>
@@ -206,7 +206,7 @@ function ViewJobDetails() {
                     <button className="text-zinc-600 flex place-items-center gap-2 text-md">
                       Decline <i className="ri-close-line"></i>
                     </button>
-                    <button className="border-[#e31f82] flex place-items-center gap-2 border-2 text-[#e31f82] font-semibold py-1 px-4 rounded-lg">
+                    <button className="border-[#E61E4D] flex place-items-center gap-2 border-2 text-[#e31f82] font-semibold py-1 px-4 rounded-lg">
                       Accept <i className="ri-check-line text-xl"></i>
                     </button>
                   </div>

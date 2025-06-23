@@ -36,12 +36,12 @@ function ContactSupport() {
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">Contact Support</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className="justify-start text-[#292929] text-3xl font-medium font-['Inter'] leading-9 tracking-tigh">Contact Support</h1>
+          <p className="text-sm  text-[#3D3D3D] mt-1">
             We're here to help! Let us know what you need assistance with.
           </p>
         </div>
-        <button className="border-2 border-pink-600 font-semibold text-pink-600 px-4 py-2 text-sm rounded-md hover:bg-pink-50">
+        <button className="border-2 border-[#E61E4D] font-semibold text-[#E61E4D] px-4 py-2 text-sm rounded-md hover:bg-pink-50">
           5 Tickets
         </button>
       </div>
@@ -118,8 +118,8 @@ function ContactSupport() {
         </div>
 
         {/* File Upload */}
-        <div className="border-2 w-36 h-12 border-dashed border-pink-600 rounded-md p-4 flex items-center justify-center">
-          <label className="cursor-pointer text-pink-600 flex flex-nowrap items-center gap-1">
+        <div className="border-2 w-36 h-12 border-dashed border-[#E61E4D] rounded-md p-4 flex items-center justify-center">
+          <label className="cursor-pointer text-[#E61E4D] flex flex-nowrap items-center gap-1">
             <i className="ri-attachment-2 text-xl" />
             <span className="text-xs font-medium">Attach file</span>
             <input
@@ -139,7 +139,7 @@ function ContactSupport() {
         {/* Submit */}
         <button
           type="submit"
-          className="bg-pink-600 text-white px-6 py-2 rounded-md text-sm hover:bg-pink-700"
+          className="bg-gradient-to-l from-pink-600 to-rose-600 text-white px-6 py-3 rounded-md text-sm hover:bg-pink-700"
         >
           Submit Request
         </button>
@@ -150,7 +150,7 @@ function ContactSupport() {
         <p>1. You can expect a response from our support team within 1 business days.</p>
         <p>
           2. You may also find answers to common questions in our{" "}
-          <a href="#" className="text-pink-600 underline">
+          <a href="#" className="text-[#E61E4D] underline">
             Help Center
           </a>
           .

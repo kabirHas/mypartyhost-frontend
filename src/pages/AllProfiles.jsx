@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URLS from "../config";
 import UserSidebar from "../components/UserSIdebar";
+import { formatDistanceToNow } from "date-fns";
 
 const AllProfiles = () => {
   const [users, setUsers] = useState([]);
@@ -67,7 +68,7 @@ const AllProfiles = () => {
   }, [search, roleFilter, statusFilter, lastLoginFilter, users, limit]);
 
   return (
-    <div className=" bg-gray-50">
+    <div className=" ">  
       <div className="max-w-[1400px] mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">All Profiles</h1>
@@ -127,9 +128,9 @@ const AllProfiles = () => {
         </div>
 
         {/* 🧾 Table */}
-        <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="overflow-x-auto  rounded-lg  ">
           <table className="min-w-full table-auto text-[12px]">
-            <thead className="bg-gray-100 text-gray-600 font-medium">
+            <thead className="bg-white text-gray-600 font-medium">
               <tr>
                 <th className="px-4 py-3">
                   <input type="checkbox" />
@@ -148,7 +149,7 @@ const AllProfiles = () => {
                 filteredUsers.map((u) => (
                   <tr
                     key={u._id}
-                    className="border-t hover:bg-gray-50 transition text-xs"
+                    className="border-t hover:bg-white transition text-xs"
                   >
                     <td className="px-4 py-3">
                       <input type="checkbox" />
@@ -167,7 +168,12 @@ const AllProfiles = () => {
                     <td className="px-4 py-3">
                       {u.city}, {u.state || u.country}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">—</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">
+                    {u.lastLogin
+    ? formatDistanceToNow(new Date(u.lastLogin), { addSuffix: true })
+    : 'No Data'}
+                      
+                    </td>
                     <td className="px-4 py-3 text-center">
                       <select className="px-3 py-1 rounded-full border-1 border-pink-600 text-pink-600 text-xs">
                         <option>Option 1</option>
