@@ -49,11 +49,39 @@
 }
 
 .table-heads >div {
-    height: 43px;
+    min-height: 43px;
+    justify-content: left;
+    height: -webkit-fill-available;
 }
 
+.table-heads >div:last-child {
+    justify-content: center;
+}
+
+.table-heads > div:nth-last-child(2) {
+  justify-content: center;
+}
+
+.table-heads > div,
+.table-bodies > div {
+  overflow: hidden;
+}
+
+
 .table-bodies >div {
-    height: 84px;
+    min-height: 84px;
+    align-items: center;
+    display: flex;
+    justify-content: left;
+    height: -webkit-fill-available;
+}
+
+.table-bodies >div:last-child {
+    justify-content: center;
+}
+
+.table-bodies > div:nth-last-child(2) {
+  justify-content: center;
 }
 
 .table-bodies:last-child {
@@ -72,7 +100,7 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 24px;
-    margin-top: 24px;
+    margin-top: 32px;
     align-items: center;
 }
 
