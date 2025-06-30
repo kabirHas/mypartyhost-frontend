@@ -1,3 +1,4 @@
+import Select from "react-select";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Base_URLS from "../config";
@@ -15,6 +16,7 @@ const ProfileUpdate = () => {
     role: "",
     address: "",
     country: "",
+    flag: "",
     city: "",
     state: "",
     postCode: "",
@@ -38,6 +40,33 @@ const ProfileUpdate = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [flagUrl, setFlagUrl] = useState("");
+  const [countries, setCountries] = useState([]);
+
+  useEffect(() => {
+    fetch("https://restcountries.com/v3.1/all?fields=name,flags")
+      .then((res) => res.json())
+      .then((data) => {
+        const countryList = data
+          .map((country) => ({
+            label: country.name.common,
+            value: country.name.common,
+            flag: country.flags?.svg || "",
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+        setCountries(countryList);
+      })
+      .catch((err) => console.error("Failed to fetch countries", err));
+  }, []);
+
+  useEffect(() => {
+    if (countries.length && formData.country) {
+      const matched = countries.find((c) => c.value === formData.country);
+      if (matched) {
+        setFlagUrl(matched.flag);
+      }
+    }
+  }, [countries, formData.country]);
 
   const fetchProfile = () => {
     axios
@@ -59,6 +88,7 @@ const ProfileUpdate = () => {
           role: user.role || "",
           address: user.address || "",
           country: user.country || "",
+          flag: user.flag || "",
           city: user.city || "",
           state: user.state || "",
           postCode: user.postCode || "",
@@ -335,6 +365,7 @@ const ProfileUpdate = () => {
                 "firstName",
                 "lastName",
                 "country",
+                // "flag",
                 "suburb",
                 "state",
                 "postCode",
@@ -349,15 +380,42 @@ const ProfileUpdate = () => {
                       .replace(/^./, (str) => str.toUpperCase())}
                   </label>
                   {isEditing ? (
-                    <input
-                      name={field}
-                      value={formData[field]}
-                      onChange={handleChange}
-                      // placeholder={field}
-                      placeholder={field
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                    />
+                    field === "country" ? (
+                      <div>
+                        <Select
+                          options={countries}
+                          value={countries.find(
+                            (option) => option.value === formData.country
+                          )}
+                          onChange={(selected) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              country: selected ? selected.value : "",
+                              flag: selected ? selected.flag : "", 
+                            }));
+                            setFlagUrl(selected ? selected.flag : ""); 
+                          }}
+                          placeholder="Select Country"
+                          isClearable
+                        />
+                      </div>
+                    ) : field === "flag" ? (
+                      <input
+                        name={field}
+                        value={formData.flag}
+                        onChange={handleChange}
+                        type="hidden"
+                      />
+                    ) : (
+                      <input
+                        name={field}
+                        value={formData[field]}
+                        onChange={handleChange}
+                        placeholder={field
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (str) => str.toUpperCase())}
+                      />
+                    )
                   ) : (
                     <p>{formData[field]}</p>
                   )}
@@ -414,20 +472,24 @@ const ProfileUpdate = () => {
                   placeholder="Enter new password"
                   required
                 />
-                <div className="d-flex justify-content-between">                
-                <button type="submit" className="saves-btn" style={{marginright:'10px'}}>
-                  Update Password
-                </button>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => {
-                    setShowPasswordForm(false);
-                    setNewPassword("");
-                  }}
-                >
-                  Cancel
-                </button>
+                <div className="d-flex justify-content-between">
+                  <button
+                    type="submit"
+                    className="saves-btn"
+                    style={{ marginright: "10px" }}
+                  >
+                    Update Password
+                  </button>
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setNewPassword("");
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             )}

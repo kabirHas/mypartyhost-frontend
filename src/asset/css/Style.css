@@ -385,3 +385,12 @@ input[type="email"], input[type="password"] {
     background-size: 20px !important;
     padding-right: 30px !important;
 } */
+
+.scrollbar-hide {
+  scrollbar-width: none; 
+  -ms-overflow-style: none;  
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; 
+}
