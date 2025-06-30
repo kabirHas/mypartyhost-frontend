@@ -1,0 +1,185 @@
+/* General */
+.kaab-pro {
+  font-family: "Inter", sans-serif;
+  color: #2d2d2d;
+  box-sizing: border-box;
+}
+
+/* Container */
+.profile-container.kaab-pro {
+  padding: 24px;
+  background-color: #fafafa;
+}
+
+/* Back Button */
+.back-btn.kaab-pro {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+/* Main Layout */
+.profile-main.kaab-pro {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* Left Section */
+.left-section.kaab-pro {
+  flex: 1;
+  max-width: 420px;
+}
+
+/* Main Image */
+.main-image.kaab-pro {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+/* Thumbnails */
+.thumbnail-row.kaab-pro {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.thumbnail-row.kaab-pro img.kaab-pro {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Buttons */
+.add-photo.kaab-pro,
+.add-voice-note.kaab-pro,
+.view-more.kaab-pro {
+  display: inline-block;
+  margin: 6px 4px 10px 0;
+  padding: 8px 12px;
+  background-color: #eaeaea;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.add-photo.kaab-pro:hover,
+.add-voice-note.kaab-pro:hover,
+.view-more.kaab-pro:hover {
+  background-color: #dcdcdc;
+}
+
+/* Reviews Section */
+.reviews.kaab-pro {
+  margin-top: 16px;
+}
+
+.reviews.kaab-pro h3.kaab-pro {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.review-card.kaab-pro {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.review-card.kaab-pro strong.kaab-pro {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Right Section */
+.right-section.kaab-pro {
+  flex: 2;
+  min-width: 300px;
+}
+
+/* Headings */
+.right-section.kaab-pro h1.kaab-pro {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.location.kaab-pro {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+/* About Me */
+.about-me.kaab-pro {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* Skills Tags */
+.skills.kaab-pro span.kaab-pro,
+.available-for.kaab-pro span.kaab-pro {
+  display: inline-block;
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin: 4px 6px 4px 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Section Boxes */
+.rates.kaab-pro,
+.availability.kaab-pro,
+.available-for.kaab-pro,
+.instant-book.kaab-pro,
+.job-history.kaab-pro {
+  background-color: #ffffff;
+  border: 1px solid #ebebeb;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.rates.kaab-pro h4.kaab-pro,
+.availability.kaab-pro h4.kaab-pro,
+.available-for.kaab-pro h4.kaab-pro,
+.instant-book.kaab-pro h4.kaab-pro,
+.job-history.kaab-pro h4.kaab-pro {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.rates.kaab-pro p.kaab-pro,
+.availability.kaab-pro p.kaab-pro,
+.instant-book.kaab-pro p.kaab-pro,
+.job-history.kaab-pro p.kaab-pro {
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.availability.kaab-pro a.kaab-pro {
+  font-size: 14px;
+  color: #0073ff;
+  text-decoration: none;
+}
+
+.availability.kaab-pro a.kaab-pro:hover {
+  text-decoration: underline;
+}

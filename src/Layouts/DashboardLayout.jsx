@@ -110,6 +110,21 @@ export default function DashboardLayout() {
       label: "Help & Support",
       icon: "ri-question-line",
     },
+    {
+      to: "/dashboard/manage-events",
+      label: "Mananage Events",
+      icon: "ri-question-line",
+    },
+    {
+      to: "/dashboard/manage-reviews",
+      label: "Reviews",
+      icon: "ri-star-fill",
+    },
+    {
+      to: "/dashboard/manage-transaction",
+      label: "Transaction",
+      icon: "ri-star-fill",
+    },
   ].filter((item) => !item.hidden);
 
   return (
