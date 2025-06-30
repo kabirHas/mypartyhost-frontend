@@ -6,38 +6,39 @@ import "../asset/css/OrganizerDashboard.css";
 import { FaFire, FaBriefcase, FaFileAlt, FaStar } from "react-icons/fa";
 import BASE_URLS from "../config";
 import Slider from "react-slick";
+import axios from "axios";
 
 
-const notifications = [
-  {
-    name: "Emily R.",
-    job: "VIP Pool Party Host",
-    message: "applied for your",
-    ending: "gig! Ready to turn up the heat?",
-    link: "Review Application",
-  },
-  {
-    name: "Sofia L.",
-    job: "Luxury Yacht Bash",
-    message: "wants to join your",
-    ending: "– She's a pro at keeping the party alive!",
-    link: "Check Her Profile",
-  },
-  {
-    name: "Mia T.",
-    job: "DJ Lounge Host",
-    message: "just applied to be your",
-    ending: "– Let’s keep the beats rolling!",
-    link: "Check Her Profile",
-  },
-  {
-    name: "Sofia L.",
-    job: "Luxury Yacht Bash",
-    message: "wants to join your",
-    ending: "– She's a pro at keeping the party alive!",
-    link: "Check Her Profile",
-  },
-];
+// const notifications = [
+//   {
+//     name: "Emily R.",
+//     job: "VIP Pool Party Host",
+//     message: "applied for your",
+//     ending: "gig! Ready to turn up the heat?",
+//     link: "Review Application",
+//   },
+//   {
+//     name: "Sofia L.",
+//     job: "Luxury Yacht Bash",
+//     message: "wants to join your",
+//     ending: "– She's a pro at keeping the party alive!",
+//     link: "Check Her Profile",
+//   },
+//   {
+//     name: "Mia T.",
+//     job: "DJ Lounge Host",
+//     message: "just applied to be your",
+//     ending: "– Let’s keep the beats rolling!",
+//     link: "Check Her Profile",
+//   },
+//   {
+//     name: "Sofia L.",
+//     job: "Luxury Yacht Bash",
+//     message: "wants to join your",
+//     ending: "– She's a pro at keeping the party alive!",
+//     link: "Check Her Profile",
+//   },
+// ];
 
 const OrganizerDashboard = () => {
   // const [pages, setPages] = useState([]);
@@ -98,13 +99,72 @@ const OrganizerDashboard = () => {
   //   </div>
   // );
   const [staff, setStaff] = useState([]);
+  const [applications,setApplications] = useState(null);
+  const [notifications, setNotifications] = useState(null);
+  const [jobs, setJobs] = useState(null);
+  const [savedProfile,setSavedProfile] = useState(null);
 
+  const navigate = useNavigate();
   useEffect(() => {
     fetch(`${BASE_URLS.API}/staff`)
       .then((res) => res.json())
       .then((data) => setStaff(data.data))
       .catch((err) => console.error(err));
+
+    axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/all/applications`,{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }).then((response) => { 
+      // console.log(response.data.data);
+      setApplications(response.data.data)
+    })
+      .catch((error) => {
+        console.error("Error fetching applications:", error);
+      });
+
+      axios.get(`${BASE_URLS.BACKEND_BASEURL}notifications`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => {
+        // console.log("Notifications fetched:", response.data);
+        setNotifications(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching notifications:", error);
+    })
+    axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/my-jobs`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+    .then((response) => {
+      // console.log("Jobs fetched:", response.data);
+      // You can process the jobs data if needed
+      setJobs(response.data);
+    })
+    .catch((error) => {
+      console.error("Error fetching jobs:", error);
+    })
+
+
+    axios.get(`${BASE_URLS.BACKEND_BASEURL}save-profile`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => {
+        // console.log("Saved profiles fetched:", response.data);
+        // You can process the saved profiles data if needed
+        setSavedProfile(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching saved profiles:", error);
+      });
   }, []);
+
 
   const settings = {
     dots: false,
@@ -153,7 +213,7 @@ const OrganizerDashboard = () => {
             <span>300+ hosts joined this week</span>
           </div>
           <div className="btn-group">
-            <button className="post-btn">Post a Job</button>
+            <button onClick={() => navigate("/create-job")} className="post-btn">Post a Job</button>
             <button className="browse-btn">Browse</button>
           </div>
         </div>
@@ -164,16 +224,16 @@ const OrganizerDashboard = () => {
               <FaBriefcase className="icon" />
             </div>
 
-            <h2>5</h2>
+            <h2>{jobs && jobs.length}</h2>
             <p>Open Events</p>
-            <button>View Events</button>
+            <button onClick={() => navigate("/dashboard/manage-jobs")}>View Events</button>
           </div>
           <div className="stat-card">
             <div className="icons">
               <FaFileAlt className="icon" />
             </div>
 
-            <h2>86</h2>
+            <h2>{applications && applications.length}</h2>
             <p>Applications Received</p>
             <button>View Application</button>
           </div>
@@ -182,21 +242,21 @@ const OrganizerDashboard = () => {
               <FaStar className="icon" />
             </div>
 
-            <h2>5</h2>
+            <h2>{savedProfile && savedProfile.length}</h2>
             <p>Top Shortlisted</p>
-            <button>Book Now</button>
+            <button onClick={() => navigate("/dashboard/saved-profile")}>Book Now</button>
           </div>
         </div>
       </div>
 
       <div className="notifications">
         <h3>Latest Updates and Notifications</h3>
-        {notifications.map((item, idx) => (
+        {notifications && notifications.map((item, idx) => (
           <div className="notification" key={idx}>
             <img src="/images/Update Avatar.png" className="flame-icon" />
             <div>
-              <strong>{item.name}</strong> {item.message} <b>{item.job}</b>{" "}
-              {item.ending} <span className="link">{item.link}</span>
+              <strong>{item.sender.name}</strong> {item.type === 'job_invite' ? 'invited you to' : 'wants to join'} <b>{item.metadata.jobTitle}</b>{" "}
+              - Let's Start the Party! <span className="link">{item.type === 'job_invite' ? 'View Job' : 'View Application'}</span>
             </div>
           </div>
         ))}

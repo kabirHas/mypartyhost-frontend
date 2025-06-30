@@ -28,6 +28,11 @@ import ContactSupport from "../pages/ContactSupport";
 import AllProfiles from "../pages/AllProfiles";
 import SupportPage from "../pages/SupportPage";
 import AdminDashboard from "../pages/AdminDashboard";
+import BoostedProfiles from "../pages/BoostedProfiles";
+import AdminSettings from "../pages/AdminSettings";
+import ContentManagement from "../pages/ContentManagement";
+import WorkFlow from "../pages/Workflow";
+import Security from "../pages/SecurityAndWorkflow";
 
 export const getStaticRoutes = (isLoggedIn, userRole) => {
   const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -99,6 +104,36 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     <Route
         path="/dashboard/all-profiles"
         element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/boosted-profiles"
+        element={isLoggedIn ? <BoostedProfiles /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/boosted-profiles"
+        element={isLoggedIn ? <BoostedProfiles /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/admin-settings"
+        element={isLoggedIn ? <AdminSettings /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/content-management"
+        element={isLoggedIn ? <ContentManagement /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/workflow"
+        element={isLoggedIn ? <WorkFlow /> : <Navigate to="/login" />}
+        key="contact"
+      />
+    <Route
+        path="/dashboard/security"
+        element={isLoggedIn ? <Security /> : <Navigate to="/login" />}
         key="contact"
       />
     

@@ -50,6 +50,26 @@ export default function DashboardLayout() {
       icon: "ri-briefcase-line",
     },
     {
+      to: "/dashboard/boosted-profiles",
+      label: "Boosted Profiles",
+      icon: "ri-rocket-fill",
+    },
+    {
+      to: "/dashboard/admin-settings",
+      label: "Admin Settings",
+      icon: "ri-settings-5-fill",
+    },
+    {
+      to: "/dashboard/content-management",
+      label: "Content Managment",
+      icon: "ri-file-3-line",
+    },
+    {
+      to: "/dashboard/workflow",
+      label: "Workflow and Automation",
+      icon: "ri-node-tree",
+    },
+    {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",
       icon: "ri-briefcase-line",

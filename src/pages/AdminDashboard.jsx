@@ -171,7 +171,7 @@ const AdminDashboard = () => {
               <li><span className="kaab-dot red"></span> Commission Revenue — $28,500 (63%)</li>
               <li><span className="kaab-dot pink"></span> Boosted Profile — $28,500 (63%)</li>
               <li><span className="kaab-dot green"></span> Other Revenue — $28,500 (63%)</li>
-            </ul>
+            </ul> 
           </div>
         </div>
       </div>
