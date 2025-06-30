@@ -2,6 +2,12 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 function SavedProfileCard({ staff, index, handleRemove, loading }) {
+
+  const inviteStaff = (staffId) => {
+    // Logic to invite staff to a job
+    console.log(`Inviting staff with ID: ${staffId}`);
+  }
+
   return (
     <div
               key={staff._id + index}
@@ -63,7 +69,7 @@ function SavedProfileCard({ staff, index, handleRemove, loading }) {
                       </>
                     )}
                   </button>
-                  <button className="px-4 py-2 border-2 border-[#E61E4D] bg-gradient-to-l from-pink-600 to-rose-600 text-white rounded-lg text-sm hover:bg-[#E61E4D]">
+                  <button onClick={() => inviteStaff(staff._id)} className="px-4 py-2 border-2 border-[#E61E4D] bg-gradient-to-l from-pink-600 to-rose-600 text-white rounded-lg text-sm hover:bg-[#E61E4D]">
                     Invite to Job
                   </button>
                 </div>
