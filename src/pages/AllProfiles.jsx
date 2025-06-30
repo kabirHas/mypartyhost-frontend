@@ -68,16 +68,25 @@ const AllProfiles = () => {
   }, [search, roleFilter, statusFilter, lastLoginFilter, users, limit]);
 
   return (
-    <div className=" ">  
-      <div className="max-w-[1400px] mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">All Profiles</h1>
+    <div className=" ">
+      <div className="max-w-[1400px] p-2 mx-auto">
+        <div className="flex gap-4 justify-between items-center mb-6">
+          <div className="w-3/4">
+            <h1 className="self-stretch justify-start text-[#292929] text-3xl font-bold font-['Inter'] leading-10">
+              All Profiles
+            </h1>
+            <p className="self-stretch justify-start text-zinc-500 text-base font-normal font-['Inter'] leading-snug">
+              Manage every user profile on your platform. Quickly search,
+              filter, and perform bulk actions to keep your community up to
+              date.
+            </p>
+          </div>
           <button
             onClick={() => {
               setIsCreateMode(true);
               setSelectedUserId(null); // ensure no view mode active
             }}
-            className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-md text-sm"
+            className="px-6 py-3 bg-gradient-to-l text-base font-medium font-['Inter'] leading-snug text-white from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden"
           >
             Create New User
           </button>
@@ -85,7 +94,7 @@ const AllProfiles = () => {
 
         {/* 🔍 Filters */}
         <div className="flex flex-wrap justify-between align-center gap-4 mb-6">
-          <div className="relative w-full sm:w-1/3">
+          {/* <div className="relative w-full sm:w-1/3">
             <input
               type="text"
               value={search}
@@ -94,96 +103,166 @@ const AllProfiles = () => {
               className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none"
             />
             <i className="ri-search-line bg-pink-300 px-2 bg-opacity-40 absolute left-1 top-1/2 transform -translate-y-1/2 text-pink-600 text-lg" />
+          </div> */}
+          <div className="relative bg-white rounded-lg w-full sm:w-1/3 pr-3 bg-zinc-100 rounded-LG outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-3 overflow-hidden">
+            <div className="p-2 bg-pink-100 flex justify-start items-center">
+              <svg
+                className="w-8 h-8 text-[#E61E4D]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 32 32"
+              >
+                <circle cx="14" cy="14" r="8" />
+                <line x1="20.07" y1="20.07" x2="24" y2="24" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, email, or user ID..."
+              className="w-full bg-transparent text-zinc-500 text-sm font-normal font-['Inter'] leading-tight focus:outline-none py-2"
+            />
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-4">
-            <select
-              className="border-1 border-gray-700 rounded-full px-2 py-2 text-xs"
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <option value="">User Type</option>
-              <option value="organiser">Organiser</option>
-              <option value="staff">Staff</option>
-              <option value="superadmin">Superadmin</option>
-            </select>
-            <select
-              className="border-1 border-gray-700 rounded-full px-2 py-2 text-xs"
-              value={lastLoginFilter}
-              onChange={(e) => setLastLoginFilter(e.target.value)}
-            >
-              <option value="">Last Login</option>
-              <option value="1 hr">1 Hour</option>
-              <option value="24 hrs">24 Hours</option>
-            </select>
-            <select
-              className="border-1 border-gray-700 rounded-full px-2 py-1 text-xs"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+            <div className="relative inline-flex items-center">
+              <select
+                className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="">User Type</option>
+                <option value="organiser">Organiser</option>
+                <option value="staff">Staff</option>
+                <option value="superadmin">Superadmin</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="px-4 py-2  bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                value={lastLoginFilter}
+                onChange={(e) => setLastLoginFilter(e.target.value)}
+              >
+                <option value="">Last Login</option>
+                <option value="1 hr">1 Hour</option>
+                <option value="24 hrs">24 Hours</option>
+              </select>
+              <div className="absolute right-1 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                value={lastLoginFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">In Active</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 🧾 Table */}
-        <div className="overflow-x-auto  rounded-lg  ">
-          <table className="min-w-full table-auto text-[12px]">
-            <thead className="bg-white text-gray-600 font-medium">
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full border-collapse border-1 text-xs">
+            <thead className="text-left text-gray-600 bg-white">
               <tr>
-                <th className="px-4 py-3">
+                <th className="px-6 py-3 border-1 border-zinc-200 w-12 text-sm font-medium font-['Inter'] leading-tight">
                   <input type="checkbox" />
                 </th>
-                <th className="px-4 py-3 text-left">Name</th>
-                <th className="px-4 py-3 text-left">Type</th>
-                <th className="px-4 py-3 text-left">Location</th>
-                <th className="px-4 py-3 text-left">Last Login</th>
-                <th className="px-4 py-3 text-center">Automation</th>
-                <th className="px-4 py-3 text-center">Status</th>
-                <th className="px-4 py-3 text-center">Actions</th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-48 text-xs font-medium font-['Inter'] leading-tight">
+                  Name
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-xs font-medium font-['Inter'] leading-tight">
+                  Type
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-xs font-medium font-['Inter'] leading-tight">
+                  Location
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-xs font-medium font-['Inter'] leading-tight">
+                  Last Login
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-center text-xs font-medium font-['Inter'] leading-tight">
+                  Automation
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-center text-xs font-medium font-['Inter'] leading-tight">
+                  Status
+                </th>
+                <th className="px-6 py-3 border-1 border-zinc-200 w-32 text-center text-xs font-medium font-['Inter'] leading-tight">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-gray-800">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((u) => (
                   <tr
                     key={u._id}
-                    className="border-t hover:bg-white transition text-xs"
+                    className="text-xs text-gray-800 border-b-[1.2px] border-gray-900 hover:bg-gray-50 last:border-b-0"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-4 border-r border-zinc-200 py-4">
                       <input type="checkbox" />
                     </td>
-                    <td className="px-4 py-3 flex items-center gap-3">
-                      {u.profileImage && (
-                        <img
-                          src={u.profileImage}
-                          alt="profile"
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      )}
+                    <td className="px-6 border-r border-zinc-200 py-4 text-xs font-semibold flex items-center gap-3">
+                      <img
+                        src={
+                          u.profileImage ||
+                          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7csvPWMdfAHEAnhIRTdJKCK5SPK4cHfskow&s"
+                        }
+                        alt="profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+
                       <span className="capitalize">{u.name}</span>
                     </td>
-                    <td className="px-4 py-3 capitalize">{u.role}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 border-r  text-xs border-zinc-200 py-4 capitalize">
+                      {u.role}
+                    </td>
+                    <td className="px-6 border-r border-zinc-200 py-4">
                       {u.city}, {u.state || u.country}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
-                    {u.lastLogin
-    ? formatDistanceToNow(new Date(u.lastLogin), { addSuffix: true })
-    : 'No Data'}
-                      
+                    <td className="px-6 border-r border-zinc-200 py-4 text-xs text-gray-500">
+                      {u.lastLogin
+                        ? formatDistanceToNow(new Date(u.lastLogin), {
+                            addSuffix: true,
+                          })
+                        : "No Data"}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <select className="px-3 py-1 rounded-full border-1 border-pink-600 text-pink-600 text-xs">
-                        <option>Option 1</option>
-                        <option>Option 2</option>
-                        <option>Option 3</option>
-                      </select>
+                    <td className="px-6 border-r border-zinc-200 py-4 text-center">
+                      <div className="relative inline-flex items-center">
+                        <select className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-gray-600 text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10">
+                          <option>Option 1</option>
+                          <option>Option 2</option>
+                          <option>Option 3</option>
+                        </select>
+                        <div className="absolute right-2 pointer-events-none">
+                          <div className="w-5 h-5 relative flex items-center justify-center">
+                            <i className="ri-arrow-down-s-line text-gray-600 text-lg" />
+                          </div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 border-r border-zinc-200 py-4 text-center">
                       <label className="inline-flex items-center gap-2 cursor-pointer">
-                        {u?.isActive ? "Active" : "Inactive"}
+                        <span className="text-zinc-500 mr-2">
+                          {u?.isActive ? "Active" : "Inactive"}
+                        </span>
                         <input
                           type="checkbox"
                           className="sr-only"
@@ -191,7 +270,7 @@ const AllProfiles = () => {
                         />
                         <div
                           className={`w-11 h-6 rounded-full ${
-                            u?.isActive ? "bg-pink-600" : "bg-gray-400"
+                            u?.isActive ? "bg-[#E61E4D]" : "bg-gray-400"
                           } flex items-center px-1 transition-colors`}
                         >
                           <div
@@ -202,10 +281,10 @@ const AllProfiles = () => {
                         </div>
                       </label>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 border-r border-zinc-200 py-4 text-center">
                       <button
                         onClick={() => setSelectedUserId(u._id)}
-                        className="text-pink-600 border-1 border-pink-600 px-3 py-1 rounded-full hover:underline text-xs"
+                        className="border-[1px] no-underline border-[#e61e4c] text-zinc-600 rounded-full px-4 py-2 hover:bg-[#e61e4c] hover:text-white transition text-xs"
                       >
                         View
                       </button>
@@ -214,7 +293,10 @@ const AllProfiles = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-10 text-gray-500">
+                  <td
+                    colSpan="8"
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No users found.
                   </td>
                 </tr>
@@ -222,7 +304,6 @@ const AllProfiles = () => {
             </tbody>
           </table>
         </div>
-
         {/* 📊 Footer */}
         <div className="mt-4 text-sm text-gray-600">
           Showing

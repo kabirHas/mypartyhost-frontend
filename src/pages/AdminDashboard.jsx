@@ -271,6 +271,17 @@ const AdminDashboard = () => {
           </div>
 
           <div className="kaab-revenue">
+            <h4>Revenue Breakdown</h4>
+            <Doughnut
+              data={doughnutData}
+              options={{ cutout: "70%" }}
+              plugins={[centerTextPlugin]}
+            />
+            <ul className="kaab-revenue-list">
+              <li><span className="kaab-dot red"></span> Commission Revenue — $28,500 (63%)</li>
+              <li><span className="kaab-dot pink"></span> Boosted Profile — $28,500 (63%)</li>
+              <li><span className="kaab-dot green"></span> Other Revenue — $28,500 (63%)</li>
+            </ul> 
             <h4>Revenue Breakdown <i className="ri-arrow-right-up-line"></i></h4>
             <div className="d-flex">
               <Doughnut

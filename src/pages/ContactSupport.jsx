@@ -1,32 +1,82 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import BASE_URLS from "../config";
 
 function ContactSupport() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     subject: "",
     category: "",
     subCategory: "",
     description: "",
-    file: null,
+    files: [], // Array for multiple files
   });
+  const [error, setError] = useState(""); // For error feedback
+  const [previews, setPreviews] = useState([]); // Store preview URLs
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    if (files) {
+      const validFiles = Array.from(files).filter(
+        (file) => file.size <= 5 * 1024 * 1024 // 5MB limit
+      );
+      if (validFiles.length !== files.length) {
+        setError("All files must be 5MB or smaller.");
+      }
+      setForm((prev) => ({ ...prev, [name]: validFiles }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  // Generate preview URLs for selected files
+  useEffect(() => {
+    // Create preview URLs
+    const newPreviews = form.files.map((file) => URL.createObjectURL(file));
+    setPreviews(newPreviews);
+
+    // Clean up URLs on file change or unmount
+    return () => {
+      newPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [form.files]);
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Request Submitted ✅");
-    // Add API submit logic here
+    setError("");
+
+    // Create FormData for multipart/form-data request
+    const formData = new FormData();
+    formData.append("subject", form.subject);
+    formData.append("category", form.category);
+    formData.append("subcategory", form.subCategory);
+    formData.append("description", form.description);
+    form.files.forEach((file) => {
+      formData.append("attachments", file);
+    });
+
+    try {
+      const response = await axios.post(`${BASE_URLS.BACKEND_BASEURL}contact`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      navigate(-1); // Navigate back on success
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      setError(
+        error.response?.data?.message || "Failed to submit request. Please try again."
+      );
+    }
   };
 
   return (
-    <div className=" mx-auto  py-6">
+    <div className="mx-auto py-6">
       {/* Back Button */}
       <button onClick={() => navigate(-1)} className="text-sm text-gray-500 mb-4 flex items-center">
         <i className="ri-arrow-left-line mr-1 text-lg" />
@@ -37,7 +87,7 @@ function ContactSupport() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="justify-start text-[#292929] text-3xl font-medium font-['Inter'] leading-9 tracking-tigh">Contact Support</h1>
-          <p className="text-sm  text-[#3D3D3D] mt-1">
+          <p className="text-sm text-[#3D3D3D] mt-1">
             We're here to help! Let us know what you need assistance with.
           </p>
         </div>
@@ -77,6 +127,7 @@ function ContactSupport() {
               <option>Account</option>
               <option>Payments</option>
               <option>Technical Issue</option>
+              <option>Other</option>
             </select>
             <i className="ri-arrow-down-s-line absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
@@ -98,6 +149,7 @@ function ContactSupport() {
               <option>Profile Picture</option>
               <option>Verification</option>
               <option>Bug Report</option>
+              <option>Other</option>
             </select>
             <i className="ri-arrow-down-s-line absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           </div>
@@ -124,17 +176,40 @@ function ContactSupport() {
             <span className="text-xs font-medium">Attach file</span>
             <input
               type="file"
-              name="file"
+              name="files"
               accept=".jpg,.jpeg,.png"
               onChange={handleChange}
+              multiple
               className="hidden"
             />
           </label>
-          {form.file && (
-              <p className="text-sm text-gray-700 mt-1 font-medium">{form.file.name}</p>
-            )}
         </div>
-            <p className="text-xs text-gray-500 mt-2">Up to 5 mb (JPG, PNG, JPEG)</p>
+        {/* File Names and Previews */}
+        {form.files.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {form.files.map((file, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <p className="text-sm text-gray-700 font-medium">{file.name}</p>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-2">
+              {previews.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Preview ${index + 1}`}
+                  className="w-16 h-16 object-cover rounded-md border border-gray-300"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-2">Up to 5 mb (JPG, PNG, JPEG)</p>
+
+        {/* Error Message */}
+        {error && (
+          <p className="text-sm text-red-600 mt-2">{error}</p>
+        )}
 
         {/* Submit */}
         <button
