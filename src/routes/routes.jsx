@@ -37,6 +37,7 @@ import ProfilePage from "../pages/ProfilePage";
 import ManageEvents from "../pages/ManageEvents";
 import ReviewsManagement from "../pages/ReviewsManagement";
 import TransactionManagement from "../pages/TransactionManagement";
+import StaffDashboard from "../pages/StaffDashboard";
 
 export const getStaticRoutes = (isLoggedIn, userRole) => {
   const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -50,7 +51,9 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     key="dashboard"
   >
     {/* <Route index element={<OrganizerDashboard />} />  */}
-    <Route index element={<AdminDashboard />} /> 
+    {/* <Route index element={<AdminDashboard />} />  */}
+    <Route index element={<StaffDashboard />} /> 
+
     <Route
       path="/dashboard/all-pages"
       element={isLoggedIn ? <ManagePages /> : <Navigate to="/login" />}
@@ -111,7 +114,7 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         element={isLoggedIn ? <AllProfiles /> : <Navigate to="/login" />}
         key="contact"
       />
-    <Route
+      <Route
         path="/dashboard/boosted-profiles"
         element={isLoggedIn ? <BoostedProfiles /> : <Navigate to="/login" />}
         key="contact"

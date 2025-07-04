@@ -125,6 +125,11 @@ export default function DashboardLayout() {
       label: "Transaction",
       icon: "ri-star-fill",
     },
+    {
+      to: "/dashboard/security",
+      label: "Security",
+      icon: "ri-star-fill",
+    },
   ].filter((item) => !item.hidden);
 
   return (
