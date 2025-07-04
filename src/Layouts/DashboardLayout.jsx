@@ -1,7 +1,7 @@
 // layouts/DashboardLayout.jsx
 import { Outlet, NavLink } from "react-router-dom";
 import BASE_URLS from "../config";
-import "../asset/css/Style2.css"
+import "../asset/css/Style2.css";
 
 export default function DashboardLayout() {
   const handleLogout = async () => {
@@ -70,6 +70,26 @@ export default function DashboardLayout() {
       icon: "ri-node-tree",
     },
     {
+      to: "/dashboard/manage-bookings",
+      label: "Manage Bookings",
+      icon: "ri-calendar-line",
+    },
+    {
+      to: "/profile",
+      label: "Staff Proflie",
+      icon: "ri-calendar-line",
+    },
+    {
+      to: "/dashboard/find-jobs",
+      label: "Find Jobs",
+      icon: "ri-calendar-line",
+    },
+    {
+      to: "/dashboard/saved-jobs",
+      label: "Saved Jobs",
+      icon: "ri-heart-fill",
+    },
+    {
       to: "/dashboard/manage-jobs",
       label: "Manage Jobs",
       icon: "ri-briefcase-line",
@@ -87,13 +107,13 @@ export default function DashboardLayout() {
     //   icon: "ri-briefcase-line",
     //   hidden: role === "staff" || role === "organiser",
     // },
-    
+
     {
       to: "/dashboard/saved-profile",
       label: "Saved Profiles",
       icon: "ri-heart-line",
     },
-{ to: "/dashboard/profile", label: "Your Profile", icon: "ri-user-line" },
+    { to: "/dashboard/profile", label: "Your Profile", icon: "ri-user-line" },
     {
       to: "/dashboard/alerts",
       label: "Alerts & Updates",
@@ -109,26 +129,6 @@ export default function DashboardLayout() {
       to: "/dashboard/support",
       label: "Help & Support",
       icon: "ri-question-line",
-    },
-    {
-      to: "/dashboard/manage-events",
-      label: "Mananage Events",
-      icon: "ri-question-line",
-    },
-    {
-      to: "/dashboard/manage-reviews",
-      label: "Reviews",
-      icon: "ri-star-fill",
-    },
-    {
-      to: "/dashboard/manage-transaction",
-      label: "Transaction",
-      icon: "ri-star-fill",
-    },
-    {
-      to: "/dashboard/security",
-      label: "Security",
-      icon: "ri-star-fill",
     },
   ].filter((item) => !item.hidden);
 
@@ -153,7 +153,7 @@ export default function DashboardLayout() {
                 }
               >
                 <i className={`${item.icon} text-sm text-blue-600`}></i>
-               <span className="text-sm"> {item.label}</span>
+                <span className="text-sm"> {item.label}</span>
               </NavLink>
             </>
           ))}
@@ -175,5 +175,3 @@ export default function DashboardLayout() {
     </div>
   );
 }
-
-
