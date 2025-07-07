@@ -195,7 +195,7 @@ const StaffDashboard = () => {
                       <div className="justify-start text-Token-Text-Primary text-sm font-bold font-['Inter'] leading-tight">
                         Hide Profile from Directory
                       </div>
-                      <img src="/images/info.png" alt="tooltip" />
+                      <img src="/images/info.png" alt="tooltip" className="w-[16px]" />
                     </div>
                     <div className="self-stretch justify-start text-Token-Text-Tertiary text-xs font-normal font-['Inter'] leading-none">
                       Hiding will limit your visibility to organizers
