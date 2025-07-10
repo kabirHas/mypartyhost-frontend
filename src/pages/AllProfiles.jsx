@@ -246,7 +246,7 @@ const AllProfiles = () => {
                     </td>
                     <td className="px-6 border-r border-zinc-200 py-4 text-center">
                       <div className="relative inline-flex items-center">
-                        <select className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-gray-600 text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10">
+                        <select className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-gray-600 text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10">
                           <option>Option 1</option>
                           <option>Option 2</option>
                           <option>Option 3</option>
