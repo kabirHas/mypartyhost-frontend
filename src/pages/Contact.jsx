@@ -55,7 +55,9 @@ function Contact() {
   return (
     <div className="mx-auto py-6">
       {/* Back link */}
-      <button className="text-sm text-gray-500 mb-4 flex items-center">
+      <button className="text-sm text-gray-500 mb-4 flex items-center"
+      onClick={() => navigate("/dashboard/support")}
+      >
         <i className="ri-arrow-left-line mr-1 text-lg" />
         Back
       </button>
