@@ -100,7 +100,7 @@ function Contact() {
           />
         </div>
 
-        <div className="relative">
+        {/* <div className="relative">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -110,7 +110,28 @@ function Contact() {
             <option value="In-progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-        </div>
+        </div> */}
+
+
+        <div className="flex flex-wrap gap-2 sm:gap-4">
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+                value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="In-progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
       </div>
 
       {/* Table */}
