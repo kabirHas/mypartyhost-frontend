@@ -201,11 +201,8 @@
 }
 
 .kaab-dropdown {
-    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #ccc;
-    position: absolute;
-    right: 16px;
 }
 
 .kaab-revenue-list {
@@ -250,7 +247,7 @@
     font-style: normal;
     font-weight: 700;
     line-height: 120%;
-    margin-bottom: 8px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
