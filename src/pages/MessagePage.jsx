@@ -145,7 +145,7 @@ const MessagePage = () => {
         </div>
         <div className="kaab-chat-input">
           <input type="text" placeholder="Type your message" />
-          <button><img src="/images/send.png" alt="send"/></button>
+          <button><img src="/images/Send.png" alt="send"/></button>
         </div>
       </div>
     </div>
