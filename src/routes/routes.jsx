@@ -446,7 +446,9 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
           
 
 
-    <Route path="/success" element={<SuccessScreen />} key="success" />
+    <Route path="/success" element={<SuccessScreen />} key="success" />,
+    <Route path="/staff-profile" element={<StaffPublicProfile />} key="StaffPublicProfile" />
+    
   ];
 };
 
