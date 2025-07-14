@@ -406,11 +406,6 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       path="/dashboard/support"
       element={<SupportPage />}
       key="support"
-    />,
-    <Route
-      path="/create-job"
-      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
-      key="event"
     />
   </>
 )}
@@ -437,6 +432,26 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         key="new-ticket"
       />
     </Route>,
+    <Route
+      path="/create-job"
+      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
+      key="event"
+    />,
+    <Route
+      path="/bookings/:id"
+      element={isLoggedIn ? <BookingDetails /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/invites/:id"
+      element={isLoggedIn ? <InvitesReceived /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/past-booking/:id"
+      element={isLoggedIn ? <PastBookingDetail /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
 
     <Route
             path="/profile"
