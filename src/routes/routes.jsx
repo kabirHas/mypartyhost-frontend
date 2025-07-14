@@ -406,6 +406,11 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       path="/dashboard/support"
       element={<SupportPage />}
       key="support"
+    />,
+    <Route
+      path="/create-job"
+      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
+      key="event"
     />
   </>
 )}
