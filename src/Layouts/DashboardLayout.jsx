@@ -1,9 +1,11 @@
 import { Outlet, NavLink } from "react-router-dom";
 import BASE_URLS from "../config";
 import "../asset/css/Style2.css";
+import { ChatState } from "../Context/ChatProvider";
 
 export default function DashboardLayout() {
   const role = localStorage.getItem("role"); // Gets role from localStorage
+  const {notifications} = ChatState();
 
   const handleLogout = async () => {
     try {
@@ -190,23 +192,39 @@ if (role === "organiser") {
       <aside className="w-72 bg-white shadow-lg">
         <div className="p-6 text-2xl font-bold">MYPARTYHOSTESS</div>
         <nav className="mt-4 flex flex-col text-sm text-gray-700 navs-kab">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-6 py-3 mx-2 mt-1 rounded-md hover:bg-pink-100 hover:text-pink-600 transition ${
-                  isActive
-                    ? "bg-pink-100 text-pink-600 font-medium"
-                    : "text-gray-700"
-                }`
-              }
-            >
-              <i className={`${item.icon} text-base text-blue-600`}></i>
-              <span className="text-sm">{item.label}</span>
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            const { label, to, icon } = item;
+            const messagesLabel = label === "Message";
+            const notificationsRec = messagesLabel ? notifications : [];
+
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-6 py-3 mx-2 mt-1 rounded-md hover:bg-pink-100 hover:text-pink-600 transition ${
+                    isActive
+                      ? "bg-pink-100 text-pink-600 font-medium"
+                      : "text-gray-700"
+                  }`
+                }
+              >
+                <i className={`${icon} text-base text-pink-600`}></i>
+                <span className="text-sm flex items-center gap-1 justify-between w-full">
+                  <span>
+
+                  {label}
+                  </span>
+                  {messagesLabel && notificationsRec.length > 0 && (
+                    <span className="ml-1 text-xs font-semibold text-white rounded-full w-5 h-5 flex items-center justify-center bg-pink-600">
+                      {notificationsRec.length}
+                    </span>
+                  )}
+                </span>
+              </NavLink>
+            );
+          })}
 
           <a
             onClick={handleLogout}
