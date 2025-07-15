@@ -35,7 +35,7 @@ function StaffPublicProfile() {
   };
 
   return (
-    <div className="w-[1440px] relative bg-[#F9F9F9] inline-flex flex-col justify-start items-start overflow-hidden">
+    <div className="w-[100%] relative bg-[#F9F9F9] inline-flex flex-col justify-start items-start overflow-hidden">
       <div className="self-stretch px-12 pt-20 pb-40 flex flex-col justify-center items-center gap-2.5">
         <div className="w-full max-w-[1200px] flex flex-col justify-start items-center gap-6">
           <div className="self-stretch flex flex-col justify-start items-start gap-2.5">
@@ -343,12 +343,12 @@ function StaffPublicProfile() {
           />
         </div>
       </div>
-      <div className="w-[1440px] mt-4 h-[738px] relative bg-black overflow-hidden">
+      <div className="w-[100%] mt-4 h-[738px] relative bg-black overflow-hidden">
         <img
           className="w-[747px] object-cover h-[934px] left-[-13px] top-[-44px] absolute"
           src="/images/staffProfiles.png"
         />
-        <div className="w-[859px] left-[519px] top-[57px] absolute text-right justify-start">
+        <div className="w-[859px] left-[380px] top-[57px] absolute text-right justify-start">
           <span className="text-white text-7xl font-bold font-['Inter'] uppercase leading-[80px]">
             The Party{" "}
           </span>
@@ -356,14 +356,14 @@ function StaffPublicProfile() {
             Starts Here!
           </span>
         </div>
-        <div className="w-[509px] left-[869px] top-[233px] absolute justify-start text-[#FFFFFF] text-base font-normal font-['Inter'] leading-snug">
+        <div className="w-[509px] left-[760px] top-[233px] absolute justify-start text-[#FFFFFF] text-base font-normal font-['Inter'] leading-snug">
           Get ready to party with our gorgeous, fun, and flirty hostesses.
           Whether you're keeping it classy or turning up the heat, our stunning
           team is here to make your event unforgettable. Every detail is
           designed to dazzle, ensuring that your celebration is nothing short of
           spectacular.
         </div>
-        <div className="w-[498px] left-[887px] top-[578px] absolute inline-flex flex-col justify-center items-end gap-2">
+        <div className="w-[498px] left-[735px] top-[578px] absolute inline-flex flex-col justify-center items-end gap-2">
           <div className="self-stretch text-right justify-start">
             <span className="text-[#FFFFFF] text-5xl font-thin font-['Inter'] uppercase leading-10">
               THE EVENT

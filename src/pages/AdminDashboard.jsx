@@ -264,9 +264,21 @@ const AdminDashboard = () => {
               <h4>User Growth <i className="ri-arrow-right-up-line"></i></h4>
               
             </div>
-            <select className="kaab-dropdown">
-                <option>Monthly</option>
+
+              <div className="absolute inline-flex items-center right-[16px]">
+              <select
+                className="kaab-dropdown pl-3 pr-[25px] py-2 bg-[#FFFFFF] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+              >
+                <option value="">Monthly</option>
               </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+
+
             <Line ref={chartRef} data={userGrowthData} options={userGrowthOptions} plugins={[addLegendSpacing]}/>
           </div>
 

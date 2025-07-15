@@ -137,36 +137,68 @@ const TransactionManagement = () => {
           />
         </div>
 
-        <div className="kaab-filter-buttons">
-          <select className="kaab-filter-select">
-            <option value="">Hostess</option>
-            <option>Online</option>
-            <option>Offline</option>
-          </select>
 
-          <select className="kaab-filter-select">
-            <option value="">Hostess</option>
-            <option>Sydney</option>
-            <option>Melbourne</option>
-            <option>Brisbane</option>
-            <option>Perth</option>
-          </select>
+<div className="flex flex-wrap gap-2 sm:gap-4">
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+              >
+                <option value="">Hostess</option>
+                <option value="organiser">Organiser</option>
+                <option value="staff">Staff</option>
+                <option value="superadmin">Superadmin</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2  bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+              >
+                <option value="">Hostess</option>
+                <option value="1 hr">1 Hour</option>
+                <option value="24 hrs">24 Hours</option>
+              </select>
+              <div className="absolute right-1 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+              >
+                <option value="">Commission</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">In Active</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+              >
+                <option value="">Dec 2024 - Mar 2025</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">In Active</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <select className="kaab-filter-select">
-            <option value="">Commission</option>
-            <option>Active</option>
-            <option>Pending</option>
-            <option>Canceled</option>
-            <option>Completed</option>
-          </select>
 
-          <select className="kaab-filter-select">
-            <option value="">Dec 2024 - Mar 2025</option>
-            <option>Today</option>
-            <option>This Week</option>
-            <option>This Month</option>
-          </select>
-        </div>
       </div>
 
       {/* Table */}

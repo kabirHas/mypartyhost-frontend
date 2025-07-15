@@ -85,9 +85,12 @@ const PaymentPage = () => {
             />
           </div>
 
-          <div className="kaab-filter-buttons">
-            <select
-              className="kaab-filter-select"
+
+
+          <div className="flex flex-wrap gap-2 sm:gap-4">
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             >
@@ -95,10 +98,16 @@ const PaymentPage = () => {
               <option value="Payout">Payout</option>
               <option value="Payment">Payment</option>
               <option value="Refund">Refund</option>
-            </select>
-
-            <select
-              className="kaab-filter-select"
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+            <div className="relative inline-flex items-center">
+              <select
+                className="pl-3 pr-[25px] py-2  bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -106,7 +115,13 @@ const PaymentPage = () => {
               <option value="Completed">Completed</option>
               <option value="Pending">Pending</option>
               <option value="Canceled">Canceled</option>
-            </select>
+              </select>
+              <div className="absolute right-1 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

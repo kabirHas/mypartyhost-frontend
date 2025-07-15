@@ -3,6 +3,7 @@ import Slider from "react-slick";
 import { FaStar } from "react-icons/fa";
 import "../asset/css/Staff.css";
 import BASE_URLS from "../config";
+import { Link } from "react-router-dom";
 
 const StaffSlider = () => {
   const [staff, setStaff] = useState([]);
@@ -13,7 +14,6 @@ const StaffSlider = () => {
       .then((data) => setStaff(data.data))
       .catch((err) => console.error(err));
   }, []);
-
 
   const settings = {
     dots: false,
@@ -58,7 +58,14 @@ const StaffSlider = () => {
                         backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
                       }}
                     >
-                      <h3>{person.user.name.toUpperCase()}</h3>
+                      <h3>
+                        <Link
+                          to="/staff-profile"
+                          className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
+                        >
+                          {person.user.name.toUpperCase()}
+                        </Link>
+                      </h3>
 
                       <div className="stars">
                         {[...Array(5)].map((_, i) => (
