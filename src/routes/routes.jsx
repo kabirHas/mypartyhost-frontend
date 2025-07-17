@@ -474,8 +474,11 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     />,
 
 
-
-
+<Route
+            path="/staff-profile"
+            element={<StaffPublicProfile />}
+            key="profile"
+          />,
 
     <Route
             path="/profile"
