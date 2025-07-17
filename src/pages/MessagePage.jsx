@@ -12,8 +12,16 @@ let socket;
 const MessagePage = () => {
   const selectedChatCompare = useRef();
   const chatBodyRef = useRef(null); // Reference for chat body div
-  const { user, setUser, selectedChat, setSelectedChat, chats, setChats,notifications, setNotifications } =
-    ChatState();
+  const {
+    user,
+    setUser,
+    selectedChat,
+    setSelectedChat,
+    chats,
+    setChats,
+    notifications,
+    setNotifications,
+  } = ChatState();
   const [search, setSearch] = useState("");
   const [groupSearch, setGroupSearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -28,6 +36,7 @@ const MessagePage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const [fetchAgain, setFetchAgain] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   // Scroll to bottom when messages or selectedChat changes
   useEffect(() => {
@@ -132,9 +141,9 @@ const MessagePage = () => {
         !selectedChatCompare.current ||
         selectedChatCompare.current._id !== newMessageReceived.chat._id
       ) {
-        if(!notifications.includes(newMessageReceived)) {
+        if (!notifications.includes(newMessageReceived)) {
           setNotifications((prev) => [newMessageReceived, ...prev]);
-          setFetchAgain(!fetchAgain)
+          setFetchAgain(!fetchAgain);
         }
       }
       setMessages((prev) => [...prev, newMessageReceived]);
@@ -146,7 +155,7 @@ const MessagePage = () => {
       socket.off("message received", handleMessage);
     };
   }, [selectedChat]);
-console.log(notifications, '_------_-_---_-_')
+  console.log(notifications, "_------_-_---_-_");
   const accessChat = async (userId) => {
     try {
       setLoadingChat(true);
@@ -169,14 +178,13 @@ console.log(notifications, '_------_-_---_-_')
         return [data, ...prevChats];
       });
       setSelectedChat(data);
-      
 
       await axios.put(
         `${BASE_URLS.BACKEND_BASEURL}message/read/${data._id}`,
         {},
         config
       );
-  
+
       // Clear notifications for this chat
       setNotifications((prev) =>
         prev.filter((notification) => notification.chat._id !== data._id)
@@ -290,6 +298,26 @@ console.log(notifications, '_------_-_---_-_')
     <div className="kaab-message-page relative">
       <div className="kaab-sidebar relative">
         {/* Search Functionality */}
+        <div className="w-full flex gap-3 mb-3">
+          <select
+            className="px-3 py-2 border rounded-full focus:outline-none w-full"
+            // value={userType}
+            // onChange={(e) => setUserType(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+          <select
+            className="px-3 py-2 border rounded-full focus:outline-none w-full"
+            // value={userType}
+            // onChange={(e) => setUserType(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="user">Sent</option>
+            <option value="admin">Archive</option>
+          </select>
+        </div>
         <div className="kaab-search relative">
           <input
             onChange={(e) => setSearch(e.target.value)}
@@ -329,12 +357,14 @@ console.log(notifications, '_------_-_---_-_')
 
         <div className="kaab-messages-title">
           <p>Messages</p>
-          <button
-            onClick={togglePopup}
-            className="text-sm text-[#3D3D3D] font-bold bg-[#ECECEC] px-3 py-1 rounded-lg"
-          >
-            Create Group
-          </button>
+          {user && user.role == "superadmin" && (
+            <button
+              onClick={togglePopup}
+              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full"
+            >
+              <i className="ri-add-line text-xl"></i>
+            </button>
+          )}
         </div>
         <div className="kaab-message-list">
           {chats && chats.length > 0 ? (
@@ -387,7 +417,12 @@ console.log(notifications, '_------_-_---_-_')
                   </div>
                 </div>
                 {notifications.find((n) => n.chat?._id === chat._id) && (
-                  <span className="kaab-unread-count">{notifications.filter((n) => n.chat?._id === chat._id).length}</span>
+                  <span className="kaab-unread-count">
+                    {
+                      notifications.filter((n) => n.chat?._id === chat._id)
+                        .length
+                    }
+                  </span>
                 )}
               </div>
             ))
@@ -401,13 +436,95 @@ console.log(notifications, '_------_-_---_-_')
       </div>
 
       <div className="kaab-chat-panel z-1">
-        <div className="kaab-chat-header">
-          <div className="kaab-chat-title capitalize">{getChatName()}</div>
-          <div className="kaab-chat-subtitle">
-            {selectedChat?.isGroupChat
-              ? "Group Chat"
-              : "Exclusive Beach Party – Energetic Hostess Required"}
+        <div className="kaab-chat-header  flex justify-between items-center">
+          <div>
+            <div className="kaab-chat-title capitalize">{getChatName()}</div>
+            <div className="kaab-chat-subtitle">
+              {selectedChat?.isGroupChat
+                ? "Group Chat"
+                : "Exclusive Beach Party – Energetic Hostess Required"}
+            </div>
           </div>
+          {selectedChat?.isGroupChat && (
+            <div className="relative">
+              <i
+                onClick={() => setShowMenu(!showMenu)}
+                className="ri-information-line text-3xl text-[#343330] absolute top-1/2 transform -translate-y-1/2  right-4 cursor-pointer"
+              ></i>
+              {showMenu && (
+                <div className="w-80 absolute top-12 right-0 p-6 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2.5 overflow-hidden">
+                  <div className="flex-1 inline-flex flex-col justify-start items-center gap-4">
+                    <div className="self-stretch inline-flex justify-between items-center">
+                      <div className="w-60 justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
+                        Exclusive Beach Party – Energetic Hostess Required
+                      </div>
+                      <i onClick={() => setShowMenu(false)} className="ri-close-circle-line text-3xl cursor-pointer text-[#656565]"></i>
+                    </div>
+                    <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                      <div className="self-stretch justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
+                        Members
+                      </div>
+                      <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                        <div className="self-stretch inline-flex justify-end items-center gap-3">
+                          <div className="flex-1 flex justify-start items-center gap-3.5">
+                            <img
+                              className="w-8 h-8 rounded-full"
+                              src="https://placehold.co/32x32"
+                            />
+                            <div className="flex-1 justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                              Emily Roberts
+                            </div>
+                          </div>
+                          <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
+                            Remove
+                          </div>
+                        </div>
+                        <div className="self-stretch inline-flex justify-start items-center gap-3.5">
+                          <img
+                            className="w-8 h-8 rounded-full"
+                            src="https://placehold.co/32x32"
+                          />
+                          <div className="justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                            Emily Roberts
+                          </div>
+                        </div>
+                        <div className="self-stretch inline-flex justify-start items-center gap-3.5">
+                          <img
+                            className="w-8 h-8 rounded-full"
+                            src="https://placehold.co/32x32"
+                          />
+                          <div className="justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                            Sophia Carter
+                          </div>
+                        </div>
+                        <div className="self-stretch inline-flex justify-start items-center gap-3.5">
+                          <img
+                            className="w-8 h-8 rounded-full"
+                            src="https://placehold.co/32x32"
+                          />
+                          <div className="justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                            Mia Johnson
+                          </div>
+                        </div>
+                        <div className="self-stretch inline-flex justify-start items-center gap-3.5">
+                          <img
+                            className="w-8 h-8 rounded-full"
+                            src="https://placehold.co/32x32"
+                          />
+                          <div className="justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                            Olivia Brown
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="self-stretch justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight">
+                      Add Members
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="kaab-chat-body" ref={chatBodyRef}>
           {loading ? (
@@ -467,10 +584,14 @@ console.log(notifications, '_------_-_---_-_')
 
       {/* Popup for Creating Group */}
       {showPopup && (
-        <div className="absolute top-0 left-0 w-full h-full bg-opacity-50 flex items-center justify-center z-[100]">
-          <div className="w-1/3 p-6 rounded-lg bg-white shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Create Group</h2>
-            <div className="mb-4">
+        <div className="absolute top-0 left-0 w-full h-full bg-opacity-10 flex items-center justify-center z-[100]">
+          <div className="w-[600px] relative p-6 rounded-lg bg-white shadow-2xl">
+            <i
+              onClick={togglePopup}
+              className="ri-close-circle-line text-3xl text-[#343330] absolute top-5 right-5"
+            ></i>
+            <h2 className="text-xl font-bold mb-4">New Message</h2>
+            {/* <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Group Name
               </label>
@@ -481,32 +602,42 @@ console.log(notifications, '_------_-_---_-_')
                 className="w-full p-2 border rounded-lg"
                 placeholder="Enter group name"
               />
-            </div>
-           
+            </div> */}
+
             <div className="mb-4">
-            { selectedUsers && selectedUsers.length > 0 && (
-              <>
-             
-              <label className="block text-sm font-medium text-gray-700">
+              {selectedUsers && selectedUsers.length > 0 && (
+                <>
+                  {/* <label className="block text-sm font-medium text-gray-700">
                 Selected Users
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedUsers.map((user) => (
-                  <div
-                    key={user._id}
-                    className="flex items-center bg-zinc-100 px-2 py-1 rounded-lg"
-                  >
-                    <span className="text-sm">{user.name}</span>
-                    <FaTimes
-                      className="ml-2 cursor-pointer text-red-500"
-                      onClick={() => removeUser(user._id)}
-                    />
+              </label> */}
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {selectedUsers.map((user) => (
+                      <div
+                        key={user._id}
+                        className="flex items-center w-full justify-between  px-2 py-1 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2">
+                          <img
+                            className="w-8 h-8 rounded-full"
+                            src={user.profileImage}
+                            alt=""
+                          />
+                          <span className="text-sm capitalize">
+                            {user.name}
+                          </span>
+                        </div>
+                        <div
+                          className="ml-2 cursor-pointer text-zinc-500"
+                          onClick={() => removeUser(user._id)}
+                        >
+                          Remove
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              </>
-            )}
-           
+                </>
+              )}
+
               <label className="block text-sm font-medium text-gray-700">
                 Search Users
               </label>
@@ -547,17 +678,19 @@ console.log(notifications, '_------_-_---_-_')
               </div>
             </div>
             <div className="flex justify-end">
-              <button
+              {/* <button
                 onClick={togglePopup}
                 className="px-4 py-2 mr-2 bg-gray-300 rounded-lg"
               >
                 Cancel
-              </button>
+              </button> */}
               <button
                 onClick={handleCreateGroup}
-                className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600  text-white rounded-lg"
+                className={`px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600  text-white rounded-lg ${
+                  selectedUsers.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Create
+                Start Conversation
               </button>
             </div>
           </div>
