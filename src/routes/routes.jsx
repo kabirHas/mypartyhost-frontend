@@ -45,6 +45,8 @@ import ManageEvents from "../pages/ManageEvents";
 import ReviewsManagement from "../pages/ReviewsManagement";
 import TransactionManagement from "../pages/TransactionManagement";
 import StaffDashboard from "../pages/StaffDashboard";
+import AcceptBookingReq from "../pages/AcceptBookingReq";
+import CreateEventMultiStepForm from "../pages/CreateEventMultiStepForm";
 
 // export const getStaticRoutes = (isLoggedIn, userRole) => {
 //   // const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -437,6 +439,43 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         key="new-ticket"
       />
     </Route>,
+    
+    
+
+    <Route
+      path="/bookings/:id"
+      element={isLoggedIn ? <BookingDetails /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/invites/:id"
+      element={isLoggedIn ? <InvitesReceived /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/past-booking/:id"
+      element={isLoggedIn ? <PastBookingDetail /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/accept-booking/"
+      element={isLoggedIn ? <AcceptBookingReq /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/multi-step/"
+      element={isLoggedIn ? <CreateEventMultiStepForm /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/create-job"
+      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
+      key="event"
+    />,
+
+
+
+
 
     <Route
             path="/profile"
