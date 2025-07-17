@@ -361,7 +361,7 @@ const MessagePage = () => {
 
         <div className="kaab-messages-title">
           <p>Messages</p>
-          {user && user.role == "superadmin" && (
+          {role == "superadmin" && (
             <button
               onClick={togglePopup}
               className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full"
