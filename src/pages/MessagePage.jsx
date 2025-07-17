@@ -13,6 +13,7 @@ const MessagePage = () => {
   const selectedChatCompare = useRef();
   const chatBodyRef = useRef(null); // Reference for chat body div
   const user = localStorage.getItem("userInfo");
+  const role = localStorage.getItem("role");
   const {
     //user,
     setUser,
@@ -299,6 +300,7 @@ const MessagePage = () => {
     <div className="kaab-message-page relative">
       <div className="kaab-sidebar relative">
         {/* Search Functionality */}
+        { role === "superadmin" && (
         <div className="w-full flex gap-3 mb-3">
           <select
             className="px-3 py-2 border rounded-full focus:outline-none w-full"
@@ -319,6 +321,7 @@ const MessagePage = () => {
             <option value="admin">Archive</option>
           </select>
         </div>
+        )}
         <div className="kaab-search relative">
           <input
             onChange={(e) => setSearch(e.target.value)}
