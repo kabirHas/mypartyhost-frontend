@@ -213,7 +213,7 @@ const MessagePage = () => {
         },
       };
       const { data } = await axios.post(
-        `http://localhost:4000/api/chat/group`,
+        `${BASE_URLS.BACKEND_BASEURL}chat/group`,
         {
           name: groupName,
           users: selectedUsers.map((u) => u._id),
@@ -244,7 +244,7 @@ const MessagePage = () => {
         },
       };
       const { data } = await axios.post(
-        `http://localhost:4000/api/message`,
+        `${BASE_URLS.BACKEND_BASEURL}message`,
         {
           chatId: selectedChat._id,
           content: newMessage,
