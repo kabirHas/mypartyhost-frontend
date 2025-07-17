@@ -215,7 +215,7 @@ const OrganizerDashboard = () => {
           </div>
           <div className="btn-group">
             <button
-              onClick={() => navigate("/create-job")}
+              onClick={() => navigate("/multi-step")}
               className="post-btn"
             >
               Post a Job
