@@ -325,6 +325,11 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
             element={<Security />}
             key="security"
           />
+          <Route
+            path="/dashboard/support"
+            element={<SupportPage />}
+            key="support"
+          />
         </>
       )}
 

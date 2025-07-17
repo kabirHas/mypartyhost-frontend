@@ -92,6 +92,11 @@ export default function DashboardLayout() {
         label: "Security & Backup",
         icon: "ri-lock-line",
       },
+      {
+        to: "/dashboard/support",
+        label: "Help & Support",
+        icon: "ri-question-line",
+      },
     ]);
   }
 
