@@ -576,7 +576,7 @@ const MessagePage = () => {
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             />
             <button onClick={handleSendMessage}>
-              <img src="/images/send.png" alt="send" />
+              <img src="/images/Send.png" alt="send" />
             </button>
           </div>
         )}
