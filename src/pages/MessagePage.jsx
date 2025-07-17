@@ -12,6 +12,7 @@ let socket;
 const MessagePage = () => {
   const selectedChatCompare = useRef();
   const chatBodyRef = useRef(null); // Reference for chat body div
+  //const user = localStorage.getItem("userInfo");
   const {
     user,
     setUser,
