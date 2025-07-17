@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-const Calendar = () => {
+const Calendar = ({ setIsAvailabilityModalOpen }) => {
   const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 1));
   const [availableDates, setAvailableDates] = useState([]);
 
@@ -80,7 +80,7 @@ const Calendar = () => {
             <FaChevronLeft size={18} />
           </button>
         </div>
-        <button className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 text-white text-sm rounded-lg font-medium">
+        <button onClick={() => setIsAvailabilityModalOpen(true)} className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 text-white text-sm rounded-lg font-medium">
           Set Availability
         </button>
       </div>
