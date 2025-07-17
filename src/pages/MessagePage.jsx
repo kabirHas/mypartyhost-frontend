@@ -364,79 +364,104 @@ const MessagePage = () => {
           {role == "superadmin" && (
             <button
               onClick={togglePopup}
-              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full"
+              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full z-[9999]"
             >
               <i className="ri-add-line text-xl"></i>
             </button>
           )}
         </div>
         <div className="kaab-message-list">
-          {chats && chats.length > 0 ? (
-            chats.map((chat) => (
-              <div
-                key={chat._id}
-                onClick={() => setSelectedChat(chat)}
-                className={`kaab-message-item ${
-                  selectedChat && selectedChat._id === chat._id ? "active" : ""
-                }`}
-              >
-                <img
-                  src={
-                    chat.isGroupChat
-                      ? "https://imgs.search.brave.com/IlEhT8Dcgu3T4mm7t9xhl6UsFEooWIWZ3wDtgeDtZsc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMDAv/NTUwLzUzNS9zbWFs/bC91c2VyX2ljb25f/MDA3LmpwZw"
-                      : chat.users[0]._id === user._id
-                      ? chat.users[1].profileImage
-                      : chat.users[0].profileImage
-                  }
-                  alt={
-                    chat.isGroupChat
-                      ? chat.chatName
-                      : chat.users[0]._id === user._id
-                      ? chat.users[1].name
-                      : chat.users[0].name
-                  }
-                />
-                <div className="kaab-message-info">
-                  <div className="kaab-message-name-time">
-                    <span>
-                      {chat.isGroupChat
-                        ? chat.chatName
-                        : chat.users[0]._id === user._id
-                        ? chat.users[1].name
-                        : chat.users[0].name}
-                    </span>
-                    <span>
-                      {chat.updatedAt
-                        ? new Date(chat.updatedAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "Time not available"}
-                    </span>
-                  </div>
-                  <div className="kaab-message-preview">
-                    {chat.latestMessage?.content.length > 18
-                      ? `${chat.latestMessage?.content.slice(0, 18)}...`
-                      : chat.latestMessage?.content}
-                  </div>
-                </div>
-                {notifications.find((n) => n.chat?._id === chat._id) && (
-                  <span className="kaab-unread-count">
-                    {
-                      notifications.filter((n) => n.chat?._id === chat._id)
-                        .length
-                    }
-                  </span>
-                )}
+          <div className="kaab-message-item active">
+            <img src="/images/emilli.png" alt="Emily" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Emily Roberts</span>
+                <span>4:30 PM</span>
               </div>
-            ))
-          ) : (
-            <div className="kaab-no-messages">
-              <img src="/images/no-messages.png" alt="No Messages" />
-              <p>No messages found</p>
+              <div className="kaab-message-preview typing">Typing...</div>
             </div>
-          )}
+            <span className="kaab-unread-count">2</span>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/sophia.png" alt="Sophia" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Sophia Williams</span>
+                <span>12:30 PM</span>
+              </div>
+              <div className="kaab-message-preview">Thank you.</div>
+            </div>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/james.png" alt="James" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>James Carter</span>
+                <span>1:36 PM</span>
+              </div>
+              <div className="kaab-message-preview">
+                Looking forward to tomorrow’s event!
+              </div>
+            </div>
+            <img src="/images/Checks.svg" alt="read" className="kaab-read"/>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/sophia.png" alt="Olivia" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Olivia Brown</span>
+                <span>2:15 PM</span>
+              </div>
+              <div className="kaab-message-preview">Can’t wait for the presentation!</div>
+            </div>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/james.png" alt="Ethan" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Ethan Davis</span>
+                <span>3:00 PM</span>
+              </div>
+              <div className="kaab-message-preview">I hope everyone is ready!</div>
+            </div>
+            <img src="/images/Checks.svg" alt="read" className="kaab-read"/>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/sophia.png" alt="Ava" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Ava Johnson</span>
+                <span>3:45 PM</span>
+              </div>
+              <div className="kaab-message-preview">Let’s make this a great session!</div>
+            </div>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/james.png" alt="Liam" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Liam Smith</span>
+                <span>4:10 PM</span>
+              </div>
+              <div className="kaab-message-preview">Will there be snacks available?</div>
+            </div>
+            <img src="/images/Checks.svg" alt="read" className="kaab-read"/>
+          </div>
+          <div className="kaab-message-item">
+            <img src="/images/sophia.png" alt="Isabella" />
+            <div className="kaab-message-info">
+              <div className="kaab-message-name-time">
+                <span>Isabella Martinez</span>
+                <span>4:30 PM</span>
+              </div>
+              <div className="kaab-message-preview">Excited to see everyone!</div>
+            </div>
+          </div>
         </div>
+
+
+
+
       </div>
 
       <div className="kaab-chat-panel z-1">
@@ -449,14 +474,14 @@ const MessagePage = () => {
                 : "Exclusive Beach Party – Energetic Hostess Required"}
             </div>
           </div>
-          {selectedChat?.isGroupChat && (
+          {role === "superadmin" && (
             <div className="relative">
               <i
                 onClick={() => setShowMenu(!showMenu)}
                 className="ri-information-line text-3xl text-[#343330] absolute top-1/2 transform -translate-y-1/2  right-4 cursor-pointer"
               ></i>
               {showMenu && (
-                <div className="w-80 absolute top-12 right-0 p-6 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2.5 overflow-hidden">
+                <div className="w-80 absolute top-12 right-0 p-6 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2.5 overflow-hidden z-[9999]">
                   <div className="flex-1 inline-flex flex-col justify-start items-center gap-4">
                     <div className="self-stretch inline-flex justify-between items-center">
                       <div className="w-60 justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
@@ -530,45 +555,42 @@ const MessagePage = () => {
             </div>
           )}
         </div>
-        <div className="kaab-chat-body" ref={chatBodyRef}>
-          {loading ? (
-            <div className="text-center text-gray-500">Loading messages...</div>
-          ) : messages.length > 0 ? (
-            messages.map((message) => (
-              <div
-                key={message._id}
-                className={`kaab-chat-message ${
-                  message.sender._id === user?._id ? "sender" : "receiver"
-                }`}
-              >
-                <img
-                  src={
-                    message.sender.profileImage || "/images/default-user.png"
-                  }
-                  alt={message.sender.name || "User"}
-                  className="h-10 w-10 rounded-full"
-                />
-                <div>
-                  <div className="kaab-chat-name-time">
-                    {message.sender.name || "Unknown User"}
-                    <span>
-                      {message.createdAt
-                        ? new Date(message.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="kaab-chat-text">{message.content || ""}</div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center text-gray-500">
-              No messages in this chat
+        <div className="kaab-chat-body">
+          <div className="kaab-chat-message sender">
+            <img src="/images/emilli.png" alt="Emily" />
+            <div>
+              <div className="kaab-chat-name-time">Emily Roberts <span>10:00 AM</span></div>
+              <div className="kaab-chat-text">Hi Samantha, hope you’re doing well! I’m reaching out regarding the upcoming Exclusive Beach Party. Just wanted to check if you received all the event details.</div>
             </div>
-          )}
+          </div>
+          <div className="kaab-chat-message sender">
+            <img src="/images/samantha.png" alt="Emily" />
+            <div>
+              <div className="kaab-chat-name-time">Samantha Lee <span>10:05 AM</span></div>
+              <div className="kaab-chat-text">Hi Emily, yes, I received everything and I’m really excited for the gig! Could you please confirm what time I should arrive?</div>
+            </div>
+          </div>
+          <div className="kaab-chat-message sender">
+            <img src="/images/emilli.png" alt="Emily" />
+            <div>
+              <div className="kaab-chat-name-time">Emily Roberts <span>10:08 AM</span></div>
+              <div className="kaab-chat-text">Absolutely. The event starts at 4:00 PM, but we’d like you to arrive by 3:45 PM for a brief setup meeting.</div>
+            </div>
+          </div>
+          <div className="kaab-chat-message sender">
+            <img src="/images/samantha.png" alt="Emily" />
+            <div>
+              <div className="kaab-chat-name-time">Samantha Lee <span>10:10 AM</span></div>
+              <div className="kaab-chat-text">Great, thanks for the confirmation! Also, could you remind me of the dress code?</div>
+            </div>
+          </div>
+          <div className="kaab-chat-message sender">
+            <img src="/images/emilli.png" alt="Emily" />
+            <div>
+              <div className="kaab-chat-name-time">Emily Roberts <span>10:15 AM</span></div>
+              <div className="kaab-chat-text">Sure! The dress code is Beach Formal—think smart summer dress with comfortable yet stylish footwear.</div>
+            </div>
+          </div>
         </div>
         {selectedChat && (
           <div className="kaab-chat-input">
