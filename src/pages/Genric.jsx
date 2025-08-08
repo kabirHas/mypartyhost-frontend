@@ -1,4 +1,4 @@
-import React from "react";
+import {React, useState, useEffect} from "react";
 import "../asset/css/Genric.css";
 import StaffCarousel from "../components/StaffCarousel";
 import SearchStaff from "../components/SearchStaff";
@@ -7,11 +7,27 @@ import EventOptions from "../components/EventOptions";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Faqs from "../components/Faqs";
+import BASE_URLS from "../config";
 
 const Genric = ({ pages }) => {
-  const page = pages;
+  const [page, setPage] = useState(null);
+
+  useEffect(() => {
+      fetch(`${BASE_URLS.BACK}/api/pages${pages ? `/${pages._id}`: ''}`)
+        .then(res => res.json())
+        .then(data => setPage(data))
+        .catch(err => {
+          console.error('Error fetching pages:', err);
+          setPage([]); 
+        });
+    }, [pages]);
+
+    console.log(page);
+
   return (
     <div className="genric-page-container">
+      {page && ( 
+        <>
       <div className="header-wrap">
         <Header />
       </div>
@@ -102,6 +118,8 @@ const Genric = ({ pages }) => {
       <div className="footer-wrap">
         <Footer />
       </div>
+      </>
+      )}
     </div>
   );
 };
