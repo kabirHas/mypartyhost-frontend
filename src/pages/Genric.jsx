@@ -22,7 +22,6 @@ const Genric = ({ pages }) => {
         });
     }, [pages]);
 
-    console.log(page);
 
   return (
     <div className="genric-page-container">
