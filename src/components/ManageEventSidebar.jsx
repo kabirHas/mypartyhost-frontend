@@ -2,46 +2,125 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URLS from "../config";
 import { Link } from "react-router-dom";
+import { set } from "date-fns";
 
-const ManageEventSidebar = ({ userId, onClose = false }) => {
+const ManageEventSidebar = ({ userId, onClose = false, fetchAgain, setFetchAgain }) => {
+  const [event, setEvent] = useState(null);
   const [isActive, setIsActive] = useState(true);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Fetch event data by ID
+  useEffect(() => {
+    if (!userId) return;
+    setLoading(true);
+    axios
+      .get(`${BASE_URLS.BACKEND_BASEURL}jobs/${userId}`)
+      .then((res) => {
+        setEvent(res.data);
+        setIsActive(res.data.isActive);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching event:", err);
+        setError("Failed to load event details");
+        setLoading(false);
+      });
+  }, [userId]);
+
+  // Handle toggle for isActive
   const handleToggle = () => {
-    setIsActive(!isActive);
+    const newIsActive = !isActive;
+    axios
+      .patch(`${BASE_URLS.BACKEND_BASEURL}admin/edit-job/${userId}`, {
+        isActive: newIsActive,
+      },{ headers : {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      }})
+      .then((res) => {
+        setIsActive(newIsActive);
+        setEvent({ ...event, isActive: newIsActive });
+        // Notify parent of status change
+        setFetchAgain(!fetchAgain);
+        onClose({ statusChanged: true, eventId: userId, isActive: newIsActive });
+      })
+      .catch((err) => {
+        console.error("Error updating event status:", err);
+        alert(`Failed to update event status: ${err.response?.data?.message || err.message}`);
+      });
   };
 
+  // Handle delete event
   const handleDelete = () => {
-    // TODO: Replace with your API call to delete event
-    console.log("Event deleted");
-    setShowDeletePopup(false);
-    if (onClose) onClose();
+    setDeleteLoading(true);
+    axios
+      .delete(`${BASE_URLS.BACKEND_BASEURL}admin/delete-job/${userId}`,{
+  headers : {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      })
+      .then(() => {
+        console.log("Event deleted successfully");
+        setShowDeletePopup(false);
+        setDeleteLoading(false);
+        setFetchAgain(!fetchAgain);
+        // Pass deletion flag and event ID to parent
+        if (onClose) onClose({ deleted: true, eventId: userId });
+      })
+      .catch((err) => {
+        console.error("Error deleting event:", err);
+        alert(`Failed to delete event: ${err.response?.data?.message || err.message}`);
+        setDeleteLoading(false);
+      });
   };
+
+  if (loading) {
+    return (
+      <div className="fixed top-0 right-0 w-full sm:w-[600px] h-full bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed top-0 right-0 w-full sm:w-[600px] h-full bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="fixed top-0 right-0 w-full sm:w-[600px] h-full bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+        <div>No event data available</div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed top-0 right-0 w-full sm:w-[600px] h-full bg-white shadow-lg border-l border-gray-200 z-50 overflow-y-auto scrollbar-hide">
       <div className="self-stretch w-full px-4 py-6 bg-Token-BG-Neutral-Light-1 border-b border-Token-Border-&-Divider-Neutral-Light-2 inline-flex justify-start items-center gap-6">
-        <button onClick={onClose} className="text-gray-800 text-xl">
+        <button onClick={() => onClose({ deleted: false, statusChanged: false })} className="text-gray-800 text-xl">
           <i className="ri-arrow-left-line"></i>
         </button>
         <div className="text-Token-Text-Primary text-xl font-bold font-['Inter'] leading-normal">
-          VIP Gala Night
+          {event.eventName}
         </div>
       </div>
 
       <div className="self-stretch px-4 pt-4 pb-6 inline-flex flex-col justify-start items-start gap-4">
         <div className="self-stretch p-4 bg-Token-BG-Neutral-Light-2 rounded-2xl flex flex-col justify-start items-start gap-3.5">
           <div className="text-black text-base font-bold font-['Inter'] leading-snug">
-            VIP Gala Night
+            {event.eventName}
           </div>
           <div className="flex flex-col gap-1">
             <div className="text-Token-Text-Secondary text-base font-normal font-['Inter'] leading-snug">
-              This exclusive gala event features a high-end experience for VIP
-              guests. The event includes a cocktail reception, live
-              entertainment, and premium services. All details have been
-              verified and approved by the organizer.
+              {event.jobDescription || "No description available."}
             </div>
-            <Link to="#" className="text-[#e61e4c] hover:underline font-medium">
+            <Link to={`/job/${event._id}`} className="text-[#e61e4c] hover:underline font-medium">
               View Job
             </Link>
           </div>
@@ -53,7 +132,7 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
             <div className="w-full flex justify-end items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="text-black text-sm font-medium font-['Inter'] leading-tight">
-                  Active
+                  {isActive ? "Active" : "Inactive"}
                 </div>
                 <label className="inline-flex items-center gap-2 cursor-pointer">
                   <input
@@ -82,6 +161,7 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
                   background:
                     "linear-gradient(272deg, #E31F87 1.58%, #E61E4D 98.73%)",
                 }}
+                disabled={deleteLoading}
               >
                 Delete
               </button>
@@ -101,37 +181,45 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
                   Organizer:
                 </div>
                 <Link
-                  to="#"
+                  to={`/organizer/${event.organiser._id}`}
                   className="text-[#e61e4c] hover:underline font-medium"
                 >
-                  Robert John
+                  {event.organiser.name}
                 </Link>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Location:
                 </div>
-                <div className="font-medium">Sydney, NSW</div>
+                <div className="font-medium">{`${event.city}, ${event.country}`}</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">Date:</div>
-                <div className="font-medium">March 15, 2025</div>
+                <div className="font-medium">
+                  {new Date(event.jobDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">Time:</div>
-                <div className="font-medium">6:00 PM – 11:00 PM</div>
+                <div className="font-medium">{`${event.startTime} – ${event.endTime}`}</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Total Positions:
                 </div>
-                <div className="font-medium">150</div>
+                <div className="font-medium">{event.numberOfPositions}</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Bookings:
                 </div>
-                <div className="font-medium">120 Confirmed, 30 Pending</div>
+                <div className="font-medium">
+                  {`${event.hiredStaff.length} Confirmed, ${event.applicants.length - event.hiredStaff.length} Pending`}
+                </div>
               </div>
             </div>
             <div
@@ -153,7 +241,7 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
           </div>
         </div>
 
-        {/* Revenue & Financials */}
+        {/* Revenue & Financials - Placeholder */}
         <div className="self-stretch p-4 bg-Token-BG-Neutral-Light-2 rounded-2xl flex flex-col gap-4">
           <div className="text-xl font-bold text-Token-Text-Primary font-['Inter'] leading-normal">
             Revenue & Financials
@@ -164,25 +252,25 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
                 <div className="text-base text-Token-Text-Primary">
                   Total Event Revenue:
                 </div>
-                <div className="font-medium">$12,000</div>
+                <div className="font-medium">N/A</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Payments Made:
                 </div>
-                <div className="font-medium">$9,500</div>
+                <div className="font-medium">N/A</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Pending Payments:
                 </div>
-                <div className="font-medium">$2,500</div>
+                <div className="font-medium">N/A</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-base text-Token-Text-Primary">
                   Commission Earned:
                 </div>
-                <div className="font-medium">$1,800</div>
+                <div className="font-medium">N/A</div>
               </div>
             </div>
             <div
@@ -217,12 +305,13 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
               <button
                 onClick={() => setShowDeletePopup(false)}
                 className="text-gray-500 text-xl"
+                disabled={deleteLoading}
               >
                 &times;
               </button>
             </div>
             <p className="mt-2 text-sm text-gray-700">
-              You’re about to permanently delete the event <b>“VIP Gala Night”</b>
+              You’re about to permanently delete the event <b>“{event.eventName}”</b>
             </p>
             <ul className="list-disc pl-5 mt-3 text-sm text-gray-700 space-y-1">
               <li>Cancel all confirmed bookings</li>
@@ -236,6 +325,7 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
               <button
                 onClick={() => setShowDeletePopup(false)}
                 className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium"
+                disabled={deleteLoading}
               >
                 Cancel
               </button>
@@ -245,9 +335,11 @@ const ManageEventSidebar = ({ userId, onClose = false }) => {
                 style={{
                   background:
                     "linear-gradient(272deg, #E31F87 1.58%, #E61E4D 98.73%)",
+                  opacity: deleteLoading ? 0.6 : 1,
                 }}
+                disabled={deleteLoading}
               >
-                Yes, Delete Event
+                {deleteLoading ? "Deleting..." : "Yes, Delete Event"}
               </button>
             </div>
           </div>

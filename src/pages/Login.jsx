@@ -69,11 +69,13 @@ import axios from 'axios'; // Using axios directly for external API
 import '../asset/css/Style.css';
 import BASE_URLS from '../config';
 import Notify from '../utils/notify';
+import { ChatState } from '../Context/ChatProvider';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { setUser } = ChatState()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,6 +89,7 @@ const Login = () => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.user.role);
       localStorage.setItem('userInfo', JSON.stringify(res.data.user))
+      setUser(res.data.user);
       window.dispatchEvent(new Event("user-logged-in"));
       navigate('/dashboard');
     } catch (err) {
