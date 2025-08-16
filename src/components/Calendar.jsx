@@ -1,18 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import axios from "axios";
 
 const Calendar = ({ setIsAvailabilityModalOpen }) => {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [availableDates, setAvailableDates] = useState([]);
+  const [events, setEvents] = useState([]);
 
-  const events = [
-    { date: "2024-01-01", label: "New Year Celebration Party", type: "confirmed" },
-    { date: "2024-01-02", label: "Pool Pary", type: "confirmed" },
-    { date: "2024-01-02", label: "Indoor Event", type: "invitation" },
-    { date: "2024-01-02", label: "Beach party", type: "cancelled" },
-    { date: "2024-01-15", label: "Bachelor Party", type: "confirmed" },
-    { date: "2024-01-20", label: "Mom's Birthday", type: "birthday" },
-  ];
+useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axios.get("https://mypartyhost.onrender.com/api/jobs/manage-bookings", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        console.log("Manage Booking", response);
+        const { confirmedBookings, invitesReceived } = response.data;
+        const allEvents = [
+          ...confirmedBookings.map(b => ({
+            date: new Date(b.jobDate).toISOString().split("T")[0],
+            label: b.eventName,
+            type: "confirmed",
+          })),
+          ...invitesReceived.map(i => ({
+            date: new Date(i.job.jobDate).toISOString().split("T")[0],
+            label: i.job.eventName,
+            type: "invitation",
+          })),
+        ];
+        setEvents(allEvents);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+    fetchBookings();
+  }, []);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -64,6 +85,7 @@ const Calendar = ({ setIsAvailabilityModalOpen }) => {
   return (
     <div className="p-4 bg-white rounded-3xl outline outline-1 outline-gray-200 flex flex-col gap-4 text-[10px] font-['Inter']">
       {/* Header */}
+      {/* <h1>hsdghjfsjdfhsd</h1> */}
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center gap-4">
           <button
