@@ -55,11 +55,11 @@ const StaffDashboard = () => {
     return userInfo._id || "";
   });
 
+
   const [additionalRates, setAdditionalRates] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return userInfo.additionalRates || [];
   });
-
   // const [additionalRates, setAdditionalRates] = useState([]);
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
@@ -79,37 +79,6 @@ const StaffDashboard = () => {
 
   const [initialBaseRate, setInitialBaseRate] = useState(baseRate);
   const [isBaseRateModified, setIsBaseRateModified] = useState(false);
-
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     if (!userId) {
-  //       setUserDataError("Invalid user ID. Please log in again.");
-  //       return;
-  //     }
-  //     setIsLoading(true);
-  //     try {
-  //       const response = await axios.get(`https://mypartyhost.onrender.com/api/staff/${userId}`, {
-  //         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  //       });
-  //       setBaseRate(response.data.baseRate);
-  //       setInitialBaseRate(response.data.baseRate);
-  //       setIsBaseRateModified(false);
-  //       setAdditionalRates(response.data.additionalRates || []);
-
-  //       setSelectedDates((response.data.availableDates || []).map(date => new Date(date).toISOString().split("T")[0]));
-
-  //       console.log("API availableDates:", response.data.availableDates);
-
-  //       setUserDataError("");
-  //     } catch (error) {
-  //       setUserDataError("Failed to fetch user data. Please try again.");
-  //       console.error("Error fetching user data:", error.response?.data || error.message);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   fetchUserData();
-  // }, [userId]);
   const [boostProfile, setBoostProfile] = useState(false);
   const [boostPlans, setBoostPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -264,6 +233,69 @@ console.log("User from ChatState:", user);
     fetchNotifications();
   }, []);
 
+
+useEffect(() => {
+  const fetchUpcomingEvents = async () => {
+    if (!userId) {
+      setEventsError("Invalid user ID. Please log in again.");
+      console.log("Debug: No userId found in localStorage"); // Debug log
+      return;
+    }
+    setIsLoading(true);
+    console.log("Debug: Fetching events for userId:", userId); // Debug log
+    try {
+      const response = await axios.get("https://mypartyhost.onrender.com/api/staff/upcoming-events", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      console.log("Upcoming Events API Response:", response.data);
+      let filteredEvents = response.data || [];  // No .filter()
+      
+      // Sort events in descending order by jobDate (newest first)
+      filteredEvents = filteredEvents.sort((a, b) => {
+        return new Date(b.jobDate) - new Date(a.jobDate);
+      });
+      
+      console.log("Debug: Sorted Filtered Events:", filteredEvents); // Updated debug log
+      setUpcomingEvents(filteredEvents);
+      setEventsError("");
+    } catch (error) {
+      setEventsError("Failed to fetch upcoming events. Please try again.");
+      console.error("Error fetching upcoming events:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchUpcomingEvents();
+}, [userId]);
+
+const formatTime = (time) => {
+  if (!time) return 'N/A';
+  const [hours, minutes] = time.split(':');
+  let hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12;
+  const formattedHour = hour.toString().padStart(2, '0'); // Pad with zero for single digits, e.g., 09:00 AM
+  const formattedMinutes = minutes.padStart(2, '0'); // Ensure minutes are two digits
+  return `${formattedHour}:${formattedMinutes} ${ampm}`;
+};
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch("https://mypartyhost.onrender.com/api/notifications", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const data = await response.json();
+        const jobInvites = data.filter((notif) => notif.type === "job_invite");
+        setNotifications(jobInvites);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+
   const handleToggle = async (field) => {
     if (!userId) {
       setProfileViewsError("Failed to fetch profile views. Please try again.");
@@ -276,16 +308,11 @@ console.log("User from ChatState:", user);
       const response = await axios.patch(
         `https://mypartyhost.onrender.com/api/staff/`,
         { [field]: updatedValue },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       if (field === "isPublic") setIsPublic(updatedValue);
       else setInstantBook(updatedValue);
-      const updatedUserInfo = {
-        ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
-        [field]: updatedValue,
-      };
+      const updatedUserInfo = { ...JSON.parse(localStorage.getItem("userInfo") || "{}"), [field]: updatedValue };
       localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -293,6 +320,7 @@ console.log("User from ChatState:", user);
       }
     } catch (error) {
       setUserDataError("Invalid user ID. Please log in again.");
+
       console.error(
         `Error updating ${field}:`,
         error.response?.data || error.message
@@ -319,6 +347,7 @@ console.log("User from ChatState:", user);
       setUserDataError("Please enter a valid base rate.");
       return;
     }
+
     if (
       isAddingNew &&
       (!newService || !newRate || isNaN(newRate) || newRate <= 0)
@@ -332,18 +361,13 @@ console.log("User from ChatState:", user);
       const updatedData = {
         baseRate: parseFloat(baseRate),
         additionalRates: isAddingNew
-          ? [
-              ...currentRates,
-              { label: newService, amount: parseFloat(newRate) },
-            ]
+          ? [...currentRates, { label: newService, amount: parseFloat(newRate) }]
           : currentRates,
       };
       const response = await axios.patch(
         `https://mypartyhost.onrender.com/api/staff/`,
         updatedData,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -399,6 +423,7 @@ console.log("User from ChatState:", user);
       setIsLoading(false);
     }
   };
+
 
   const [selectedDates, setSelectedDates] = useState([]);
   const [eventDate, setEventDate] = useState(new Date(2024, 0, 1));
@@ -524,62 +549,83 @@ console.log("User from ChatState:", user);
     setIsBaseRateModified(e.target.value !== String(initialBaseRate));
   };
 
+
   const handleEventDateChange = (newDate) => {
     setEventDate(newDate);
   };
+
 
   return (
     <div className="dashboard">
       <div className="self-stretch inline-flex justify-start items-center gap-4">
         <div className="flex-1 self-stretch p-6 bg-white rounded-2xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
-            <div className="self-stretch flex flex-col justify-start items-start gap-4">
-              <div className="self-stretch inline-flex justify-between items-center">
-                <div className="justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
-                  VIP Gala Night
-                </div>
-                <div
-                  data-property-1="Confirmed"
-                  className="w-20 px-4 py-2 bg-lime-100 rounded-full flex justify-center items-center gap-2.5"
-                >
-                  <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
-                    Confirmed
+             {upcomingEvents && upcomingEvents.length > 0 ? (
+              <>
+              <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                <div className="self-stretch inline-flex justify-between items-center">
+                  <div className="justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
+                    {upcomingEvents[0]?.eventName}
+                  </div>
+                  <div
+                    // data-property-1={upcomingEvents[0]?.status}
+                    data-property-1="Confirmed"
+                    className="w-20 px-4 py-2 bg-lime-100 rounded-full flex justify-center items-center gap-2.5"
+                  >
+                    <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
+                      {/* {upcomingEvents[0]?.status.charAt(0).toUpperCase() + upcomingEvents[0]?.status.slice(1)} */}
+                      Confirmed
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="self-stretch inline-flex justify-between items-center">
-                <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Role: Hostess
+                <div className="self-stretch inline-flex justify-between items-center">
+                  <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Role: {upcomingEvents[0]?.jobTitle}
+                  </div>
+                  <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Rate: {upcomingEvents[0]?.currency} {upcomingEvents[0]?.rateOffered}/{upcomingEvents[0]?.paymentType === "hourly" ? "hr" : "fixed"}
+                  </div>
                 </div>
-                <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Rate: $100/hr
-                </div>
-              </div>
             </div>
             <div className="self-stretch inline-flex justify-start items-center gap-3 flex-wrap content-center">
               <div className="flex justify-start items-center gap-2">
                 <i className="ri-map-pin-2-fill"></i>
                 <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  123 Harbour Street, Sydney, NSW
+                  {upcomingEvents[0]?.suburb}, {upcomingEvents[0]?.city}, {upcomingEvents[0]?.country}
                 </div>
               </div>
               <div className="flex justify-start items-center gap-2">
                 <i className="ri-calendar-check-line"></i>
                 <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  15th March 2025
+                  {upcomingEvents[0] ? new Date(upcomingEvents[0].jobDate).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  }) : [] }
                 </div>
               </div>
               <div className="flex justify-start items-center gap-2">
                 <i className="ri-time-fill"></i>
                 <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  6:00 PM – 11:00 PM
+                  {upcomingEvents[0] ? `${formatTime(upcomingEvents[0].startTime)} – ${formatTime(upcomingEvents[0].endTime)}`: []}
                 </div>
               </div>
             </div>
+            </>
+            ) : (
+              <div className="text-gray-500 text-lg font-semibold">
+                No Jobs Available
+              </div>
+            )}
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
           <div className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
-            <div className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white">
+            <div 
+            onClick={() => {
+              setActiveTab("confirmedBookings");
+              navigate("/dashboard/manage-bookings", { state: { activeTab: "Confirmed Bookings" } });
+            }}
+            className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white">
               View Details
             </div>
           </div>
@@ -601,7 +647,6 @@ console.log("User from ChatState:", user);
               >
                 {notif.sender.name} wants to book you for{" "}
                 {notif.metadata.jobTitle}
-              </div>
             ))}
           </div>
           <div className="w-72 h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -610,9 +655,7 @@ console.log("User from ChatState:", user);
               <div
                 onClick={() => {
                   setActiveTab("invitesReceived");
-                  navigate("/dashboard/manage-bookings", {
-                    state: { activeTab: "Invites Received" },
-                  });
+                  navigate("/dashboard/manage-bookings", { state: { activeTab: "Invites Received" } });
                 }}
                 className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
               >
@@ -704,9 +747,7 @@ console.log("User from ChatState:", user);
                     flex items-center px-1 transition-colors`}
                 >
                   <div
-                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                      instantBook ? "translate-x-5" : ""
-                    }`}
+                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${instantBook ? "translate-x-5" : ""}`}
                   ></div>
                 </div>
               </label>
@@ -728,11 +769,12 @@ console.log("User from ChatState:", user);
                   </div>
                 </div>
               </div>
-              <i
-                id="addtionalRateOptions"
-                className="fa-solid fa-pen-to-square cursor-pointer"
-                onClick={handleModalToggle}
-              ></i>
+
+              <i 
+               id="addtionalRateOptions"
+               className="fa-solid fa-pen-to-square cursor-pointer"
+               onClick={handleModalToggle}
+               ></i>
             </div>
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -779,12 +821,10 @@ console.log("User from ChatState:", user);
                       Base Hourly Rate
                     </div>
                     <input
-                      type="number"
-                      value={baseRate}
-                      onChange={handleBaseRateChange}
-                      className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"
-                    />
-                    {/* <input
+                        type="number"
+                        value={baseRate}
+                        onChange={handleBaseRateChange} className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"/>
+                        {/* <input
                           type="number"
                           value={baseRate}
                           onChange={handleBaseRateChange} className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"/>
@@ -820,6 +860,7 @@ console.log("User from ChatState:", user);
                     >
                       <div className="flex-1 justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
                         {rate.label}
+
                         {/* <i className="ri-arrow-down-s-line"></i> */}
                       </div>
                       <div className="flex justify-start items-center gap-2">
@@ -877,9 +918,13 @@ console.log("User from ChatState:", user);
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
+        
       )}
+
+      
 
       {isAvailabilityModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -891,8 +936,9 @@ console.log("User from ChatState:", user);
                     Select Available Dates
                   </div>
                   <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                    {selectedDates.length} Date
-                    {selectedDates.length !== 1 ? "s" : ""} Selected
+
+                    {selectedDates.length} Date{selectedDates.length !== 1 ? "s" : ""} Selected
+
                   </div>
                 </div>
                 <div
@@ -903,137 +949,88 @@ console.log("User from ChatState:", user);
                 </div>
               </div>
               <div className="w-full p-4 bg-white rounded-lg border border-[#ECECEC] flex flex-col gap-3">
-                {/* Navigation */}
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() =>
-                      setDate(
-                        new Date(date.getFullYear(), date.getMonth() - 1, 1)
-                      )
-                    }
-                    className="text-lg"
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center">
+          <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))} className="text-lg">
+            <i className="ri-arrow-left-s-line"></i>
+          </button>
+          <span className="text-[#292929] text-base font-medium font-['Inter']">
+            {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
+          </span>
+          <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1))} className="text-lg">
+            <i className="ri-arrow-right-s-line"></i>
+          </button>
+        </div>
+
+        {/* Days of the Week */}
+        <div className="grid grid-cols-7 gap-1 text-center text-[#656565] text-sm font-medium font-['Inter']">
+          {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
+            <div key={day} className="py-1">{day}</div>
+          ))}
+        </div>
+
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {(() => {
+            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const prevMonthDays = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
+            const totalCells = 42; // 6 rows * 7 columns
+            const cells = [];
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+              const prevDate = new Date(date.getFullYear(), date.getMonth() - 1, prevMonthDays - i);
+              cells.push(
+                <div key={`prev-${i}`} className="h-8 flex items-center justify-center text-zinc-500">
+                  {prevMonthDays - i}
+                </div>
+              );
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+              const currentDate = new Date(date.getFullYear(), date.getMonth(), day);
+              const dateString = currentDate.toISOString().split("T")[0];
+              const isSelected = selectedDates.includes(dateString);
+              cells.push(
+                <div
+                    key={day}
+                    className={`h-8 flex items-center justify-center cursor-pointer rounded ${
+                      isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
+                    }`} // Change-1: Added hover:bg-gray-100 for non-selected dates, Change-2: Simplified highlighting logic for selected dates
+                    onClick={() => handleDateSelect(currentDate)}
                   >
-                    <i className="ri-arrow-left-s-line"></i>
-                  </button>
-                  <span className="text-[#292929] text-base font-medium font-['Inter']">
-                    {date.toLocaleString("default", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setDate(
-                        new Date(date.getFullYear(), date.getMonth() + 1, 1)
-                      )
-                    }
-                    className="text-lg"
-                  >
-                    <i className="ri-arrow-right-s-line"></i>
-                  </button>
-                </div>
+                    {day}
+                  </div>
+                // <div
+                //   key={day}
+                //   className={`h-8 flex items-center justify-center cursor-pointer rounded ${
+                //     isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
+                //   }`}
+                //   onClick={() => handleDateSelect(currentDate)}
+                // >
+                //   {day}
+                // </div>
+              );
+            }
 
-                {/* Days of the Week */}
-                <div className="grid grid-cols-7 gap-1 text-center text-[#656565] text-sm font-medium font-['Inter']">
-                  {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
-                    (day) => (
-                      <div key={day} className="py-1">
-                        {day}
-                      </div>
-                    )
-                  )}
-                </div>
+            // Next month days
+            const remainingCells = totalCells - cells.length;
+              for (let i = 1; i <= remainingCells; i++) {
+                cells.push(
+                  <div key={`next-${i}`} className="h-8 flex items-center justify-center text-zinc-500">
+                    {i} 
+                  </div>
+                );
+              }
+            return cells;
+          })()}
+        </div>
+              <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
 
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-1">
-                  {(() => {
-                    const firstDay = new Date(
-                      date.getFullYear(),
-                      date.getMonth(),
-                      1
-                    ).getDay();
-                    const daysInMonth = new Date(
-                      date.getFullYear(),
-                      date.getMonth() + 1,
-                      0
-                    ).getDate();
-                    const prevMonthDays = new Date(
-                      date.getFullYear(),
-                      date.getMonth(),
-                      0
-                    ).getDate();
-                    const totalCells = 42; // 6 rows * 7 columns
-                    const cells = [];
-
-                    // Previous month days
-                    for (let i = firstDay - 1; i >= 0; i--) {
-                      const prevDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth() - 1,
-                        prevMonthDays - i
-                      );
-                      cells.push(
-                        <div
-                          key={`prev-${i}`}
-                          className="h-8 flex items-center justify-center text-zinc-500"
-                        >
-                          {prevMonthDays - i}
-                        </div>
-                      );
-                    }
-
-                    // Current month days
-                    for (let day = 1; day <= daysInMonth; day++) {
-                      const currentDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        day
-                      );
-                      const dateString = currentDate
-                        .toISOString()
-                        .split("T")[0];
-                      const isSelected = selectedDates.includes(dateString);
-                      cells.push(
-                        <div
-                          key={day}
-                          className={`h-8 flex items-center justify-center cursor-pointer rounded ${
-                            isSelected
-                              ? "bg-[#E61E4D] text-white"
-                              : "text-[#292929] hover:bg-gray-100"
-                          }`} // Change-1: Added hover:bg-gray-100 for non-selected dates, Change-2: Simplified highlighting logic for selected dates
-                          onClick={() => handleDateSelect(currentDate)}
-                        >
-                          {day}
-                        </div>
-                        // <div
-                        //   key={day}
-                        //   className={`h-8 flex items-center justify-center cursor-pointer rounded ${
-                        //     isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
-                        //   }`}
-                        //   onClick={() => handleDateSelect(currentDate)}
-                        // >
-                        //   {day}
-                        // </div>
-                      );
-                    }
-
-                    // Next month days
-                    const remainingCells = totalCells - cells.length;
-                    for (let i = 1; i <= remainingCells; i++) {
-                      cells.push(
-                        <div
-                          key={`next-${i}`}
-                          className="h-8 flex items-center justify-center text-zinc-500"
-                        >
-                          {i}
-                        </div>
-                      );
-                    }
-                    return cells;
-                  })()}
-                </div>
-
-                <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
                 <div className="self-stretch inline-flex justify-end items-center gap-3">
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
@@ -1046,27 +1043,16 @@ console.log("User from ChatState:", user);
                   </div>
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
-                    onClick={() => {
-                      const startDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        1
-                      );
-                      const endDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth() + 1,
-                        0
-                      );
-                      const allDates = [];
-                      for (
-                        let d = new Date(startDate);
-                        d <= endDate;
-                        d.setDate(d.getDate() + 1)
-                      ) {
-                        allDates.push(new Date(d).toISOString().split("T")[0]);
-                      }
-                      setSelectedDates(allDates);
-                    }}
+
+                      onClick={() => {
+                        const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                        const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                        const allDates = [];
+                        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                          allDates.push(new Date(d).toISOString().split("T")[0]);
+                        }
+                        setSelectedDates(allDates);
+                      }}
                   >
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
                       Select All
@@ -1076,10 +1062,7 @@ console.log("User from ChatState:", user);
                 </div>
               </div>
 
-              <div
-                onClick={handleSaveAvailability}
-                className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
-              >
+              <div onClick={handleSaveAvailability} className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden">
                 <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
                   Update Availability
                 </div>
@@ -1100,36 +1083,36 @@ console.log("User from ChatState:", user);
               <div className="justify-center text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                 Loading profile views...
               </div>
-            ) : profileViewsError ? (
+              ) : profileViewsError ? (
               <div className="justify-center text-[#E61E4D] text-base font-normal font-['Inter'] leading-snug">
-                {profileViewsError}
+               {profileViewsError}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={profileViews}>
-                  <defs>
-                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="day"
-                    stroke="#999"
-                    padding={{ left: 0, right: 20 }}
-                  />
-                  <YAxis stroke="#999" />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="views"
-                    stroke="#f43f5e"
-                    strokeWidth={2}
-                    fill="url(#colorViews)"
-                    strokeDasharray="4 4"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={profileViews}>
+                <defs>
+                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="day"
+                  stroke="#999"
+                  padding={{ left: 0, right: 20 }}
+                />
+                <YAxis stroke="#999" />
+                <Tooltip />
+                <Area
+                  type="monotone"
+                  dataKey="views"
+                  stroke="#f43f5e"
+                  strokeWidth={2}
+                  fill="url(#colorViews)"
+                  strokeDasharray="4 4"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -1183,112 +1166,57 @@ console.log("User from ChatState:", user);
             <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
               Upcoming Events
             </div>
+            {isLoading ? (
+              <div className="justify-center text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                Loading events...
+              </div>
+            ) : eventsError ? (
+              <div className="justify-center text-[#E61E4D] text-base font-normal font-['Inter'] leading-snug">
+                {eventsError}
+              </div>
+            ) : upcomingEvents.length === 0 ? (
+              <div className="justify-center text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                No upcoming events found.
+              </div>
+            ) : (
             <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-2">
+              {upcomingEvents.map((event, index) => (
               <div
+                key={event._id || index}
                 data-property-1="Default"
                 className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
               >
+                {console.log("Debug: Rendering upcomingEvents:", upcomingEvents)}
+
                 <div className="inline-flex justify-start items-start gap-4">
                   <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
                     <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                      Events Name
+                      {event.eventName}
                     </div>
                     <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                      Role: Hostess
+                      Role: {event.jobTitle}
                     </div>
                   </div>
                   <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    6 hours @150/h
+                    {event.duration} hours @{event.rateOffered}/h
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
                   <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    21 February
+                   {new Date(event.jobDate).toLocaleDateString("en-US", {
+                  day: "numeric",
+                  month: "long",
+                })}
                   </div>
                   <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    0:09 PM - 0:03 AM
+                    {/* {event.time} */}
+                    {`${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}
                   </div>
                 </div>
               </div>
-              <div
-                data-property-1="Default"
-                className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
-              >
-                <div className="inline-flex justify-start items-start gap-4">
-                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                      Conference
-                    </div>
-                    <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                      Role: Hostess
-                    </div>
-                  </div>
-                  <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    6 hours @150/h
-                  </div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    21 February
-                  </div>
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    0:09 PM - 0:03 AM
-                  </div>
-                </div>
+              ))}
               </div>
-              <div
-                data-property-1="Default"
-                className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
-              >
-                <div className="inline-flex justify-start items-start gap-4">
-                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                      Networking Dinner
-                    </div>
-                    <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                      Role: Hostess
-                    </div>
-                  </div>
-                  <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    6 hours @150/h
-                  </div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    21 February
-                  </div>
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    0:09 PM - 0:03 AM
-                  </div>
-                </div>
-              </div>
-              <div
-                data-property-1="Default"
-                className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
-              >
-                <div className="inline-flex justify-start items-start gap-4">
-                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                      Networking Dinner
-                    </div>
-                    <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                      Role: Hostess
-                    </div>
-                  </div>
-                  <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    6 hours @150/h
-                  </div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    21 February
-                  </div>
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    0:09 PM - 0:03 AM
-                  </div>
-                </div>
-              </div>
-            </div>
+              )}
           </div>
         </div>
       </div>
@@ -1310,8 +1238,7 @@ console.log("User from ChatState:", user);
             </div>
           ))} */}
 
-        {notifications &&
-          notifications.map((item, idx) => (
+          {notifications && notifications.map((item, idx) => (
             <div className="notification" key={idx}>
               <img src="/images/Update Avatar.png" className="flame-icon" />
               <div>
@@ -1320,23 +1247,19 @@ console.log("User from ChatState:", user);
                   ? `invited you to `
                   : "wants to join"}{" "}
                 {item.type === "job_invite" ? (
-                  <span style={{ fontWeight: "bold" }}>
-                    {item.metadata.jobTitle}
-                  </span>
+                  <span style={{ fontWeight: 'bold' }}>{item.metadata.jobTitle}</span>
                 ) : (
                   <b>{item.job}</b>
                 )}{" "}
                 -{" "}
                 <span
                   onClick={() => {
-                    setActiveTab("invitesReceived");
-                    navigate("/dashboard/manage-bookings", {
-                      state: { activeTab: "Invites Received" },
-                    });
-                  }}
-                  className="link"
-                >
-                  {item.type === "job_invite" ? "View Event" : item.link}
+                  setActiveTab("invitesReceived");
+                  navigate('/dashboard/manage-bookings', { state: { activeTab: 'Invites Received' } });
+                  }} 
+                  className="link" >
+                    {item.type === "job_invite" ? "View Event" : item.link}
+
                 </span>
               </div>
             </div>

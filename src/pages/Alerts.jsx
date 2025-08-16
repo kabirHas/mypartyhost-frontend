@@ -303,18 +303,18 @@ function Alerts() {
             <div className="flex items-start justify-between">
               <div className="flex gap-2">
                 <img
-                  src={notif?.user?.profileImage}
-                  alt={notif?.user?.name || "User Profile"}
+                  src={notif?.sender?.profileImage}
+                  alt={notif?.sender?.name || "User Profile"}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div>
                   <h2 className="font-semibold text-base">
-                    {notif?.user?.name}
+                    {notif?.sender?.name}
                   </h2>
                   <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
                     <i className="ri-map-pin-line mr-1 text-lg" />
-                    {notif?.user?.city},
-                    {notif?.user?.country || "Location not specified"}
+                    {notif?.sender?.city},
+                    {notif?.sender?.country || "Location not specified"}
                   </div>
                 </div>
               </div>
@@ -325,11 +325,18 @@ function Alerts() {
 
             {/* Event Info */}
             <div className="mt-4">
-              <p className="text-[#3D3D3D] text-sm mb-2">
+              {/* <p className="text-[#3D3D3D] text-sm mb-2">
                 Invitation Sent for{" "}
                 <span className="font-medium">
                   {notif?.metadata?.jobId?.eventName}
                 </span>
+              </p> */}
+              <p className="text-[#3D3D3D] text-sm mb-2">
+                <span
+                  className="font-medium"
+                  dangerouslySetInnerHTML={{ __html: notif?.message }}
+                ></span>
+
               </p>
               <div className="flex items-center text-sm text-gray-500">
                 <i className="ri-calendar-event-line mr-1 text-lg" />

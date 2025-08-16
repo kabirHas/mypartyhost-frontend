@@ -1,31 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AddReviewSidebar from "../components/AddReviewSidebar";
+import BASE_URLS from "../config";
 
-const sampleReviews = new Array(4).fill({
-  reviewer: "Sarah Jones",
-  reviewerRole: "Organizer",
-  event: "Corporate Launch Party",
-  reviewTo: "Samantha Lee",
-  rating: 5,
-  feedback:
-    "Samantha was exceptional—she truly elevated our event with her energy and professionalism. Highly recommended!",
-  submitted: "April 15, 2025, 10:15 AM",
-  status: "Published",
-  img: "/images/emilli.png",
-});
+
 
 const ReviewsManagement = () => {
-  const [reviews] = useState(sampleReviews);
+  const [reviews, setReviews] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSidebar, setShowSidebar] = useState(false);
 
-  const filteredReviews = reviews.filter((review) => {
+  useEffect(() => {
+    const fetchPages = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${BASE_URLS.BACK}/api/review`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log("Fetched reviews:", data.reviews);
+        setReviews(data.reviews);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        setReviews([]);
+      }
+    };
+
+    fetchPages();
+  }, []);
+
+  const filteredReviews = (reviews || []).filter((review) => {
     const term = searchTerm.toLowerCase();
+
+    const reviewer = review.reviewer?.name?.toLowerCase() || "";
+    const event = review.event?.jobTitle?.toLowerCase() || "";
+    const reviewTo = review.reviewee?.name?.toLowerCase() || "";
+
     return (
-      review.reviewer.toLowerCase().includes(term) ||
-      review.event.toLowerCase().includes(term) ||
-      review.reviewTo.toLowerCase().includes(term)
+      reviewer.includes(term) ||
+      event.includes(term) ||
+      reviewTo.includes(term)
     );
   });
 
@@ -120,12 +139,16 @@ const ReviewsManagement = () => {
             <div className="self-stretch flex flex-col justify-start items-start gap-4">
               <div className="w-64 flex flex-col justify-start items-start gap-2">
                 <div className="self-stretch inline-flex justify-start items-center gap-1">
-                  <img className="w-6 h-6 rounded-full" src={review.img} />
+                  <img className="w-6 h-6 rounded-full" 
+                  src={
+                    review.reviewer?.profileImage ||
+                    ""
+                  } />
                   <div className="justify-start text-Token-Text-Primary text-base font-bold font-['Inter'] leading-snug">
-                    {review.reviewer}
+                    {review.reviewer?.name || ""}
                   </div>
                   <div className="justify-start text-Token-Text-Tertiary text-sm font-normal font-['Inter'] leading-tight">
-                    ({review.reviewerRole})
+                    ({review.reviewer?.role || ""})
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-center gap-1">
@@ -133,7 +156,7 @@ const ReviewsManagement = () => {
                     Event:
                   </div>
                   <div className="w-52 justify-start text-Token-Text-button text-sm font-normal font-['Inter'] leading-tight text-[#E61E4D]">
-                    {review.event}
+                    {review.event?.jobTitle || ""}
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-center gap-1">
@@ -141,9 +164,12 @@ const ReviewsManagement = () => {
                     Review To:
                   </div>
                   <div className="flex justify-start items-center gap-1">
-                    <img className="w-5 h-5 rounded-full" src={review.img} />
+                    <img className="w-5 h-5 rounded-full" src={
+                    review.reviewee?.profileImage ||
+                    ""
+                  } />
                     <div className="justify-start text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight">
-                      {review.reviewTo}
+                       {review.reviewee?.name || ""}
                     </div>
                   </div>
                 </div>
@@ -165,11 +191,9 @@ const ReviewsManagement = () => {
                       {review.rating}/5
                     </div>
                     <div className="flex justify-start items-center text-[#E61E4D]">
-                      <i className="ri-star-fill"></i>
-                      <i className="ri-star-fill"></i>
-                      <i className="ri-star-fill"></i>
-                      <i className="ri-star-fill"></i>
-                      <i className="ri-star-fill"></i>
+                      {[...Array(review.rating)].map((_, i) => (
+                        <i key={i} className="ri-star-fill" />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -178,7 +202,7 @@ const ReviewsManagement = () => {
                     Feedback
                   </div>
                   <div className="self-stretch justify-start text-Token-Text-Secondary text-base font-normal font-['Inter'] leading-snug">
-                    {review.feedback}
+                    {review.comment}
                   </div>
                 </div>
               </div>
@@ -188,7 +212,7 @@ const ReviewsManagement = () => {
                     Submitted:
                   </div>
                   <div className="w-52 justify-start text-Token-Text-Tertiary text-xs font-normal font-['Inter'] leading-none">
-                    {review.submitted}
+                    {new Date(review.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-center gap-1">
@@ -196,7 +220,7 @@ const ReviewsManagement = () => {
                     Status:
                   </div>
                   <div className="w-52 justify-start text-green-600 text-xs font-normal font-['Inter'] leading-none">
-                    {review.status}
+                    {review.isPublished ? "Published" : "Unpublished"}
                   </div>
                 </div>
               </div>
@@ -240,3 +264,5 @@ const ReviewsManagement = () => {
 };
 
 export default ReviewsManagement;
+
+
