@@ -8,12 +8,13 @@ const ProfilePage = () => {
 
   useEffect(() => {
     axios
-      .get(`${BASE_URLS.API}/auth/profile`, {
+      .get(`https://mypartyhost.onrender.com/api/staff/`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         withCredentials: true,
       })
       .then((res) => {
         setProfile(res.data);
+        console.log(res)
       })
       .catch((err) => console.error("Error fetching staff data:", err));
   }, []);

@@ -9,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import ChatProvider from "./Context/ChatProvider";
 
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ChatProvider>
