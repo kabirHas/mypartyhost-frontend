@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, set } from "date-fns";
 import BASE_URLS from "../config";
+import { ChatState } from "../Context/ChatProvider";
+import StripeWrapper from "../components/StripeWrapper";
 
 function Alerts() {
   const [activeTab, setActiveTab] = useState("job_applied");
   const [notifications, setNotifications] = useState([]);
   const [showCancelPopup, setShowCancelPopup] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const { user } = ChatState();
+  const [amount, setAmount] = useState(0);
+  const [currency, setCurrency] = useState("USD");
+  // console.log("User from context:", user);
 
   // Dummy data for bookings
   const dummyBookings = [
@@ -18,7 +26,8 @@ function Alerts() {
         name: "Alice Johnson",
         city: "Melbourne",
         country: "Australia",
-        profileImage: "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        profileImage:
+          "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       },
       metadata: {
         jobId: {
@@ -38,7 +47,8 @@ function Alerts() {
         name: "Bob Smith",
         city: "Sydney",
         country: "Australia",
-        profileImage: "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        profileImage:
+          "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       },
       metadata: {
         jobId: {
@@ -54,6 +64,152 @@ function Alerts() {
   ];
 
   useEffect(() => {
+    // Step 1: Get user's currency
+    axios
+      .get("https://ipapi.co/json/")
+      .then((res) => {
+        const userCurrency = res.data.currency;
+        setCurrency(userCurrency);
+        console.log("User's currency:", userCurrency);
+      })
+      .catch((err) => console.error(err));
+  }, [currency]);
+
+  const handleProceedToPayment = async (
+    invite,
+    jobId,
+    inviteId,
+    rateOffered,
+    actualCurrency,
+    duration,
+    paymentType
+  ) => {
+    console.log("fjapsf", {
+      invite,
+      jobId,
+      inviteId,
+      rateOffered,
+      actualCurrency,
+      duration,
+      paymentType,
+    });
+
+    if (!currency) return;
+
+    const rateRes = await axios.get(
+      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
+    );
+    const platformFeeRate = await axios.get(
+      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD`
+    );
+
+    const rate = rateRes.data.conversion_rates[currency] || 1;
+    const convertedAmount = (rateOffered * rate).toFixed(2);
+    console.log("Converted Amount", convertedAmount);
+    let platformFee = 20;
+    let convertedPlatformFee =
+      platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
+    let actualAmountInUSD =
+      rateOffered * platformFeeRate.data.conversion_rates[currency] || 1;
+    console.log({ convertedAmount, convertedPlatformFee });
+    let realAmtAfterPlatform = (rateOffered * 10) / 100 + platformFee;
+    let amountUSDAfterPlatform = actualAmountInUSD * 0.1 + convertedPlatformFee;
+    console.log("Amount after platform fee in USD", amountUSDAfterPlatform);
+
+    if (paymentType === "hourly") {
+      realAmtAfterPlatform = (rateOffered * duration * 10) / 100 + platformFee;
+      amountUSDAfterPlatform =
+        (actualAmountInUSD * duration * 10) / 100 + convertedPlatformFee;
+      convertedAmount = rateOffered * duration * rate;
+      console.log("Converted Amt after platform", convertedAmount);
+
+      let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+      console.log("Payable Amount", payableAmount);
+
+      try {
+        const res = await axios.post(
+          `http://localhost:4000/api/jobs/pay-for-invite/${inviteId}`,
+          {
+            amount: payableAmount,
+            currency: currency,
+            convertedAmount,
+            convertedPlatformFee,
+            actualAmount: rateOffered * duration,
+            actualCurrency,
+            amountUSD: amountUSDAfterPlatform.toFixed(2),
+            platformFee,
+            convertedPlatformFee,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        if (res.data.stripeRequired) {
+          window.location.href = res.data.url;
+        } else {
+          alert("Payment successful");
+        }
+      } catch (error) {
+        console.error("Error processing payment:", error);
+        alert("Payment failed. Please try again later.");
+      }
+    }
+
+    let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+    console.log("Payable Amount", payableAmount);
+    try {
+      const res = await axios.post(
+        `http://localhost:4000/api/jobs/pay-for-invite/${inviteId}`,
+        {
+          amount: payableAmount,
+          currency: currency,
+          convertedAmount,
+          convertedPlatformFee,
+          actualAmount: rateOffered,
+          actualCurrency,
+          amountUSD: amountUSDAfterPlatform.toFixed(2),
+          platformFee,
+          convertedPlatformFee,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (res.data.stripeRequired) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Payment successful");
+      }
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert("Payment failed. Please try again later.");
+    }
+  };
+  function acceptInvite(inviteId) {
+    axios
+      .patch(
+        `http://localhost:4000/api/jobs/invitation/${inviteId}/accept`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        // setNotifications((prev) => prev.map((n) => n._id !== inviteId));
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(
@@ -66,12 +222,12 @@ function Alerts() {
         );
         // Combine API data with dummy bookings
         const apiNotifications = res.data || [];
-        const combinedNotifications = [
-          ...apiNotifications.filter((n) => n.type !== "booking"), // Exclude any real bookings from API
-          ...dummyBookings, // Add dummy bookings
-        ];
-        setNotifications(combinedNotifications);
-        console.log("Notifications fetched successfully:", combinedNotifications);
+        // const combinedNotifications = [
+        //   ...apiNotifications.filter((n) => n.type !== "booking"), // Exclude any real bookings from API
+        //   ...dummyBookings, // Add dummy bookings
+        // ];
+        setNotifications(apiNotifications);
+        console.log("Notifications fetched successfully:", apiNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         // If API fails, still show dummy bookings
@@ -210,21 +366,82 @@ function Alerts() {
             <div className="mt-2 flex justify-end gap-4 items-center">
               {notif?.metadata?.inviteId?.status === "pending" ? (
                 <>
-                  <button className="text-sm text-gray-500 hover:text-black">
-                    Withdraw Invite
-                  </button>
-                  <button className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1">
-                    Send Reminder
-                  </button>
+                  {notif?.user?._id === user?.user ? (
+                    <>
+                      <button
+                        onClick={() => handleCancelBooking(notif._id)}
+                        className="text-sm text-gray-500 hover:text-black"
+                      >
+                        Reject Invite
+                      </button>
+                      <button
+                        onClick={() =>
+                          acceptInvite(notif?.metadata?.inviteId._id)
+                        }
+                        className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1"
+                      >
+                        Accept Invite
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="text-sm text-gray-500 hover:text-black">
+                        Withdraw Invite
+                      </button>
+                      <button className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1">
+                        Send Reminder
+                      </button>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
-                  <button className="text-sm text-gray-600 hover:text-black">
-                    Cancel
-                  </button>
-                  <button className="text-sm text-[#E61E4D] border border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50">
-                    Complete Booking
-                  </button>
+                  {notif?.user?._id === user?.user ? (
+                    notif?.metadata?.inviteId?.isPaid ? (
+                      <button className="text-sm text-green-600 hover:text-black">
+                        Booking Confirmed
+                      </button>
+                    ) : (
+                      <button className="text-sm text-gray-600 hover:text-black">
+                        Waiting for Payment
+                      </button>
+                    )
+                  ) : notif?.metadata?.inviteId?.isPaid ? (
+                    <button className="text-sm text-green-600 hover:text-black">
+                      Booking Completed
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleCancelBooking(notif._id)}
+                        className="text-sm text-gray-600 hover:text-black"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleProceedToPayment(
+                            notif,
+                            notif?.metadata?.jobId._id,
+                            notif?.metadata?.inviteId._id,
+                            notif?.metadata?.jobId?.rateOffered,
+                            notif?.metadata?.jobId?.currency,
+                            notif?.metadata?.jobId?.duration,
+
+                            notif?.metadata?.jobId?.paymentType
+                          );
+                          // setSelectedApplication({
+                          //   inviteId: notif?.metadata?.inviteId._id,
+                          //   jobId: notif?.metadata?.jobId._id,
+                          // });
+                          // setShowPaymentModal(true);
+                        }}
+                        className="text-sm text-[#E61E4D] border border-2 border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50"
+                      >
+                        Complete Booking
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -238,7 +455,10 @@ function Alerts() {
             <div className="flex items-start justify-between">
               <div className="flex gap-2">
                 <img
-                  src={notif?.user?.profileImage || "https://via.placeholder.com/48"}
+                  src={
+                    notif?.user?.profileImage ||
+                    "https://via.placeholder.com/48"
+                  }
                   alt={notif?.user?.name || "User Profile"}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -368,13 +588,16 @@ function Alerts() {
       {showCancelPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-[395px] ">
-            <i onClick={() => setShowCancelPopup(false)} className="ri-close-line text-2xl  float-right"></i>
-            
+            <i
+              onClick={() => setShowCancelPopup(false)}
+              className="ri-close-line text-2xl  float-right"
+            ></i>
+
             <p className=" text-gray-600">
-            Booking fees and deposits are non refundable. 
+              Booking fees and deposits are non refundable.
             </p>
             <p className="text-sm text-gray-600 mt-2">
-            Please contact site admin to move this booking to another hostess.
+              Please contact site admin to move this booking to another hostess.
             </p>
             <div className="flex justify-center gap-4 mt-6">
               <button
@@ -387,9 +610,27 @@ function Alerts() {
                 onClick={confirmCancelBooking}
                 className="px-4 py-2 text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 rounded-md hover:bg-red-600"
               >
-                 Cancel Booking
+                Cancel Booking
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPaymentModal && selectedApplication && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute top-2 right-2 text-gray-600 text-lg"
+            >
+              ✕
+            </button>
+            <StripeWrapper
+              jobId={selectedApplication.jobId}
+              inviteId={selectedApplication.invideId}
+              onClose={() => setShowPaymentModal(false)}
+            />
           </div>
         </div>
       )}

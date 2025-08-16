@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { ChatState } from "../Context/ChatProvider";
 
 const events = [
   {
@@ -39,7 +40,6 @@ const StaffDashboard = () => {
   const [profileViews, setProfileViews] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-
   const [isPublic, setIsPublic] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return userInfo.isPublic !== undefined ? userInfo.isPublic : true;
@@ -49,22 +49,17 @@ const StaffDashboard = () => {
     return userInfo.instantBook !== undefined ? userInfo.instantBook : false;
   });
 
-
   const [userId, setUserId] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     console.log("User ID from localStorage:", userInfo._id); // Log the userId
     return userInfo._id || "";
   });
 
-    const [additionalRates, setAdditionalRates] = useState(() => {
+
+  const [additionalRates, setAdditionalRates] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return userInfo.additionalRates || [];
   });
-
-
-
-
-
   // const [additionalRates, setAdditionalRates] = useState([]);
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
@@ -77,105 +72,166 @@ const StaffDashboard = () => {
     "Brand Promotion",
   ];
 
-
-
   const [baseRate, setBaseRate] = useState(() => {
-  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  return userInfo.baseRate;
-});
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return userInfo.baseRate;
+  });
 
-const [initialBaseRate, setInitialBaseRate] = useState(baseRate);
+  const [initialBaseRate, setInitialBaseRate] = useState(baseRate);
   const [isBaseRateModified, setIsBaseRateModified] = useState(false);
+  const [boostProfile, setBoostProfile] = useState(false);
+  const [boostPlans, setBoostPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [amount, setAmount] = useState(0);
+  const [currency, setCurrency] = useState("USD");
+  const {user, setUser} = ChatState()
+console.log("User from ChatState:", user);
 
+  const handleProceedToPayment = async () => {
+    if (!selectedPlan || !user  || !currency) return;
   
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-const [eventsError, setEventsError] = useState("");
-
-
-// useEffect(() => {
-//   const fetchUserData = async () => {
-//     if (!userId) {
-//       setUserDataError("Invalid user ID. Please log in again.");
-//       return;
-//     }
-//     setIsLoading(true);
-//     try {
-//       const response = await axios.get(`https://mypartyhost.onrender.com/api/staff/${userId}`, {
-//         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-//       });
-//       setBaseRate(response.data.baseRate);
-//       setInitialBaseRate(response.data.baseRate);
-//       setIsBaseRateModified(false);
-//       setAdditionalRates(response.data.additionalRates || []);
-
-//       setSelectedDates((response.data.availableDates || []).map(date => new Date(date).toISOString().split("T")[0]));
-
-//       console.log("API availableDates:", response.data.availableDates);
-
-//       setUserDataError("");
-//     } catch (error) {
-//       setUserDataError("Failed to fetch user data. Please try again.");
-//       console.error("Error fetching user data:", error.response?.data || error.message);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-//   fetchUserData();
-// }, [userId]);
-
-
-
-
-
-useEffect(() => {
-  const fetchProfileViews = async () => {
-    if (!userId) {
-      setProfileViewsError("Invalid user ID. Please log in again.");
-      return;
-    }
-    setIsLoading(true);
     try {
-      const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      // Fetch exchange rate again
+      const rateRes = await axios.get("https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD");
+      const rate = rateRes.data.conversion_rates[currency] || 1;
+      const convertedAmount = selectedPlan.price * rate;
+  
+      // Call backend to create Stripe session
+      const res = await axios.post("http://localhost:4000/api/boost/payment/create-session", {
+        planId: selectedPlan._id,
+        userId: user.user,
+        amountUSD : selectedPlan.price, // Assuming this is the amount in USD
+        currency,
+        actualCurrency: "USD", // Assuming backend expects USD as the base currency
+        amount: convertedAmount.toFixed(2),
+        actualAmount: selectedPlan.price.toFixed(2), // Store original amount for reference
+
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
-      console.log("API Response:", response.data);
-      const user = response.data.data.find(u => u._id === userId);
-      if (!user) throw new Error("User not found in staff list");
-      console.log("Profile User Data:", user);
-
-      // Step 1: Sahi field se views data lo
-      const views = user.user.views || [];
-
-      // Step 2: Days of week ke liye array banao aur counts initialize karo
-      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const viewCounts = daysOfWeek.map(() => 0);
-
-      // Step 3: Har view ka day of week nikalo aur count increment karo
-      views.forEach(view => {
-        const date = new Date(view.viewedAt);
-        const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        viewCounts[dayIndex]++;
-      });
-
-      // Step 4: Chart ke liye data format karo
-      const profileViewsData = daysOfWeek.map((day, index) => ({
-        day,
-        views: viewCounts[index],
-      }));
-
-      console.log("Processed Profile Views Data:", profileViewsData);
-      setProfileViews(profileViewsData);
-      setProfileViewsError("");
-    } catch (error) {
-      setProfileViewsError("Failed to fetch profile views. Please try again.");
-      console.error("Error fetching profile views:", error);
-    } finally {
-      setIsLoading(false);
+  
+      window.location.href = res.data.url; // Redirect to Stripe Checkout
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Failed to create payment session.");
     }
   };
-  fetchProfileViews();
-}, [userId]);
+  
 
+
+  useEffect(() => {
+    // Step 1: Get user's currency
+    axios
+      .get("https://ipapi.co/json/")
+      .then((res) => {
+        const userCurrency = res.data.currency;
+        setCurrency(userCurrency);
+
+        // Step 2: Now fetch exchange rate AFTER currency is known
+        // return axios.get(
+        //   "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD"
+        // );
+      })
+      // .then((res) => {
+      //   // Step 3: Access the conversion rate using updated currency
+      //   const rate = res.data.conversion_rates[currency];
+      //   if (rate) {
+      //     setAmount(amount * rate);
+      //     console.log("Converted Amount:", amount * rate, "Rate:", rate);
+      //   } else {
+      //     console.error("Currency not found in rates:", currency);
+      //   }
+      // })
+      .catch((err) => console.error(err));
+  }, [currency]);
+
+  useEffect(() => {
+    if (boostProfile) {
+      axios
+        .get("http://localhost:4000/api/boost") // your API endpoint
+        .then((res) => setBoostPlans(res.data))
+        .catch((err) => console.error("Failed to fetch plans", err));
+    }
+  }, [boostProfile]);
+
+  useEffect(() => {
+    const fetchProfileViews = async () => {
+      if (!userId) {
+        setProfileViewsError("Invalid user ID. Please log in again.");
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const response = await axios.get(
+          `https://mypartyhost.onrender.com/api/staff`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        console.log("API Response:", response.data);
+        const user = response.data.data.find((u) => u._id === userId);
+        if (!user) throw new Error("User not found in staff list");
+        console.log("Profile User Data:", user);
+
+        // Step 1: Sahi field se views data lo
+        const views = user.user.views || [];
+
+        // Step 2: Days of week ke liye array banao aur counts initialize karo
+        const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const viewCounts = daysOfWeek.map(() => 0);
+
+        // Step 3: Har view ka day of week nikalo aur count increment karo
+        views.forEach((view) => {
+          const date = new Date(view.viewedAt);
+          const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          viewCounts[dayIndex]++;
+        });
+
+        // Step 4: Chart ke liye data format karo
+        const profileViewsData = daysOfWeek.map((day, index) => ({
+          day,
+          views: viewCounts[index],
+        }));
+
+        console.log("Processed Profile Views Data:", profileViewsData);
+        setProfileViews(profileViewsData);
+        setProfileViewsError("");
+      } catch (error) {
+        setProfileViewsError(
+          "Failed to fetch profile views. Please try again."
+        );
+        console.error("Error fetching profile views:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfileViews();
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(
+          "https://mypartyhost.onrender.com/api/notifications",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const data = await response.json();
+        const jobInvites = data.filter((notif) => notif.type === "job_invite");
+        setNotifications(jobInvites);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
 
 useEffect(() => {
@@ -240,7 +296,6 @@ const formatTime = (time) => {
   }, []);
 
 
-
   const handleToggle = async (field) => {
     if (!userId) {
       setProfileViewsError("Failed to fetch profile views. Please try again.");
@@ -265,7 +320,11 @@ const formatTime = (time) => {
       }
     } catch (error) {
       setUserDataError("Invalid user ID. Please log in again.");
-      console.error(`Error updating ${field}:`, error.response?.data || error.message);
+
+      console.error(
+        `Error updating ${field}:`,
+        error.response?.data || error.message
+      );
     } finally {
       setIsLoading(false);
     }
@@ -282,14 +341,17 @@ const formatTime = (time) => {
     setIsAddingNew(true);
   };
 
-  
   const handleSaveRate = async () => {
     const currentRates = additionalRates || []; // fallback
     if (isNaN(baseRate) || baseRate <= 0) {
       setUserDataError("Please enter a valid base rate.");
       return;
     }
-    if (isAddingNew && (!newService || !newRate || isNaN(newRate) || newRate <= 0)) {
+
+    if (
+      isAddingNew &&
+      (!newService || !newRate || isNaN(newRate) || newRate <= 0)
+    ) {
       setUserDataError("Please select a service and enter a valid rate.");
       return;
     }
@@ -333,36 +395,38 @@ const formatTime = (time) => {
     }
   };
 
-
   const handleDeleteRate = async (index) => {
-  const updatedRates = additionalRates.filter((_, i) => i !== index);
-  setIsLoading(true);
-  setUserDataError("");
-  try {
-    await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff/`,
-      { additionalRates: updatedRates },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-    );
-    setAdditionalRates(updatedRates);
-    const updatedUserInfo = {
-      ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
-      additionalRates: updatedRates,
-    };
-    localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
-  } catch (error) {
-    setUserDataError("Failed to delete rate. Please try again.");
-    console.error("Error deleting rate:", error.response?.data || error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+    const updatedRates = additionalRates.filter((_, i) => i !== index);
+    setIsLoading(true);
+    setUserDataError("");
+    try {
+      await axios.patch(
+        `https://mypartyhost.onrender.com/api/staff/`,
+        { additionalRates: updatedRates },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setAdditionalRates(updatedRates);
+      const updatedUserInfo = {
+        ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
+        additionalRates: updatedRates,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+    } catch (error) {
+      setUserDataError("Failed to delete rate. Please try again.");
+      console.error(
+        "Error deleting rate:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   const [selectedDates, setSelectedDates] = useState([]);
   const [eventDate, setEventDate] = useState(new Date(2024, 0, 1));
-
 
   const handleAvailabilityModalToggle = () => {
     setIsAvailabilityModalOpen((prev) => !prev);
@@ -393,88 +457,98 @@ const formatTime = (time) => {
   //   setIsAvailabilityModalOpen(false);
   // };
 
-
-
   useEffect(() => {
-  const fetchUserData = async () => {
-    if (!userId) {
-      setUserDataError("Invalid user ID. Please log in again.");
-      console.error("No userId found in localStorage:", localStorage.getItem("userInfo"));
-      return;
-    }
-    setIsLoading(true);
-    try {
-      console.log("Fetching user data for userId:", userId);
-      const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      console.log("Full API response:", response.data);
-      const user = response.data.data.find(u => u._id === userId);
-      if (!user) throw new Error("User not found in staff list");
-      console.log("User data:", user);
-      console.log("API availableDates:", user.availableDates);
-      setBaseRate(user.baseRate || 150);
-      setInitialBaseRate(user.baseRate || 150);
-      setIsBaseRateModified(false);
-      setAdditionalRates(user.additionalRates || []);
-      setSelectedDates(
-        Array.isArray(user.availableDates)
-          ? user.availableDates.map(date => new Date(date).toISOString().split("T")[0])
-          : []
-      );
-      setUserDataError("");
-    } catch (error) {
-      setUserDataError("Failed to fetch user data. Please try again.");
-      console.error("Error fetching user data:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        userId,
-        token: localStorage.getItem("token"),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  fetchUserData();
-}, [userId]);
-
-
-
+    const fetchUserData = async () => {
+      if (!userId) {
+        setUserDataError("Invalid user ID. Please log in again.");
+        console.error(
+          "No userId found in localStorage:",
+          localStorage.getItem("userInfo")
+        );
+        return;
+      }
+      setIsLoading(true);
+      try {
+        console.log("Fetching user data for userId:", userId);
+        const response = await axios.get(
+          `https://mypartyhost.onrender.com/api/staff`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        console.log("Full API response:", response.data);
+        const user = response.data.data.find((u) => u._id === userId);
+        if (!user) throw new Error("User not found in staff list");
+        console.log("User data:", user);
+        console.log("API availableDates:", user.availableDates);
+        setBaseRate(user.baseRate || 150);
+        setInitialBaseRate(user.baseRate || 150);
+        setIsBaseRateModified(false);
+        setAdditionalRates(user.additionalRates || []);
+        setSelectedDates(
+          Array.isArray(user.availableDates)
+            ? user.availableDates.map(
+                (date) => new Date(date).toISOString().split("T")[0]
+              )
+            : []
+        );
+        setUserDataError("");
+      } catch (error) {
+        setUserDataError("Failed to fetch user data. Please try again.");
+        console.error("Error fetching user data:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+          userId,
+          token: localStorage.getItem("token"),
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUserData();
+  }, [userId]);
 
   const handleSaveAvailability = async () => {
-  try {
-    setIsLoading(true);
-    const formattedDates = selectedDates.map(date => new Date(date).toISOString());
+    try {
+      setIsLoading(true);
+      const formattedDates = selectedDates.map((date) =>
+        new Date(date).toISOString()
+      );
 
-    const response = await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff/`,
-      { availableDates: formattedDates },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-    );
+      const response = await axios.patch(
+        `https://mypartyhost.onrender.com/api/staff/`,
+        { availableDates: formattedDates },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
-    console.log("Availability updated:", response.data);
-    // Optionally update localStorage if needed
-    const updatedUserInfo = {
-      ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
-      availableDates: formattedDates
-    };
-    localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
-    
-  } catch (error) {
-    console.error("Error updating availability:", error.response?.data || error.message);
-  } finally {
-    setIsLoading(false);
-    setIsAvailabilityModalOpen(false);
-  }
-};
+      console.log("Availability updated:", response.data);
+      // Optionally update localStorage if needed
+      const updatedUserInfo = {
+        ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
+        availableDates: formattedDates,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+    } catch (error) {
+      console.error(
+        "Error updating availability:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setIsLoading(false);
+      setIsAvailabilityModalOpen(false);
+    }
+  };
 
+  const handleBaseRateChange = (e) => {
+    setBaseRate(e.target.value);
+    setIsBaseRateModified(e.target.value !== String(initialBaseRate));
+  };
 
-
-const handleBaseRateChange = (e) => {
-  setBaseRate(e.target.value);
-  setIsBaseRateModified(e.target.value !== String(initialBaseRate));
-};
 
   const handleEventDateChange = (newDate) => {
     setEventDate(newDate);
@@ -567,9 +641,12 @@ const handleBaseRateChange = (e) => {
               </div>
             </div>
             {notifications.map((notif, idx) => (
-              <div key={idx} className="self-stretch justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                {notif.sender.name} wants to book you for {notif.metadata.jobTitle}
-              </div>
+              <div
+                key={idx}
+                className="self-stretch justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight"
+              >
+                {notif.sender.name} wants to book you for{" "}
+                {notif.metadata.jobTitle}
             ))}
           </div>
           <div className="w-72 h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -692,6 +769,7 @@ const handleBaseRateChange = (e) => {
                   </div>
                 </div>
               </div>
+
               <i 
                id="addtionalRateOptions"
                className="fa-solid fa-pen-to-square cursor-pointer"
@@ -781,7 +859,8 @@ const handleBaseRateChange = (e) => {
                       className="self-stretch inline-flex justify-start items-center gap-4"
                     >
                       <div className="flex-1 justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
-                          {rate.label}
+                        {rate.label}
+
                         {/* <i className="ri-arrow-down-s-line"></i> */}
                       </div>
                       <div className="flex justify-start items-center gap-2">
@@ -801,29 +880,36 @@ const handleBaseRateChange = (e) => {
                   ))}
                 </div>
                 {isAddingNew && (
-                <div className="self-stretch inline-flex justify-start items-center gap-4">
-              <select
-                value={newService}
-                onChange={(e) => setNewService(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"
-              >
-                <option value="">Select Service</option>
-                {serviceOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={newRate}
-                onChange={(e) => setNewRate(e.target.value)}
-                placeholder="Enter Rate"
-                className="flex-1 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"
-              />
-            </div>
+                  <div className="self-stretch inline-flex justify-start items-center gap-4">
+                    <select
+                      value={newService}
+                      onChange={(e) => setNewService(e.target.value)}
+                      className="flex-1 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"
+                    >
+                      <option value="">Select Service</option>
+                      {serviceOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={newRate}
+                      onChange={(e) => setNewRate(e.target.value)}
+                      placeholder="Enter Rate"
+                      className="flex-1 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"
+                    />
+                  </div>
                 )}
-                <div className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden cursor-pointer"
+                <div
+                  className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden cursor-pointer"
                   // onChange={isAddingNew ? handleSaveRate : handleAddNewToggle}
-                  onClick={isBaseRateModified || isAddingNew ? handleSaveRate : handleAddNewToggle}
+                  onClick={
+                    isBaseRateModified || isAddingNew
+                      ? handleSaveRate
+                      : handleAddNewToggle
+                  }
                 >
                   <div className="justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight">
                     {/* {isAddingNew ? "Save" : "Add New"} */}
@@ -850,7 +936,9 @@ const handleBaseRateChange = (e) => {
                     Select Available Dates
                   </div>
                   <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
+
                     {selectedDates.length} Date{selectedDates.length !== 1 ? "s" : ""} Selected
+
                   </div>
                 </div>
                 <div
@@ -861,6 +949,7 @@ const handleBaseRateChange = (e) => {
                 </div>
               </div>
               <div className="w-full p-4 bg-white rounded-lg border border-[#ECECEC] flex flex-col gap-3">
+
         {/* Navigation */}
         <div className="flex justify-between items-center">
           <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))} className="text-lg">
@@ -940,10 +1029,8 @@ const handleBaseRateChange = (e) => {
             return cells;
           })()}
         </div>
-
-                
-
               <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
+
                 <div className="self-stretch inline-flex justify-end items-center gap-3">
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
@@ -956,6 +1043,7 @@ const handleBaseRateChange = (e) => {
                   </div>
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
+
                       onClick={() => {
                         const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
                         const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -1060,9 +1148,13 @@ const handleBaseRateChange = (e) => {
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
           <div className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
-            <div className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white">
-              Boost My Profile Now
-            </div>
+            <button 
+              onClick={() => setBoostProfile(true)}
+              disabled={user?.boostStatus === 'pending' || user?.boostStatus === 'approved'}
+              className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
+            >
+              {user?.boostStatus === 'pending' ? 'Waiting for Approval' : user?.boostStatus === 'approved' ? 'Boost Active' : 'Boost My Profile Now'}
+            </button>
           </div>
         </div>
       </div>
@@ -1129,7 +1221,7 @@ const handleBaseRateChange = (e) => {
         </div>
       </div>
 
-      <div className="notifications !mt-8">
+      <div className="notifications mt-8">
         <h3>Latest Updates and Notifications</h3>
         {/* {notifications &&
           notifications.map((item, idx) => (
@@ -1167,11 +1259,63 @@ const handleBaseRateChange = (e) => {
                   }} 
                   className="link" >
                     {item.type === "job_invite" ? "View Event" : item.link}
+
                 </span>
               </div>
             </div>
           ))}
       </div>
+      {boostProfile && (
+        <div className="bg-white border border-[#ECECEC] shadow-lg rounded-xl absolute top-1/3 p-4 w-1/2 h-1/2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Boost your profile</h2>
+            <button
+              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setBoostProfile(false)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <p className="mt-3">
+            Boost your profile to attract more clients and increase your chances
+            of landing a gig.
+          </p>
+          <h3 className="font-semibold text-lg">Select a Boost Plan</h3>
+          <ul>
+            {boostPlans.map((plan) => (
+              <li key={plan._id}>
+                <input
+                  type="radio"
+                  name="boostPlan"
+                  value={plan._id}
+                  onChange={() => setSelectedPlan(plan)}
+                  className="mr-2 cursor-pointer text-[#E61E4D] focus:ring-[#E61E4D] focus:ring-2 focus:ring-opacity-50 focus:outline-none" 
+                />
+                <label>
+                  {plan.name} - {plan.durationInDays} days - ${plan.price}
+                </label>
+              </li>
+            ))}
+          </ul>
+          <button className="bg-[#E61E4D] text-white px-4 py-2 rounded mt-4" onClick={handleProceedToPayment} disabled={!selectedPlan} >
+            Pay {selectedPlan && `$${selectedPlan.price}`}
+          </button>
+          <button className="bg-white text-[#E61E4D] px-4 py-2 rounded mt-4" onClick={() => setBoostProfile(false)}>Cancel</button>
+        </div>
+      )}
     </div>
   );
 };

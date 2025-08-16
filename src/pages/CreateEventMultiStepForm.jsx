@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import BASE_URLS from "../config";
 
 const CreateEventMultiStepForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     eventName: "",
     jobTitle: "",
     jobDescription: "",
     country: "",
-    currency: "AUD",
+    currency: "",
     staffCategory: "",
     numberOfPositions: "",
     jobDate: "",
@@ -20,18 +23,71 @@ const CreateEventMultiStepForm = () => {
     rateOffered: "",
     travelAllowance: "none",
   });
-
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [endTime, setEndTime] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [currencyMap, setCurrencyMap] = useState({});
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [countryError, setCountryError] = useState("");
 
-  // Handle input changes for text, number, select, and radio inputs
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+  // Fetch all countries and currencies from REST Countries API
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setIsLoadingCountries(true);
+      try {
+        const response = await axios.get(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,currencies"
+        );
+        const sortedCountries = response.data
+          .map((country) => ({
+            name: country.name.common,
+            code: country.cca2,
+            currency: Object.keys(country.currencies || {})[0] || "USD",
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCountries(sortedCountries);
+
+        const currencyMapping = sortedCountries.reduce((acc, country) => {
+          acc[country.name] = country.currency;
+          return acc;
+        }, {});
+        setCurrencyMap(currencyMapping);
+
+        // Set default country and currency
+        setFormData((prev) => ({
+          ...prev,
+          country: "Australia",
+          currency: currencyMapping["Australia"] || "USD",
+        }));
+        setCountryError("");
+      } catch (err) {
+        console.error("Error fetching countries:", err);
+        setCountryError("Failed to load countries. Please try again later.");
+        setCountries([]);
+        setCurrencyMap({});
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  // Update currency when country changes
+  useEffect(() => {
+    if (formData.country && currencyMap[formData.country]) {
+      setFormData((prev) => ({
+        ...prev,
+        currency: currencyMap[formData.country],
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        currency: "",
+      }));
+    }
+  }, [formData.country, currencyMap]);
 
   // Calculate end time based on start time and duration
   useEffect(() => {
@@ -51,11 +107,19 @@ const CreateEventMultiStepForm = () => {
     }
   }, [formData.startTime, formData.duration]);
 
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
   // Validate fields for the current step
   const validateStep = () => {
     const newErrors = {};
     if (step === 1) {
       if (!formData.country) newErrors.country = "Country is required";
+      if (!formData.currency) newErrors.currency = "Currency is required";
       if (!formData.staffCategory)
         newErrors.staffCategory = "Staff category is required";
       if (!formData.numberOfPositions || formData.numberOfPositions < 1)
@@ -71,9 +135,18 @@ const CreateEventMultiStepForm = () => {
         newErrors.duration = "Duration must be greater than 0";
     } else if (step === 3) {
       if (!formData.city) newErrors.city = "City is required";
+      if (!formData.lookingFor) newErrors.lookingFor = "Gender preference is required";
     } else if (step === 4) {
+      if (!formData.paymentType) newErrors.paymentType = "Payment type is required";
       if (!formData.rateOffered || formData.rateOffered <= 0)
         newErrors.rateOffered = "Rate offered must be greater than 0";
+    } else if (step === 5) {
+      if (!formData.travelAllowance)
+        newErrors.travelAllowance = "Travel allowance is required";
+      // Validate location for submission
+      if (!formData.city || !formData.country) {
+        newErrors.location = "City and country are required for location";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -83,8 +156,58 @@ const CreateEventMultiStepForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateStep()) {
-      console.log("Submitted Data:", formData);
-      alert("Form submitted successfully!");
+      // Construct location string
+      const locationParts = [];
+      // if (formData.suburb) locationParts.push(formData.suburb);
+      if (formData.city) locationParts.push(formData.city);
+      if (formData.country) locationParts.push(formData.country);
+      const location = locationParts.length > 0 ? locationParts.join(", ") : "";
+
+      const jobData = {
+        eventName: formData.eventName,
+        jobTitle: formData.jobTitle,
+        jobDescription: formData.jobDescription,
+        country: formData.country,
+        currency: formData.currency,
+        location: location || undefined, // Send undefined if location is empty
+        staffCategory: formData.staffCategory,
+        numberOfPositions: parseInt(formData.numberOfPositions),
+        jobDate: formData.jobDate,
+        startTime: formData.startTime,
+        duration: parseFloat(formData.duration),
+        city: formData.city,
+        suburb: formData.suburb,
+        lookingFor: formData.lookingFor,
+        paymentType: formData.paymentType,
+        rateOffered: parseFloat(formData.rateOffered),
+        travelAllowance: formData.travelAllowance,
+        requiredSkills: [],
+      };
+
+      console.log("Submitting jobData:", jobData); // Debug log
+
+      axios
+        .post(`${BASE_URLS.BACKEND_BASEURL}jobs`, jobData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        .then((res) => {
+          if (res.data && res.data.job) {
+            console.log("Job created successfully:", res.data.job);
+            navigate(`/jobs/${res.data.job._id}`);
+          } else {
+            setErrors({ submit: res.data.message || "Error creating job." });
+          }
+        })
+        .catch((err) => {
+          const errorMessage =
+            err.response?.data?.message ||
+            err.response?.data?.error?.errors?.location?.message ||
+            "An error occurred. Please try again.";
+          setErrors({ submit: errorMessage });
+          console.error("Error creating job:", err.response?.data || err);
+        });
     } else {
       alert("Please fill in all required fields correctly.");
     }
@@ -124,6 +247,12 @@ const CreateEventMultiStepForm = () => {
           <i className="ri-arrow-left-line"></i>Back
         </Link>
         <form className="w-full mt-8" onSubmit={handleSubmit}>
+          {errors.submit && (
+            <div className="text-red-500 text-sm mb-4">{errors.submit}</div>
+          )}
+          {countryError && (
+            <div className="text-red-500 text-sm mb-4">{countryError}</div>
+          )}
           {step === 1 && (
             <>
               <div className="self-stretch my-2 inline-flex flex-col justify-start items-start gap-1">
@@ -143,22 +272,25 @@ const CreateEventMultiStepForm = () => {
                 <label htmlFor="country" className="text-zinc-600 text-md">
                   Country
                 </label>
-                <select
-                  id="country"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                  className="w-full mt-2 p-3 border border-zinc-300 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-700"
-                  required
-                >
-                  <option value="">Select a country</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Afghanistan">Afghanistan</option>
-                  <option value="Åland Islands">Åland Islands</option>
-                  <option value="Albania">Albania</option>
-                  <option value="Algeria">Algeria</option>
-                  <option value="American Samoa">American Samoa</option>
-                </select>
+                {isLoadingCountries ? (
+                  <div className="text-gray-600">Loading countries...</div>
+                ) : (
+                  <select
+                    id="country"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className="w-full mt-2 p-3 border border-zinc-300 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-700"
+                    required
+                  >
+                    <option value="">Select a country</option>
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.name}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {errors.country && (
                   <span className="text-red-500 text-sm">{errors.country}</span>
                 )}
@@ -185,8 +317,11 @@ const CreateEventMultiStepForm = () => {
                   Currency
                 </label>
                 <div className="flex items-center mt-2 px-3 py-2 border border-zinc-300 w-fit rounded-md font-semibold">
-                  {formData.currency}
+                  {formData.currency || "Select a country first"}
                 </div>
+                {errors.currency && (
+                  <span className="text-red-500 text-sm">{errors.currency}</span>
+                )}
               </div>
               {/* Staff Category */}
               <div className="relative mb-6">
@@ -494,6 +629,9 @@ const CreateEventMultiStepForm = () => {
                     <span className="text-gray-700">Any</span>
                   </label>
                 </div>
+                {errors.lookingFor && (
+                  <span className="text-red-500 text-sm">{errors.lookingFor}</span>
+                )}
               </div>
             </>
           )}
@@ -530,6 +668,9 @@ const CreateEventMultiStepForm = () => {
                     <span className="text-gray-700">Fixed</span>
                   </label>
                 </div>
+                {errors.paymentType && (
+                  <span className="text-red-500 text-sm">{errors.paymentType}</span>
+                )}
               </div>
               {/* Rate Offered */}
               <div className="mb-6">
@@ -565,7 +706,9 @@ const CreateEventMultiStepForm = () => {
 
           {step === 5 && (
             <>
-              <div className="justify-start text-black text-2xl font-bold font-['Inter'] leading-7">Travel: 5/5</div>
+              <div className="justify-start text-black text-2xl font-bold font-['Inter'] leading-7">
+                Travel: 5/5
+              </div>
               <div className="mb-6">
                 <div className="flex flex-col gap-3 mt-5">
                   <label className="flex items-center space-x-2">
@@ -604,7 +747,7 @@ const CreateEventMultiStepForm = () => {
                       className="w-5 h-5 accent-pink-600"
                     />
                     <span className="justify-start text-black text-base font-medium font-['Inter'] leading-snug">
-                      $50
+                      {formData.currency} 50
                     </span>
                   </label>
                   <label className="flex items-center space-x-2">
@@ -617,7 +760,7 @@ const CreateEventMultiStepForm = () => {
                       className="w-5 h-5 accent-pink-600"
                     />
                     <span className="justify-start text-black text-base font-medium font-['Inter'] leading-snug">
-                      $100
+                      {formData.currency} 100
                     </span>
                   </label>
                   <label className="flex items-center space-x-2">
@@ -630,10 +773,13 @@ const CreateEventMultiStepForm = () => {
                       className="w-5 h-5 accent-pink-600"
                     />
                     <span className="justify-start text-black text-base font-medium font-['Inter'] leading-snug">
-                      $150
+                      {formData.currency} 150
                     </span>
                   </label>
                 </div>
+                {errors.travelAllowance && (
+                  <span className="text-red-500 text-sm">{errors.travelAllowance}</span>
+                )}
               </div>
             </>
           )}
@@ -702,7 +848,7 @@ const CreateEventMultiStepForm = () => {
                     </div>
                     <div className="self-stretch inline-flex justify-start items-center gap-6 flex-wrap content-center">
                       <div className="flex justify-start items-center gap-2">
-                      <i className="ri-map-pin-2-fill BG-ZINC-800 text-lg"></i>
+                        <i className="ri-map-pin-2-fill text-zinc-800 text-lg"></i>
                         <div className="justify-start text-gray-600 text-base font-normal font-['Inter'] leading-snug">
                           {formData.suburb
                             ? `${formData.suburb}, ${formData.city}, ${formData.country}`
@@ -712,13 +858,13 @@ const CreateEventMultiStepForm = () => {
                         </div>
                       </div>
                       <div className="flex justify-start items-center gap-2">
-                      <i className="ri-calendar-check-fill text-zinc-800 text-lg"></i>
+                        <i className="ri-calendar-check-fill text-zinc-800 text-lg"></i>
                         <div className="justify-start text-gray-600 text-base font-normal font-['Inter'] leading-snug">
                           {formData.jobDate || "N/A"}
                         </div>
                       </div>
                       <div className="flex justify-start items-center gap-2">
-                      <i className="ri-time-fill text-zinc-800 text-lg"></i>
+                        <i className="ri-time-fill text-zinc-800 text-lg"></i>
                         <div className="justify-start text-gray-600 text-base font-normal font-['Inter'] leading-snug">
                           {formData.startTime && endTime
                             ? `${formData.startTime} – ${endTime}`
@@ -734,7 +880,7 @@ const CreateEventMultiStepForm = () => {
                     </div>
                     <div className="self-stretch inline-flex justify-start items-center gap-6 flex-wrap content-center">
                       <div className="flex justify-start items-center gap-2">
-                      <i className="ri-money-dollar-circle-fill text-zinc-800 text-lg"></i>
+                        <i className="ri-money-dollar-circle-fill text-zinc-800 text-lg"></i>
                         <div className="justify-start text-gray-600 text-base font-normal font-['Inter'] leading-snug">
                           {formData.rateOffered
                             ? `${formData.currency} ${formData.rateOffered}/${
@@ -744,7 +890,7 @@ const CreateEventMultiStepForm = () => {
                         </div>
                       </div>
                       <div className="flex justify-start items-center gap-2">
-                      <i className="ri-taxi-fill text-zinc-800 text-lg"></i>
+                        <i className="ri-taxi-fill text-zinc-800 text-lg"></i>
                         <div className="justify-start text-gray-600 text-base font-normal font-['Inter'] leading-snug">
                           {formData.travelAllowance === "none"
                             ? "No Allowance"
@@ -771,7 +917,7 @@ const CreateEventMultiStepForm = () => {
                   className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#e61e4d] flex justify-center items-center gap-2 overflow-hidden"
                   onClick={closePreview}
                 >
-                  <div className="justify-start text-[#E61E4D]  text-base font-medium font-['Inter'] leading-snug">
+                  <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
                     Edit
                   </div>
                 </button>
