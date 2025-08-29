@@ -485,6 +485,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import BASE_URLS from "../config";
 
 function InvitesReceived() {
   const { id } = useParams();
@@ -511,14 +512,26 @@ function InvitesReceived() {
 
   const handleDeclineInvitation = () => {
     console.log(`Declining invitation with ID: ${id}`);
-    // Implement API call or state update to decline invitation
-    navigate("/");
+   ;
   };
 
   const handleAcceptInvitation = () => {
     console.log(`Accepting invitation with ID: ${id}`);
     // Implement API call to accept invitation
-    navigate("/");
+    axios.patch(`${BASE_URLS.BACKEND_BASEURL}jobs/invitation/${id}/accept`,{}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => {
+        console.log(response.data);
+        navigate("/dashboard");
+        // setNotifications((prev) => prev.map((n) => n._id !== inviteId));
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    
   };
 
   const handleCounterOffer = () => {
@@ -533,7 +546,7 @@ function InvitesReceived() {
     alert("Unable to submit counter offer. Job ID is missing.");
     return;
   }
-  const apiUrl = `https://mypartyhost.onrender.com/api/jobs/${jobId}/apply`;
+  const apiUrl = `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/apply`;
   const payload = {
     jobId: jobId,
     staffId: localStorage.getItem("userId") || "authenticatedUserId",

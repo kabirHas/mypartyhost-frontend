@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ChatState } from "../Context/ChatProvider";
+import BASE_URLS from "../config";
 
 const events = [
   {
@@ -39,6 +40,7 @@ const StaffDashboard = () => {
   const [profileViewsError, setProfileViewsError] = useState("");
   const [profileViews, setProfileViews] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [boostProfile, setBoostProfile] = useState(false);
 
   const [isPublic, setIsPublic] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -55,11 +57,11 @@ const StaffDashboard = () => {
     return userInfo._id || "";
   });
 
-
   const [additionalRates, setAdditionalRates] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return userInfo.additionalRates || [];
   });
+
   // const [additionalRates, setAdditionalRates] = useState([]);
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
@@ -79,47 +81,53 @@ const StaffDashboard = () => {
 
   const [initialBaseRate, setInitialBaseRate] = useState(baseRate);
   const [isBaseRateModified, setIsBaseRateModified] = useState(false);
-  const [boostProfile, setBoostProfile] = useState(false);
+
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [eventsError, setEventsError] = useState("");
+
   const [boostPlans, setBoostPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
-  const {user, setUser} = ChatState()
-console.log("User from ChatState:", user);
+  const { user, setUser } = ChatState();
+  console.log("User from ChatState:", user);
 
   const handleProceedToPayment = async () => {
-    if (!selectedPlan || !user  || !currency) return;
-  
+    if (!selectedPlan || !user || !currency) return;
+
     try {
       // Fetch exchange rate again
-      const rateRes = await axios.get("https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD");
+      const rateRes = await axios.get(
+        "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD"
+      );
       const rate = rateRes.data.conversion_rates[currency] || 1;
       const convertedAmount = selectedPlan.price * rate;
-  
-      // Call backend to create Stripe session
-      const res = await axios.post("http://localhost:4000/api/boost/payment/create-session", {
-        planId: selectedPlan._id,
-        userId: user.user,
-        amountUSD : selectedPlan.price, // Assuming this is the amount in USD
-        currency,
-        actualCurrency: "USD", // Assuming backend expects USD as the base currency
-        amount: convertedAmount.toFixed(2),
-        actualAmount: selectedPlan.price.toFixed(2), // Store original amount for reference
 
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      // Call backend to create Stripe session
+      const res = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}boost/payment/create-session`,
+        {
+          planId: selectedPlan._id,
+          userId: user.user,
+          amountUSD: selectedPlan.price, // Assuming this is the amount in USD
+          currency,
+          actualCurrency: "USD", // Assuming backend expects USD as the base currency
+          amount: convertedAmount.toFixed(2),
+          actualAmount: selectedPlan.price.toFixed(2), // Store original amount for reference
         },
-      });
-  
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       window.location.href = res.data.url; // Redirect to Stripe Checkout
     } catch (err) {
       console.error("Payment error:", err);
       alert("Failed to create payment session.");
     }
   };
-  
-
 
   useEffect(() => {
     // Step 1: Get user's currency
@@ -150,7 +158,7 @@ console.log("User from ChatState:", user);
   useEffect(() => {
     if (boostProfile) {
       axios
-        .get("http://localhost:4000/api/boost") // your API endpoint
+        .get(`${BASE_URLS.BACKEND_BASEURL}boost`) // your API endpoint
         .then((res) => setBoostPlans(res.data))
         .catch((err) => console.error("Failed to fetch plans", err));
     }
@@ -164,14 +172,9 @@ console.log("User from ChatState:", user);
       }
       setIsLoading(true);
       try {
-        const response = await axios.get(
-          `https://mypartyhost.onrender.com/api/staff`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
         console.log("API Response:", response.data);
         const user = response.data.data.find((u) => u._id === userId);
         if (!user) throw new Error("User not found in staff list");
@@ -213,10 +216,63 @@ console.log("User from ChatState:", user);
   }, [userId]);
 
   useEffect(() => {
+    const fetchUpcomingEvents = async () => {
+      if (!userId) {
+        setEventsError("Invalid user ID. Please log in again.");
+        console.log("Debug: No userId found in localStorage"); // Debug log
+        return;
+      }
+      setIsLoading(true);
+      console.log("Debug: Fetching events for userId:", userId); // Debug log
+      try {
+        const response = await axios.get(
+          `${BASE_URLS.BACKEND_BASEURL}staff/upcoming-events`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        console.log("Upcoming Events API Response:", response.data);
+        let filteredEvents = response.data || []; // No .filter()
+
+        // Sort events in descending order by jobDate (newest first)
+        filteredEvents = filteredEvents.sort((a, b) => {
+          return new Date(b.jobDate) - new Date(a.jobDate);
+        });
+
+        console.log("Debug: Sorted Filtered Events:", filteredEvents); // Updated debug log
+        setUpcomingEvents(filteredEvents);
+        setEventsError("");
+      } catch (error) {
+        setEventsError("Failed to fetch upcoming events. Please try again.");
+        console.error(
+          "Error fetching upcoming events:",
+          error.response?.data || error.message
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUpcomingEvents();
+  }, [userId]);
+
+  const formatTime = (time) => {
+    if (!time) return "N/A";
+    const [hours, minutes] = time.split(":");
+    let hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+    const formattedHour = hour.toString().padStart(2, "0"); // Pad with zero for single digits, e.g., 09:00 AM
+    const formattedMinutes = minutes.padStart(2, "0"); // Ensure minutes are two digits
+    return `${formattedHour}:${formattedMinutes} ${ampm}`;
+  };
+
+  useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const response = await fetch(
-          "https://mypartyhost.onrender.com/api/notifications",
+          `${BASE_URLS.BACKEND_BASEURL}notifications`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -233,69 +289,6 @@ console.log("User from ChatState:", user);
     fetchNotifications();
   }, []);
 
-
-useEffect(() => {
-  const fetchUpcomingEvents = async () => {
-    if (!userId) {
-      setEventsError("Invalid user ID. Please log in again.");
-      console.log("Debug: No userId found in localStorage"); // Debug log
-      return;
-    }
-    setIsLoading(true);
-    console.log("Debug: Fetching events for userId:", userId); // Debug log
-    try {
-      const response = await axios.get("https://mypartyhost.onrender.com/api/staff/upcoming-events", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      console.log("Upcoming Events API Response:", response.data);
-      let filteredEvents = response.data || [];  // No .filter()
-      
-      // Sort events in descending order by jobDate (newest first)
-      filteredEvents = filteredEvents.sort((a, b) => {
-        return new Date(b.jobDate) - new Date(a.jobDate);
-      });
-      
-      console.log("Debug: Sorted Filtered Events:", filteredEvents); // Updated debug log
-      setUpcomingEvents(filteredEvents);
-      setEventsError("");
-    } catch (error) {
-      setEventsError("Failed to fetch upcoming events. Please try again.");
-      console.error("Error fetching upcoming events:", error.response?.data || error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  fetchUpcomingEvents();
-}, [userId]);
-
-const formatTime = (time) => {
-  if (!time) return 'N/A';
-  const [hours, minutes] = time.split(':');
-  let hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  hour = hour % 12 || 12;
-  const formattedHour = hour.toString().padStart(2, '0'); // Pad with zero for single digits, e.g., 09:00 AM
-  const formattedMinutes = minutes.padStart(2, '0'); // Ensure minutes are two digits
-  return `${formattedHour}:${formattedMinutes} ${ampm}`;
-};
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch("https://mypartyhost.onrender.com/api/notifications", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const data = await response.json();
-        const jobInvites = data.filter((notif) => notif.type === "job_invite");
-        setNotifications(jobInvites);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-    fetchNotifications();
-  }, []);
-
-
   const handleToggle = async (field) => {
     if (!userId) {
       setProfileViewsError("Failed to fetch profile views. Please try again.");
@@ -306,13 +299,18 @@ const formatTime = (time) => {
     const updatedValue = field === "isPublic" ? !isPublic : !instantBook;
     try {
       const response = await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff/`,
+        `${BASE_URLS.BACKEND_BASEURL}staff/`,
         { [field]: updatedValue },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       if (field === "isPublic") setIsPublic(updatedValue);
       else setInstantBook(updatedValue);
-      const updatedUserInfo = { ...JSON.parse(localStorage.getItem("userInfo") || "{}"), [field]: updatedValue };
+      const updatedUserInfo = {
+        ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
+        [field]: updatedValue,
+      };
       localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -320,7 +318,6 @@ const formatTime = (time) => {
       }
     } catch (error) {
       setUserDataError("Invalid user ID. Please log in again.");
-
       console.error(
         `Error updating ${field}:`,
         error.response?.data || error.message
@@ -347,7 +344,6 @@ const formatTime = (time) => {
       setUserDataError("Please enter a valid base rate.");
       return;
     }
-
     if (
       isAddingNew &&
       (!newService || !newRate || isNaN(newRate) || newRate <= 0)
@@ -361,13 +357,18 @@ const formatTime = (time) => {
       const updatedData = {
         baseRate: parseFloat(baseRate),
         additionalRates: isAddingNew
-          ? [...currentRates, { label: newService, amount: parseFloat(newRate) }]
+          ? [
+              ...currentRates,
+              { label: newService, amount: parseFloat(newRate) },
+            ]
           : currentRates,
       };
       const response = await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff/`,
+        `${BASE_URLS.BACKEND_BASEURL}staff/`,
         updatedData,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -401,7 +402,7 @@ const formatTime = (time) => {
     setUserDataError("");
     try {
       await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff/`,
+        `${BASE_URLS.BACKEND_BASEURL}staff/`,
         { additionalRates: updatedRates },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -423,7 +424,6 @@ const formatTime = (time) => {
       setIsLoading(false);
     }
   };
-
 
   const [selectedDates, setSelectedDates] = useState([]);
   const [eventDate, setEventDate] = useState(new Date(2024, 0, 1));
@@ -470,14 +470,9 @@ const formatTime = (time) => {
       setIsLoading(true);
       try {
         console.log("Fetching user data for userId:", userId);
-        const response = await axios.get(
-          `https://mypartyhost.onrender.com/api/staff`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
         console.log("Full API response:", response.data);
         const user = response.data.data.find((u) => u._id === userId);
         if (!user) throw new Error("User not found in staff list");
@@ -519,7 +514,7 @@ const formatTime = (time) => {
       );
 
       const response = await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff/`,
+        `${BASE_URLS.BACKEND_BASEURL}staff/`,
         { availableDates: formattedDates },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -549,69 +544,80 @@ const formatTime = (time) => {
     setIsBaseRateModified(e.target.value !== String(initialBaseRate));
   };
 
-
   const handleEventDateChange = (newDate) => {
     setEventDate(newDate);
   };
-
 
   return (
     <div className="dashboard">
       <div className="self-stretch inline-flex justify-start items-center gap-4">
         <div className="flex-1 self-stretch p-6 bg-white rounded-2xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
-             {upcomingEvents && upcomingEvents.length > 0 ? (
+            {upcomingEvents && upcomingEvents.length > 0 ? (
               <>
-              <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                <div className="self-stretch inline-flex justify-between items-center">
-                  <div className="justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
-                    {upcomingEvents[0]?.eventName}
+                <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                  <div className="self-stretch inline-flex justify-between items-center">
+                    <div className="justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
+                      {upcomingEvents[0]?.eventName}
+                    </div>
+                    <div
+                      // data-property-1={upcomingEvents[0]?.status}
+                      data-property-1="Confirmed"
+                      className="w-20 px-4 py-2 bg-lime-100 rounded-full flex justify-center items-center gap-2.5"
+                    >
+                      <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
+                        {/* {upcomingEvents[0]?.status.charAt(0).toUpperCase() + upcomingEvents[0]?.status.slice(1)} */}
+                        Confirmed
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    // data-property-1={upcomingEvents[0]?.status}
-                    data-property-1="Confirmed"
-                    className="w-20 px-4 py-2 bg-lime-100 rounded-full flex justify-center items-center gap-2.5"
-                  >
-                    <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
-                      {/* {upcomingEvents[0]?.status.charAt(0).toUpperCase() + upcomingEvents[0]?.status.slice(1)} */}
-                      Confirmed
+                  <div className="self-stretch inline-flex justify-between items-center">
+                    <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                      Role: {upcomingEvents[0]?.jobTitle}
+                    </div>
+                    <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                      Rate: {upcomingEvents[0]?.currency}{" "}
+                      {upcomingEvents[0]?.rateOffered}/
+                      {upcomingEvents[0]?.paymentType === "hourly"
+                        ? "hr"
+                        : "fixed"}
                     </div>
                   </div>
                 </div>
-                <div className="self-stretch inline-flex justify-between items-center">
-                  <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    Role: {upcomingEvents[0]?.jobTitle}
+                <div className="self-stretch inline-flex justify-start items-center gap-3 flex-wrap content-center">
+                  <div className="flex justify-start items-center gap-2">
+                    <i className="ri-map-pin-2-fill"></i>
+                    <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
+                      {upcomingEvents[0]?.suburb}, {upcomingEvents[0]?.city},{" "}
+                      {upcomingEvents[0]?.country}
+                    </div>
                   </div>
-                  <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    Rate: {upcomingEvents[0]?.currency} {upcomingEvents[0]?.rateOffered}/{upcomingEvents[0]?.paymentType === "hourly" ? "hr" : "fixed"}
+                  <div className="flex justify-start items-center gap-2">
+                    <i className="ri-calendar-check-line"></i>
+                    <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
+                      {upcomingEvents[0]
+                        ? new Date(
+                            upcomingEvents[0].jobDate
+                          ).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : []}
+                    </div>
+                  </div>
+                  <div className="flex justify-start items-center gap-2">
+                    <i className="ri-time-fill"></i>
+                    <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
+                      {upcomingEvents[0]
+                        ? `${formatTime(
+                            upcomingEvents[0].startTime
+                          )} – ${formatTime(upcomingEvents[0].endTime)}`
+                        : []}
+                    </div>
                   </div>
                 </div>
-            </div>
-            <div className="self-stretch inline-flex justify-start items-center gap-3 flex-wrap content-center">
-              <div className="flex justify-start items-center gap-2">
-                <i className="ri-map-pin-2-fill"></i>
-                <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  {upcomingEvents[0]?.suburb}, {upcomingEvents[0]?.city}, {upcomingEvents[0]?.country}
-                </div>
-              </div>
-              <div className="flex justify-start items-center gap-2">
-                <i className="ri-calendar-check-line"></i>
-                <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  {upcomingEvents[0] ? new Date(upcomingEvents[0].jobDate).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                  }) : [] }
-                </div>
-              </div>
-              <div className="flex justify-start items-center gap-2">
-                <i className="ri-time-fill"></i>
-                <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                  {upcomingEvents[0] ? `${formatTime(upcomingEvents[0].startTime)} – ${formatTime(upcomingEvents[0].endTime)}`: []}
-                </div>
-              </div>
-            </div>
-            </>
+              </>
             ) : (
               <div className="text-gray-500 text-lg font-semibold">
                 No Jobs Available
@@ -619,16 +625,23 @@ const formatTime = (time) => {
             )}
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
-          <div className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
-            <div 
-            onClick={() => {
-              setActiveTab("confirmedBookings");
-              navigate("/dashboard/manage-bookings", { state: { activeTab: "Confirmed Bookings" } });
-            }}
-            className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white">
-              View Details
+          {upcomingEvents.length !== 0 && (
+            <div className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
+              <button
+                onClick={() => {
+                  setActiveTab("confirmedBookings");
+                  navigate("/dashboard/manage-bookings", {
+                    state: { activeTab: "Confirmed Bookings" },
+                  });
+                }}
+                className="py-1 rounded-lg flex justify-center items-center gap-2 overflow-hidden"
+              >
+                <span className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight">
+                  View Details
+                </span>
+              </button>
             </div>
-          </div>
+          )}
         </div>
         <div className="flex-1 self-stretch p-6 bg-white rounded-3xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex-1 flex flex-col justify-start items-center gap-4">
@@ -647,6 +660,7 @@ const formatTime = (time) => {
               >
                 {notif.sender.name} wants to book you for{" "}
                 {notif.metadata.jobTitle}
+              </div>
             ))}
           </div>
           <div className="w-72 h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -655,7 +669,9 @@ const formatTime = (time) => {
               <div
                 onClick={() => {
                   setActiveTab("invitesReceived");
-                  navigate("/dashboard/manage-bookings", { state: { activeTab: "Invites Received" } });
+                  navigate("/dashboard/manage-bookings", {
+                    state: { activeTab: "Invites Received" },
+                  });
                 }}
                 className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
               >
@@ -747,7 +763,9 @@ const formatTime = (time) => {
                     flex items-center px-1 transition-colors`}
                 >
                   <div
-                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${instantBook ? "translate-x-5" : ""}`}
+                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
+                      instantBook ? "translate-x-5" : ""
+                    }`}
                   ></div>
                 </div>
               </label>
@@ -769,12 +787,11 @@ const formatTime = (time) => {
                   </div>
                 </div>
               </div>
-
-              <i 
-               id="addtionalRateOptions"
-               className="fa-solid fa-pen-to-square cursor-pointer"
-               onClick={handleModalToggle}
-               ></i>
+              <i
+                id="addtionalRateOptions"
+                className="fa-solid fa-pen-to-square cursor-pointer"
+                onClick={handleModalToggle}
+              ></i>
             </div>
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -821,10 +838,12 @@ const formatTime = (time) => {
                       Base Hourly Rate
                     </div>
                     <input
-                        type="number"
-                        value={baseRate}
-                        onChange={handleBaseRateChange} className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"/>
-                        {/* <input
+                      type="number"
+                      value={baseRate}
+                      onChange={handleBaseRateChange}
+                      className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"
+                    />
+                    {/* <input
                           type="number"
                           value={baseRate}
                           onChange={handleBaseRateChange} className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"/>
@@ -860,7 +879,6 @@ const formatTime = (time) => {
                     >
                       <div className="flex-1 justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
                         {rate.label}
-
                         {/* <i className="ri-arrow-down-s-line"></i> */}
                       </div>
                       <div className="flex justify-start items-center gap-2">
@@ -918,13 +936,9 @@ const formatTime = (time) => {
                 </div>
               </div>
             </div>
-            
           </div>
         </div>
-        
       )}
-
-      
 
       {isAvailabilityModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -936,9 +950,8 @@ const formatTime = (time) => {
                     Select Available Dates
                   </div>
                   <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-
-                    {selectedDates.length} Date{selectedDates.length !== 1 ? "s" : ""} Selected
-
+                    {selectedDates.length} Date
+                    {selectedDates.length !== 1 ? "s" : ""} Selected
                   </div>
                 </div>
                 <div
@@ -949,88 +962,137 @@ const formatTime = (time) => {
                 </div>
               </div>
               <div className="w-full p-4 bg-white rounded-lg border border-[#ECECEC] flex flex-col gap-3">
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
-          <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))} className="text-lg">
-            <i className="ri-arrow-left-s-line"></i>
-          </button>
-          <span className="text-[#292929] text-base font-medium font-['Inter']">
-            {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
-          </span>
-          <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1))} className="text-lg">
-            <i className="ri-arrow-right-s-line"></i>
-          </button>
-        </div>
-
-        {/* Days of the Week */}
-        <div className="grid grid-cols-7 gap-1 text-center text-[#656565] text-sm font-medium font-['Inter']">
-          {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
-            <div key={day} className="py-1">{day}</div>
-          ))}
-        </div>
-
-
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {(() => {
-            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-            const prevMonthDays = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
-            const totalCells = 42; // 6 rows * 7 columns
-            const cells = [];
-
-            // Previous month days
-            for (let i = firstDay - 1; i >= 0; i--) {
-              const prevDate = new Date(date.getFullYear(), date.getMonth() - 1, prevMonthDays - i);
-              cells.push(
-                <div key={`prev-${i}`} className="h-8 flex items-center justify-center text-zinc-500">
-                  {prevMonthDays - i}
-                </div>
-              );
-            }
-
-            // Current month days
-            for (let day = 1; day <= daysInMonth; day++) {
-              const currentDate = new Date(date.getFullYear(), date.getMonth(), day);
-              const dateString = currentDate.toISOString().split("T")[0];
-              const isSelected = selectedDates.includes(dateString);
-              cells.push(
-                <div
-                    key={day}
-                    className={`h-8 flex items-center justify-center cursor-pointer rounded ${
-                      isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
-                    }`} // Change-1: Added hover:bg-gray-100 for non-selected dates, Change-2: Simplified highlighting logic for selected dates
-                    onClick={() => handleDateSelect(currentDate)}
+                {/* Navigation */}
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() =>
+                      setDate(
+                        new Date(date.getFullYear(), date.getMonth() - 1, 1)
+                      )
+                    }
+                    className="text-lg"
                   >
-                    {day}
-                  </div>
-                // <div
-                //   key={day}
-                //   className={`h-8 flex items-center justify-center cursor-pointer rounded ${
-                //     isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
-                //   }`}
-                //   onClick={() => handleDateSelect(currentDate)}
-                // >
-                //   {day}
-                // </div>
-              );
-            }
+                    <i className="ri-arrow-left-s-line"></i>
+                  </button>
+                  <span className="text-[#292929] text-base font-medium font-['Inter']">
+                    {date.toLocaleString("default", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setDate(
+                        new Date(date.getFullYear(), date.getMonth() + 1, 1)
+                      )
+                    }
+                    className="text-lg"
+                  >
+                    <i className="ri-arrow-right-s-line"></i>
+                  </button>
+                </div>
 
-            // Next month days
-            const remainingCells = totalCells - cells.length;
-              for (let i = 1; i <= remainingCells; i++) {
-                cells.push(
-                  <div key={`next-${i}`} className="h-8 flex items-center justify-center text-zinc-500">
-                    {i} 
-                  </div>
-                );
-              }
-            return cells;
-          })()}
-        </div>
-              <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
+                {/* Days of the Week */}
+                <div className="grid grid-cols-7 gap-1 text-center text-[#656565] text-sm font-medium font-['Inter']">
+                  {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
+                    (day) => (
+                      <div key={day} className="py-1">
+                        {day}
+                      </div>
+                    )
+                  )}
+                </div>
 
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {(() => {
+                    const firstDay = new Date(
+                      date.getFullYear(),
+                      date.getMonth(),
+                      1
+                    ).getDay();
+                    const daysInMonth = new Date(
+                      date.getFullYear(),
+                      date.getMonth() + 1,
+                      0
+                    ).getDate();
+                    const prevMonthDays = new Date(
+                      date.getFullYear(),
+                      date.getMonth(),
+                      0
+                    ).getDate();
+                    const totalCells = 42; // 6 rows * 7 columns
+                    const cells = [];
+
+                    // Previous month days
+                    for (let i = firstDay - 1; i >= 0; i--) {
+                      const prevDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth() - 1,
+                        prevMonthDays - i
+                      );
+                      cells.push(
+                        <div
+                          key={`prev-${i}`}
+                          className="h-8 flex items-center justify-center text-zinc-500"
+                        >
+                          {prevMonthDays - i}
+                        </div>
+                      );
+                    }
+
+                    // Current month days
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const currentDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        day
+                      );
+                      const dateString = currentDate
+                        .toISOString()
+                        .split("T")[0];
+                      const isSelected = selectedDates.includes(dateString);
+                      cells.push(
+                        <div
+                          key={day}
+                          className={`h-8 flex items-center justify-center cursor-pointer rounded ${
+                            isSelected
+                              ? "bg-[#E61E4D] text-white"
+                              : "text-[#292929] hover:bg-gray-100"
+                          }`} // Change-1: Added hover:bg-gray-100 for non-selected dates, Change-2: Simplified highlighting logic for selected dates
+                          onClick={() => handleDateSelect(currentDate)}
+                        >
+                          {day}
+                        </div>
+                        // <div
+                        //   key={day}
+                        //   className={`h-8 flex items-center justify-center cursor-pointer rounded ${
+                        //     isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
+                        //   }`}
+                        //   onClick={() => handleDateSelect(currentDate)}
+                        // >
+                        //   {day}
+                        // </div>
+                      );
+                    }
+
+                    // Next month days
+                    const remainingCells = totalCells - cells.length;
+                    for (let i = 1; i <= remainingCells; i++) {
+                      cells.push(
+                        <div
+                          key={`next-${i}`}
+                          className="h-8 flex items-center justify-center text-zinc-500"
+                        >
+                          {i}
+                        </div>
+                      );
+                    }
+                    return cells;
+                  })()}
+                </div>
+
+                <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
                 <div className="self-stretch inline-flex justify-end items-center gap-3">
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
@@ -1043,16 +1105,27 @@ const formatTime = (time) => {
                   </div>
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
-
-                      onClick={() => {
-                        const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
-                        const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        const allDates = [];
-                        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                          allDates.push(new Date(d).toISOString().split("T")[0]);
-                        }
-                        setSelectedDates(allDates);
-                      }}
+                    onClick={() => {
+                      const startDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        1
+                      );
+                      const endDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        0
+                      );
+                      const allDates = [];
+                      for (
+                        let d = new Date(startDate);
+                        d <= endDate;
+                        d.setDate(d.getDate() + 1)
+                      ) {
+                        allDates.push(new Date(d).toISOString().split("T")[0]);
+                      }
+                      setSelectedDates(allDates);
+                    }}
                   >
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
                       Select All
@@ -1062,7 +1135,10 @@ const formatTime = (time) => {
                 </div>
               </div>
 
-              <div onClick={handleSaveAvailability} className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden">
+              <div
+                onClick={handleSaveAvailability}
+                className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
+              >
                 <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
                   Update Availability
                 </div>
@@ -1083,36 +1159,36 @@ const formatTime = (time) => {
               <div className="justify-center text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                 Loading profile views...
               </div>
-              ) : profileViewsError ? (
+            ) : profileViewsError ? (
               <div className="justify-center text-[#E61E4D] text-base font-normal font-['Inter'] leading-snug">
-               {profileViewsError}
+                {profileViewsError}
               </div>
             ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={profileViews}>
-                <defs>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="day"
-                  stroke="#999"
-                  padding={{ left: 0, right: 20 }}
-                />
-                <YAxis stroke="#999" />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="views"
-                  stroke="#f43f5e"
-                  strokeWidth={2}
-                  fill="url(#colorViews)"
-                  strokeDasharray="4 4"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={profileViews}>
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="day"
+                    stroke="#999"
+                    padding={{ left: 0, right: 20 }}
+                  />
+                  <YAxis stroke="#999" />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="#f43f5e"
+                    strokeWidth={2}
+                    fill="url(#colorViews)"
+                    strokeDasharray="4 4"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -1147,13 +1223,20 @@ const formatTime = (time) => {
             </div>
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
-          <div className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
-            <button 
+          <div className={`px-4 py-2  bg-gradient-to-l ${user?.boostStatus === "approved" ? "from-green-400 to-green-600" : "from-pink-600 to-rose-600"} rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden`}>
+            <button
               onClick={() => setBoostProfile(true)}
-              disabled={user?.boostStatus === 'pending' || user?.boostStatus === 'approved'}
+              disabled={
+                user?.boostStatus === "pending" ||
+                user?.boostStatus === "approved"
+              }
               className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
             >
-              {user?.boostStatus === 'pending' ? 'Waiting for Approval' : user?.boostStatus === 'approved' ? 'Boost Active' : 'Boost My Profile Now'}
+              {user?.boostStatus === "pending"
+                ? "Waiting for Approval"
+                : user?.boostStatus === "approved"
+                ? "Boost Active"
+                : "Boost My Profile Now"}
             </button>
           </div>
         </div>
@@ -1179,66 +1262,57 @@ const formatTime = (time) => {
                 No upcoming events found.
               </div>
             ) : (
-            <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-2">
-              {upcomingEvents.map((event, index) => (
-              <div
-                key={event._id || index}
-                data-property-1="Default"
-                className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
-              >
-                {console.log("Debug: Rendering upcomingEvents:", upcomingEvents)}
+              <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-2">
+                {upcomingEvents.map((event, index) => (
+                  <div
+                    key={event._id || index}
+                    data-property-1="Default"
+                    className="self-stretch p-3 bg-[#fff] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#F9F9F9]"
+                  >
+                    {console.log(
+                      "Debug: Rendering upcomingEvents:",
+                      upcomingEvents
+                    )}
 
-                <div className="inline-flex justify-start items-start gap-4">
-                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                      {event.eventName}
+                    <div className="inline-flex justify-start items-start gap-4">
+                      <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                        <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+                          {event.eventName}
+                        </div>
+                        <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                          Role: {event.jobTitle}
+                        </div>
+                      </div>
+                      <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                        {event.duration} hours @{event.rateOffered}/h
+                      </div>
                     </div>
-                    <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                      Role: {event.jobTitle}
+                    <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
+                      <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
+                        {new Date(event.jobDate).toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </div>
+                      <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
+                        {/* {event.time} */}
+                        {`${formatTime(event.startTime)} - ${formatTime(
+                          event.endTime
+                        )}`}
+                      </div>
                     </div>
                   </div>
-                  <div className="justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    {event.duration} hours @{event.rateOffered}/h
-                  </div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-1 mt-2">
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                   {new Date(event.jobDate).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "long",
-                })}
-                  </div>
-                  <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    {/* {event.time} */}
-                    {`${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}
-                  </div>
-                </div>
+                ))}
               </div>
-              ))}
-              </div>
-              )}
+            )}
           </div>
         </div>
       </div>
 
-      <div className="notifications mt-8">
+      <div className="notifications !mt-8">
         <h3>Latest Updates and Notifications</h3>
-        {/* {notifications &&
+        {notifications &&
           notifications.map((item, idx) => (
-            <div className="notification" key={idx}>
-              <img src="/images/Update Avatar.png" className="flame-icon" />
-              <div>
-                <strong>{item.name}</strong>{" "}
-                {item.type === "job_invite"
-                  ? "invited you to"
-                  : "wants to join"}{" "}
-                <b>{item.job}</b> - {item.ending}{" "}
-                <span className="link">{item.link}</span>
-              </div>
-            </div>
-          ))} */}
-
-          {notifications && notifications.map((item, idx) => (
             <div className="notification" key={idx}>
               <img src="/images/Update Avatar.png" className="flame-icon" />
               <div>
@@ -1247,75 +1321,28 @@ const formatTime = (time) => {
                   ? `invited you to `
                   : "wants to join"}{" "}
                 {item.type === "job_invite" ? (
-                  <span style={{ fontWeight: 'bold' }}>{item.metadata.jobTitle}</span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {item.metadata.jobTitle}
+                  </span>
                 ) : (
                   <b>{item.job}</b>
                 )}{" "}
                 -{" "}
                 <span
                   onClick={() => {
-                  setActiveTab("invitesReceived");
-                  navigate('/dashboard/manage-bookings', { state: { activeTab: 'Invites Received' } });
-                  }} 
-                  className="link" >
-                    {item.type === "job_invite" ? "View Event" : item.link}
-
+                    setActiveTab("invitesReceived");
+                    navigate("/dashboard/manage-bookings", {
+                      state: { activeTab: "Invites Received" },
+                    });
+                  }}
+                  className="link"
+                >
+                  {item.type === "job_invite" ? "View Event" : item.link}
                 </span>
               </div>
             </div>
           ))}
       </div>
-      {boostProfile && (
-        <div className="bg-white border border-[#ECECEC] shadow-lg rounded-xl absolute top-1/3 p-4 w-1/2 h-1/2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Boost your profile</h2>
-            <button
-              className="text-gray-500 hover:text-gray-700"
-              onClick={() => setBoostProfile(false)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-          <p className="mt-3">
-            Boost your profile to attract more clients and increase your chances
-            of landing a gig.
-          </p>
-          <h3 className="font-semibold text-lg">Select a Boost Plan</h3>
-          <ul>
-            {boostPlans.map((plan) => (
-              <li key={plan._id}>
-                <input
-                  type="radio"
-                  name="boostPlan"
-                  value={plan._id}
-                  onChange={() => setSelectedPlan(plan)}
-                  className="mr-2 cursor-pointer text-[#E61E4D] focus:ring-[#E61E4D] focus:ring-2 focus:ring-opacity-50 focus:outline-none" 
-                />
-                <label>
-                  {plan.name} - {plan.durationInDays} days - ${plan.price}
-                </label>
-              </li>
-            ))}
-          </ul>
-          <button className="bg-[#E61E4D] text-white px-4 py-2 rounded mt-4" onClick={handleProceedToPayment} disabled={!selectedPlan} >
-            Pay {selectedPlan && `$${selectedPlan.price}`}
-          </button>
-          <button className="bg-white text-[#E61E4D] px-4 py-2 rounded mt-4" onClick={() => setBoostProfile(false)}>Cancel</button>
-        </div>
-      )}
     </div>
   );
 };

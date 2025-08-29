@@ -16,10 +16,10 @@ const StripeWrapper = ({ jobId, applicationId, inviteId,onClose }) => {
   
       if (inviteId) {
         // Invite-based payment
-        url = `http://localhost:4000/api/jobs/pay-for-invite/${inviteId}`;
+        url = `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`;
       } else if (jobId && applicationId) {
         // Application-based payment
-        url = `http://localhost:4000/api/jobs/${jobId}/hire/${applicationId}/initiate`;
+        url = `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`;
       } else {
         console.error("No valid identifiers passed to StripeWrapper");
         return;

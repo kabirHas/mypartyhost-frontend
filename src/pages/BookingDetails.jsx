@@ -344,30 +344,21 @@
 
 // export default BookingDetails;
 
-
-
-
-
-
-
+import axios from "axios";
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import BASE_URLS from "../config";
 
 function BookingDetails() {
-  
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [showCancelPopup, setShowCancelPopup] = useState(false);
 
   const bookingFromState = location.state?.booking;
-  console.log(bookingFromState)
+  console.log(bookingFromState);
 
-  const bookingsData = {
-    // your hardcoded data (same as before)
-  };
-
-  const booking = bookingFromState || Object.values(bookingsData).flat().find((b) => b.id === id);
+  const booking = bookingFromState;
 
   if (!booking) {
     return (
@@ -379,15 +370,26 @@ function BookingDetails() {
 
   // console.log("Booking object being passed:", booking);
 
-
   const handleCancelBooking = () => {
     setShowCancelPopup(true);
   };
 
   const confirmCancelBooking = () => {
-    console.log(`Cancelling booking with ID: ${id}`);
-    setShowCancelPopup(false);
-    navigate("/");
+    console.log(`Cancelling booking with ID: ${booking.jobId}`);
+    axios.post(
+      `${BASE_URLS.BACKEND_BASEURL}jobs/${booking.jobId}/cancel-booking`,
+      {},
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    )
+      .then((response) => {
+        console.log("Booking cancelled successfully:", response.data);
+        setShowCancelPopup(false);
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.error("Error cancelling booking:", error);
+        setShowCancelPopup(false);
+      });
   };
 
   const closePopup = () => {
@@ -420,7 +422,10 @@ function BookingDetails() {
                 </div>
                 <div className="self-stretch inline-flex justify-between items-center">
                   <div className="justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
-                    Rate: {booking.rate}
+                    Rate:{" "}
+                    {booking.applicationOffer
+                      ? booking.applicationOffer
+                      : booking.rate}
                   </div>
                   <div
                     className={`px-4 py-2 ${booking.statusColor} rounded-full flex justify-center items-center gap-2.5`}
@@ -505,7 +510,8 @@ function BookingDetails() {
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <i className="ri-map-pin-2-line text-[#656565] w-4 h-4"></i>
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      {booking.organizer?.location || "Location not specified"}
+                      {booking.organizer?.city || "Location not specified"},
+                      {booking.organizer?.country || "Country not specified"}
                     </div>
                   </div>
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
@@ -608,16 +614,3 @@ const handleAction = (id, status) => {
 };
 
 export default BookingDetails;
-
-
-
-
-
-
-
-
-
-
-
-
-

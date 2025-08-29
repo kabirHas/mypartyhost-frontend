@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import "../asset/css/MessagePage.css";
 import { FaSearch, FaCheckDouble, FaTimes } from "react-icons/fa";
 import { ChatState } from "../Context/ChatProvider";
@@ -28,6 +29,7 @@ const MessagePage = () => {
     setNotifications,
   } = ChatState();
   const [search, setSearch] = useState("");
+  const location = useLocation();
   const [groupSearch, setGroupSearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [groupSearchResult, setGroupSearchResult] = useState([]);
@@ -48,6 +50,9 @@ const MessagePage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [roleFilter, setRoleFilter] = useState("all"); // For user role
   const [chatType, setChatType] = useState("all"); // Sent / Archive
+  const [chatsLoaded, setChatsLoaded] = useState(false);
+  const hasOpenedFromStateRef = useRef(false);
+  const lastOpenedUserIdRef = useRef(null);
 
   const removeGroupMember = async (chatId, userId) => {
     try {
@@ -216,10 +221,39 @@ const MessagePage = () => {
       })
       .then((res) => {
         setChats(res.data);
-        setSelectedChat(res.data[0]);
+        setChatsLoaded(true);
+        // Only select the first chat by default if no explicit userId is provided via navigation state
+        const userIdFromState = location?.state?.userId;
+        if (!userIdFromState) {
+          setSelectedChat(res.data[0]);
+        }
       })
       .catch((err) => console.error(err));
   }, []);
+
+  // If navigated with a userId in location state, prefer existing chat; else create/access it (guarded)
+  useEffect(() => {
+    const userIdFromState = location?.state?.userId;
+    console.log("User ID from state:", userIdFromState);
+    if (!userIdFromState) return;
+    if (!chatsLoaded) return;
+    if (lastOpenedUserIdRef.current === userIdFromState) return;
+
+    const existing = chats.find(
+      (c) => !c.isGroupChat && c.users && c.users.some((u) => u._id === userIdFromState)
+    );
+
+    if (existing) {
+      setSelectedChat(existing);
+      hasOpenedFromStateRef.current = true;
+      lastOpenedUserIdRef.current = userIdFromState;
+    } else {
+      accessChat(userIdFromState).finally(() => {
+        hasOpenedFromStateRef.current = true;
+        lastOpenedUserIdRef.current = userIdFromState;
+      });
+    }
+  }, [location?.state?.userId, chatsLoaded, chats]);
 
   function fetchMessage() {
     if (!selectedChat?._id) return;

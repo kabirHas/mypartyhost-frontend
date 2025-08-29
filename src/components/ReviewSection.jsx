@@ -1,40 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../asset/css/ReviewSection.css";
+ 
+const ReviewSection = ({reviews}) => {
+  const [averageRating, setAverageRating] = useState(0);
 
-const reviews = [
-  {
-    name: "Emily Carter",
-    avatar:
-      "https://res.cloudinary.com/dympqasl5/image/upload/v1749816990/mypartyhost/ca53nxqu12jbwzl4lka2.png",
-    rating: 5,
-    text: "Sarah was fantastic to work with! She was incredibly organized, and the entire event ran smoothly. She made sure I had everything I needed and was always available for any questions. One of the best event organizers I’ve worked with!",
-  },
-  {
-    name: "Sophie Adams",
-    avatar:
-      "https://res.cloudinary.com/dympqasl5/image/upload/v1749816990/mypartyhost/ca53nxqu12jbwzl4lka2.png",
-    rating: 5,
-    text: "Great experience overall! Sarah communicated all details clearly and made sure everything was well-prepared. The event was a success, and I’d definitely work with her again!",
-  },
-  {
-    name: "Emily Carter",
-    avatar:
-      "https://res.cloudinary.com/dympqasl5/image/upload/v1749816990/mypartyhost/ca53nxqu12jbwzl4lka2.png",
-    rating: 5,
-    text: "Sarah was fantastic to work with! She was incredibly organized, and the entire event ran smoothly. She made sure I had everything I needed and was always available for any questions. One of the best event organizers I’ve worked with!",
-  },
-];
-
-const ReviewSection = () => {
+  useEffect(() => {
+    const total = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+    const average = total / reviews.length;
+    setAverageRating(average.toFixed(1));
+  }, [reviews]);
   return (
     <div className="review-container">
       <div className="review-header">
         <strong>Reviews</strong>
         <span className="rating">
-          <i className="ri-star-fill"></i> 4.9/5
+          <i className="ri-star-fill"></i> {averageRating}/5
         </span>
         <a href="#!" className="review-count">
-          (120 Reviews)
+          {reviews.length} Reviews
         </a>
       </div>
 
@@ -42,9 +25,9 @@ const ReviewSection = () => {
         {reviews.map((review, index) => (
           <div key={index} className="review-card">
             <div className="review-profile">
-              <img src={review.avatar} alt={review.name} />
+              <img src={review?.reviewer?.profileImage} alt={review?.reviewer?.profileImage} />
               <div>
-                <strong>{review.name}</strong>
+                <strong className="capitalize">{review?.reviewer?.name}</strong>
                 <div className="stars">
                   {Array(review.rating)
                     .fill()
@@ -54,7 +37,7 @@ const ReviewSection = () => {
                 </div>
               </div>
             </div>
-            <p className="review-text">{review.text}</p>
+            <p className="review-text">{review.comment}</p>
           </div>
         ))}
       </div>

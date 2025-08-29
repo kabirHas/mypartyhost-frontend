@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { ChatState } from "../Context/ChatProvider";
+import BASE_URLS from "../config";
 
 const BoostPaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,7 @@ const BoostPaymentSuccess = () => {
 
     if (sessionId) {
       axios
-        .get(`http://localhost:4000/api/boost/payment/verify-session`, {
+        .get(`${BASE_URLS.BACKEND_BASEURL}boost/payment/verify-session`, {
           params: {
             session_id: sessionId
           },

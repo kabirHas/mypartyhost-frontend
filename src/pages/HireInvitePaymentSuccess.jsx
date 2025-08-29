@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { Link } from 'react-router-dom';
+import BASE_URLS from '../config';
 
 function HireInvitePaymentSuccess() {
     const [searchParams] =  useSearchParams();
@@ -12,7 +13,7 @@ function HireInvitePaymentSuccess() {
     
         if (sessionId) {
           axios
-            .get(`http://localhost:4000/api/jobs/invite-payment/confirm`, {
+            .get(`${BASE_URLS.BACKEND_BASEURL}jobs/invite-payment/confirm`, {
               params: {
                 session_id: sessionId
               }, 

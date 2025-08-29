@@ -4,6 +4,7 @@ import { PiChampagneFill } from "react-icons/pi";
 import { FaHourglass } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
 import axios from "axios";
+import BASE_URLS from "../config";
 
 
 function StaffSinglePage() {
@@ -112,7 +113,7 @@ const handleProfileImageUpload = async (event) => {
     }
 
     // Fetch staff data to get the staff._id
-    const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const staff = response.data.data.find((u) => u._id === userId);
@@ -126,7 +127,7 @@ const handleProfileImageUpload = async (event) => {
     formData.append("staffId", staff._id); // Include staffId in FormData
 
     const uploadResponse = await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff`,
+      `${BASE_URLS.BACKEND_BASEURL}staff`,
       formData,
       {
         headers: {
@@ -174,10 +175,10 @@ const handleProfileImageUpload = async (event) => {
 
       const token = localStorage.getItem("token");
       const [staffResponse, bookingsResponse] = await Promise.all([
-        axios.get("https://mypartyhost.onrender.com/api/staff", {
+        axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://mypartyhost.onrender.com/api/jobs/manage-bookings", {
+        axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -277,7 +278,7 @@ const handleAddPhotoUpload = async (event) => {
       return;
     }
 
-    const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const staff = response.data.data.find((u) => u._id === userId);
@@ -292,7 +293,7 @@ const handleAddPhotoUpload = async (event) => {
     formData.append("staffId", staff._id);
 
     const uploadResponse = await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff`,
+      `${BASE_URLS.BACKEND_BASEURL}staff`,
       formData,
       {
         headers: {
@@ -1121,7 +1122,7 @@ const handleDeleteRate = async (index) => {
           </button>
         </div>
         <div className="w-full max-w-[1200px] flex justify-start items-start gap-12">
-          <div className="flex gap-6">
+          <div className="flex w-full gap-6">
             <div className="self-stretch flex w-1/2 flex-col gap-6">
               <div className="self-stretch flex flex-col justify-start items-start gap-1.5">
                 <div className="self-stretch h-[630px] relative rounded-lg overflow-hidden bg-gray-200">

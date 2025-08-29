@@ -33,10 +33,10 @@ const HireCheckoutForm = ({ onClose, jobId, applicationId, inviteId }) => {
       };
 
       if (inviteId) {
-        endpoint = `http://localhost:4000/api/jobs/invite-payment/confirm`;
+        endpoint = `${BASE_URLS.BACKEND_BASEURL}jobs/invite-payment/confirm`;
         payload.inviteId = inviteId;
       } else {
-        endpoint = `http://localhost:4000/api/jobs/confirm-hire`;
+        endpoint = `${BASE_URLS.BACKEND_BASEURL}jobs/confirm-hire`;
         payload.jobId = jobId;
         payload.applicationId = applicationId;
       }

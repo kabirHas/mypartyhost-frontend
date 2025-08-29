@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../asset/css/PaymentPage.css";
 import axios from "axios";
+import BASE_URLS from "../config";
 
 const PaymentPage = () => {
   const [search, setSearch] = useState("");
@@ -25,7 +26,7 @@ const PaymentPage = () => {
   const fetchCredit = async () => {
     try {
       const res = await axios.get(
-        "https://mypartyhost.onrender.com/api/wallet",
+        `${BASE_URLS.BACKEND_BASEURL}wallet`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -62,7 +63,7 @@ const PaymentPage = () => {
     const fetchTransactions = async () => {
       try {
         const res = await axios.get(
-          "https://mypartyhost.onrender.com/api/payment",
+          `${BASE_URLS.BACKEND_BASEURL}payment`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -92,19 +93,24 @@ const PaymentPage = () => {
           }
 
           return {
+            rawDate : item.createdAt,
             date: new Date(item.createdAt).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
             }),
             id: item._id,
             type,
-            description: item.jobId.jobTitle || "N/A",
+            description: item.jobId.eventName || "N/A",
             status: displayStatus,
             statusColor,
           };
         });
 
-        setTransactions(mappedData);
+        const sortedData = mappedData.sort(
+          (a, b) => new Date(b.rawDate) - new Date(a.rawDate)
+        );
+
+        setTransactions(sortedData);
       } catch (err) {
         console.error("Error fetching transactions:", err);
       } finally {

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 import "../asset/css/CreatePage.css";
+import { RiArrowLeftLine } from "react-icons/ri";
 
-const CreatePage = () => {
+const CreatePage = ({ onClose,isOpen, onPageSaved }) => {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
@@ -81,7 +82,6 @@ const CreatePage = () => {
     setIsSubmitDisabled(false);
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -109,275 +109,302 @@ const CreatePage = () => {
     });
 
     try {
-      await API.post("/pages", formData, {
+     let res =  await API.post("/pages", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/dashboard/all-pages");
+      console.log("Page created:", res.data);
+      onPageSaved(res.data,'addPage');
+      onClose();
+      // navigate("/dashboard/all-pages");
     } catch (error) {
       console.error("Error creating page:", error);
       alert("Page creation failed.");
     }
   };
-
+  if (!isOpen) return null;
   return (
-    <form
-      onSubmit={handleSubmit}
-      encType="multipart/form-data"
-      className="create-page-form"
-    >
-      <h2>Create Page</h2>
-
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title"
-        type="text"
-        required
-      />
-
-      <input type="hidden" value={slug} />
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Content"
-        required
-      />
-
-      <div>
-        <p>Select Categories:</p>
-        <div className="for-scrolls">
-          {categories.map((cat) => (
-            <label key={cat._id}>
-              <input
-                type="checkbox"
-                value={cat._id}
-                checked={selectedCategories.includes(cat._id)}
-                onChange={handleCheckboxChange}
-              />
-              {cat.name}
-            </label>
-          ))}
+    <div className="fixed inset-0 z-50 flex">
+      <div
+        className="absolute inset-0 bg-zinc-400 bg-opacity-50"
+        onClick={onClose}
+      ></div>
+      <div className="relative ml-auto w-[600px] bg-white shadow-[-7px_2px_250px_32px_rgba(0,0,0,0.15)] border-l border-gray-200 flex flex-col justify-start items-start overflow-auto">
+        <div className="w-full px-4 py-6 bg-white border-b border-gray-200 flex justify-start items-center gap-6">
+          <button className="w-8 h-8" onClick={onClose}>
+            <RiArrowLeftLine className="text-xl text-gray-600" />
+          </button>
+          <h2 className="flex-1 text-gray-800 text-xl font-bold font-['Inter'] leading-normal">
+            Add Page
+          </h2>
         </div>
-      </div>
+        <form
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+          className="create-page-form p-6"
+        >
+          {/* <h2>Create Page</h2> */}
 
-      <div>
-        <p>Featured Image:</p>
-        {featuredImage && (
-          <img
-            src={URL.createObjectURL(featuredImage)}
-            alt="Featured Preview"
-            style={{
-              width: "200px",
-              height: "auto",
-              marginBottom: "10px",
-              objectFit: "cover",
-            }}
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            type="text"
+            required
           />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          required
-        />
-      </div>
 
-      <input
-        value={featuredHeading}
-        onChange={(e) => setFeaturedHeading(e.target.value)}
-        placeholder="Featured In Section Heading"
-        type="text"
-        required
-      />
+          <input type="hidden" value={slug} />
 
-      <div>
-        <p>Gallery Images (max 5):</p>
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginBottom: "10px",
-          }}
-        >
-          {galleryImages.map((file, i) => (
-            <img
-              key={i}
-              src={URL.createObjectURL(file)}
-              alt={`Gallery Preview ${i + 1}`}
-              style={{
-                width: "100px",
-                height: "100px",
-                objectFit: "cover",
-                borderRadius: "4px",
-              }}
-            />
-          ))}
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleGalleryChange}
-        />
-      </div>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Content"
+            required
+          />
 
-      <input
-        value={partyHeading}
-        onChange={(e) => setPartyHeading(e.target.value)}
-        placeholder="Party Section Heading"
-        type="text"
-        required
-      />
-
-      <input
-        value={subpartHeading}
-        onChange={(e) => setSubPartHeading(e.target.value)}
-        placeholder="Party Section Subheading"
-        type="text"
-        required
-      />
-
-      
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "20px",
-          }}
-        >
           <div>
-          <h3>Party 1</h3>
-          <input
-            type="text"
-            value={party1.title}
-            onChange={(e) =>
-              setParty1((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
-            required
-          />
-          <textarea
-            value={party1.description}
-            onChange={(e) =>
-              setParty1((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
-            required
-          />
-          {party1?.image instanceof Blob && (
-          <img
-            src={URL.createObjectURL(party1.image)}
-            alt={`Party Preview`}
-            style={{
-              width: "100%",
-              height: "auto",
-              marginBottom: "10px",
-              objectFit: "cover",
-            }}
-          />
-)}
+            <p>Select Categories:</p>
+            <div className="for-scrolls">
+              {categories.map((cat) => (
+                <label key={cat._id}>
+                  <input
+                    type="checkbox"
+                    value={cat._id}
+                    checked={selectedCategories.includes(cat._id)}
+                    onChange={handleCheckboxChange}
+                  />
+                  {cat.name}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p>Featured Image:</p>
+            {featuredImage && (
+              <img
+                src={URL.createObjectURL(featuredImage)}
+                alt="Featured Preview"
+                style={{
+                  width: "200px",
+                  height: "auto",
+                  marginBottom: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required
+            />
+          </div>
 
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setParty1((prev) => ({ ...prev, image: e.target.files[0] }))
-            }
-            required
-          />
-        </div>
-
-        <div>
-          <h3>Party 2</h3>
-          <input
+            value={featuredHeading}
+            onChange={(e) => setFeaturedHeading(e.target.value)}
+            placeholder="Featured In Section Heading"
             type="text"
-            value={party2.title}
-            onChange={(e) =>
-              setParty2((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
             required
           />
-          <textarea
-            value={party2.description}
-            onChange={(e) =>
-              setParty2((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
-            required
-          />
-          {party2?.image instanceof Blob && (
-          <img
-            src={URL.createObjectURL(party2.image)}
-            alt={`Party Preview`}
-            style={{
-              width: "100%",
-              height: "auto",
-              marginBottom: "10px",
-              objectFit: "cover",
-            }}
-          />
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setParty2((prev) => ({ ...prev, image: e.target.files[0] }))
-            }
-            required
-          />
-        </div>
 
-        <div>
-          <h3>Party 3</h3>
+          <div>
+            <p>Gallery Images (max 5):</p>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                marginBottom: "10px",
+              }}
+            >
+              {galleryImages.map((file, i) => (
+                <img
+                  key={i}
+                  src={URL.createObjectURL(file)}
+                  alt={`Gallery Preview ${i + 1}`}
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                    borderRadius: "4px",
+                  }}
+                />
+              ))}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryChange}
+            />
+          </div>
+
           <input
+            value={partyHeading}
+            onChange={(e) => setPartyHeading(e.target.value)}
+            placeholder="Party Section Heading"
             type="text"
-            value={party3.title}
-            onChange={(e) =>
-              setParty3((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
             required
           />
-          <textarea
-            value={party3.description}
-            onChange={(e) =>
-              setParty3((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
-            required
-          />
-          {party3?.image instanceof Blob && (
-          <img
-            src={URL.createObjectURL(party3.image)}
-            alt={`Party Preview`}
-            style={{
-              width: "100%",
-              height: "auto",
-              marginBottom: "10px",
-              objectFit: "cover",
-            }}
-          />
-          )}
+
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setParty3((prev) => ({ ...prev, image: e.target.files[0] }))
-            }
+            value={subpartHeading}
+            onChange={(e) => setSubPartHeading(e.target.value)}
+            placeholder="Party Section Subheading"
+            type="text"
             required
           />
-        </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "20px",
+            }}
+          >
+            <div>
+              <h3>Party 1</h3>
+              <input
+                type="text"
+                value={party1.title}
+                onChange={(e) =>
+                  setParty1((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party1.description}
+                onChange={(e) =>
+                  setParty1((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party1?.image instanceof Blob && (
+                <img
+                  src={URL.createObjectURL(party1.image)}
+                  alt={`Party Preview`}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setParty1((prev) => ({ ...prev, image: e.target.files[0] }))
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <h3>Party 2</h3>
+              <input
+                type="text"
+                value={party2.title}
+                onChange={(e) =>
+                  setParty2((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party2.description}
+                onChange={(e) =>
+                  setParty2((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party2?.image instanceof Blob && (
+                <img
+                  src={URL.createObjectURL(party2.image)}
+                  alt={`Party Preview`}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setParty2((prev) => ({ ...prev, image: e.target.files[0] }))
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <h3>Party 3</h3>
+              <input
+                type="text"
+                value={party3.title}
+                onChange={(e) =>
+                  setParty3((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party3.description}
+                onChange={(e) =>
+                  setParty3((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party3?.image instanceof Blob && (
+                <img
+                  src={URL.createObjectURL(party3.image)}
+                  alt={`Party Preview`}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setParty3((prev) => ({ ...prev, image: e.target.files[0] }))
+                }
+                required
+              />
+            </div>
+          </div>
+
+          <button type="submit" disabled={isSubmitDisabled}>
+            Create
+          </button>
+        </form>
       </div>
-
-      <button type="submit" disabled={isSubmitDisabled}>
-        Create
-      </button>
-    </form>
+    </div>
   );
 };
 

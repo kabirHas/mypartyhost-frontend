@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../asset/css/SupportPage.css";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { ChatState } from "../Context/ChatProvider";
+import axios from "axios";
+import BASE_URLS from "../config";
 
 const faqData = [
   {
     question: "How do I enable Instant Book?",
-    answer: "Go to My Profile → Instant Book Rates, toggle on, set your rate, and click Save.",
+    answer:
+      "Go to My Profile → Instant Book Rates, toggle on, set your rate, and click Save.",
     linkText: "Instant Book",
     tags: ["Booking", "Profile"],
     category: "Booking",
@@ -42,16 +46,70 @@ const faqData = [
   },
 ];
 
-const tabs = ["All", "Booking", "Profile", "Privacy", "Payments", "Technical", "Policies"];
+const tabs = [
+  "All",
+  "Booking",
+  "Profile",
+  "Privacy",
+  "Payments",
+  "Technical",
+  "Policies",
+];
 
 export default function SupportPage() {
+  const { user } = ChatState();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("All");
   const [openIndex1, setOpenIndex1] = useState(null);
   const [openIndex2, setOpenIndex2] = useState(null);
+  const [tickets, setTickets] = useState(null);
+
+  const fetchTickets = async ()=>{
+    if(user.role === "superadmin"){
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin/help-and-support`,{
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const formattedTickets = response.data.helpAndSupport.filter(ticket => ticket.status === "in-progress").map((ticket) => {
+        const date = ticket.createdAt ? (new Date(ticket.createdAt), "MMM dd, yyyy") : "NA";
+        return {
+          id: ticket._id,
+          subject: ticket.subject,
+          date,
+          status: ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
+        };
+      });
+      console.log(formattedTickets)
+      setTickets(formattedTickets);
+    }else{
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}contact/user`,{
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const formattedTickets = response.data.filter(ticket => ticket.status === "in-progress").map((ticket) => {
+        const date = ticket.createdAt ? (new Date(ticket.createdAt), "MMM dd, yyyy") : "NA";
+        return {
+          id: ticket._id,
+          subject: ticket.subject,
+          date,
+          status: ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
+        };
+      });
+      console.log(formattedTickets)
+      setTickets(formattedTickets);
+    }
+  }
+
+  useEffect(()=>{
+    fetchTickets()
+  },[])
 
   const filteredFaqs =
-    activeTab === "All" ? faqData : faqData.filter((item) => item.category === activeTab);
+    activeTab === "All"
+      ? faqData
+      : faqData.filter((item) => item.category === activeTab);
 
   const midpoint = Math.ceil(filteredFaqs.length / 2);
   const filteredFaqs1 = filteredFaqs.slice(0, midpoint);
@@ -74,7 +132,12 @@ export default function SupportPage() {
             View the status of any tickets you’ve submitted
           </p>
         </div>
-        <button className="kaab-view-tickets-btn" onClick={() => navigate('/dashboard/support/ticket')}>View Your Tickets</button>
+        <button
+          className="kaab-view-tickets-btn"
+          onClick={() => navigate("/dashboard/support/ticket")}
+        >
+          {user.role === "superadmin" ? "View All Tickets" : "View Your Tickets"}
+        </button>
       </div>
 
       <div className="search-box-c d-flex">
@@ -110,12 +173,12 @@ export default function SupportPage() {
           {filteredFaqs1.map((item, index) => (
             <div
               key={index}
-              className={`kaab-accordion-item ${openIndex1 === index ? "open" : ""}`}
+              className={`kaab-accordion-item ${
+                openIndex1 === index ? "open" : ""
+              }`}
               onClick={() => toggleAccordion1(index)}
             >
-              <div className="kaab-accordion-question">
-                {item.question}
-              </div>
+              <div className="kaab-accordion-question">{item.question}</div>
               {openIndex1 === index && (
                 <div className="kaab-accordion-answer">
                   <p>
@@ -142,12 +205,12 @@ export default function SupportPage() {
           {filteredFaqs2.map((item, index) => (
             <div
               key={index}
-              className={`kaab-accordion-item ${openIndex2 === index ? "open" : ""}`}
+              className={`kaab-accordion-item ${
+                openIndex2 === index ? "open" : ""
+              }`}
               onClick={() => toggleAccordion2(index)}
             >
-              <div className="kaab-accordion-question">
-                {item.question}
-              </div>
+              <div className="kaab-accordion-question">{item.question}</div>
               {openIndex2 === index && (
                 <div className="kaab-accordion-answer">
                   <p>
@@ -184,8 +247,13 @@ export default function SupportPage() {
 
         <div className="kaab-quick-updates">
           <h5>Quick Updates</h5>
-          <p>You have 2 active tickets with new updates.</p>
-          <button className="kaab-view-tickets-btn">View Your Tickets</button>
+          <p>You have {tickets &&tickets.length} active tickets with new updates.</p>
+          <button
+            onClick={() => navigate("/dashboard/support/ticket")}
+            className="kaab-view-tickets-btn"
+          >
+            {user.role === "superadmin" ? 'View All Tickets' : 'View Your Tickets'}
+          </button>
         </div>
       </div>
     </div>

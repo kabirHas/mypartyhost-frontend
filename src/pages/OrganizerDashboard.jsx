@@ -297,7 +297,7 @@ const OrganizerDashboard = () => {
                         >
                           <h3>
                             <Link
-                              to="/staff-profile"
+                              to={`/staff-profile/${person.user._id}`}
                               className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
                             >
                               {person.user.name.toUpperCase()}

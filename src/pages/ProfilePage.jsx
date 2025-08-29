@@ -8,7 +8,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     axios
-      .get(`https://mypartyhost.onrender.com/api/staff/`, {
+      .get(`${BASE_URLS.BACKEND_BASEURL}staff/`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         withCredentials: true,
       })

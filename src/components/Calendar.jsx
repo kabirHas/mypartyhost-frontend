@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import axios from "axios";
+import BASE_URLS from "../config";
 
 const Calendar = ({ setIsAvailabilityModalOpen }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -10,7 +11,7 @@ const Calendar = ({ setIsAvailabilityModalOpen }) => {
 useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axios.get("https://mypartyhost.onrender.com/api/jobs/manage-bookings", {
+        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         console.log("Manage Booking", response);
@@ -83,7 +84,7 @@ useEffect(() => {
     date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
-    <div className="p-4 bg-white rounded-3xl outline outline-1 outline-gray-200 flex flex-col gap-4 text-[10px] font-['Inter']">
+    <div className="p-4 w-full bg-white rounded-3xl outline outline-1 outline-gray-200 flex flex-col gap-4 text-[10px] font-['Inter']">
       {/* Header */}
       {/* <h1>hsdghjfsjdfhsd</h1> */}
       <div className="flex justify-between items-center w-full">

@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Line, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,6 +13,8 @@ import {
   Filler,
 } from "chart.js";
 import "../asset/css/AdminDashboard.css";
+import axios from "axios";
+import BASE_URLS from "../config";
 
 ChartJS.register(
   LineElement,
@@ -27,13 +30,16 @@ ChartJS.register(
 // Center text plugin for Doughnut chart
 const centerTextPlugin = {
   id: "centerText",
-  beforeDraw: (chart) => {
+  beforeDraw: (chart, args, options) => {
     const { width, height, ctx } = chart;
     ctx.restore();
     const fontSize = (height / 120).toFixed(2);
     ctx.font = `bold ${fontSize}em Inter, sans-serif`;
     ctx.textBaseline = "middle";
-    const text = "$45000";
+    const text =
+      options.totalEarnings >= 0
+        ? `$${options.totalEarnings.toFixed(2)}`
+        : "$0.00";
     const textX = Math.round((width - ctx.measureText(text).width) / 2);
     const textY = height / 2;
     ctx.fillStyle = "#000";
@@ -42,270 +48,602 @@ const centerTextPlugin = {
   },
 };
 
+// Register the plugin globally
+ChartJS.register(centerTextPlugin);
+
 const addLegendSpacing = {
-  id: 'addLegendSpacing',
+  id: "addLegendSpacing",
   beforeInit(chart) {
     const fitValue = chart.legend.fit;
     chart.legend.fit = function () {
       fitValue.call(this);
-      this.height += 20; // 👈 increase this to control spacing
+      this.height += 20;
     };
-  }
+  },
 };
-
 
 const AdminDashboard = () => {
   const chartRef = useRef(null);
-  const [userGrowthData, setUserGrowthData] = useState({ datasets: [] });
+  const [userGrowthData, setUserGrowthData] = useState({
+    labels: [],
+    datasets: [],
+  });
+  const [growthData, setGrowthData] = useState(null);
+  const [revenueData, setRevenueData] = useState(null);
+  const [isRevenueLoading, setIsRevenueLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [timePeriod, setTimePeriod] = useState("monthly");
+  const [notification, setNotification] = useState(null);
+  const navigate = useNavigate();
+
+  // Helper function to calculate relative time
+  const getRelativeTime = (createdAt) => {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffMs = now - created;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 60) {
+      return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+    } else {
+      return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+    }
+  };
+
+  // Generate labels for the user growth chart
+  const generateLabels = useMemo(
+    () => (range) => {
+      const now = new Date();
+      if (range === "weekly") {
+        const labels = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(now.getDate() - i);
+          labels.push(
+            date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          );
+        }
+        return labels;
+      } else if (range === "yearly") {
+        return [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+      } else {
+        const daysInMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0
+        ).getDate();
+        return Array.from({ length: daysInMonth }, (_, i) => `Day ${i + 1}`);
+      }
+    },
+    []
+  );
+
+  // Fetch general admin data
+  async function getData() {
+    try {
+      const res = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin`);
+      setGrowthData(res.data);
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+      setError("Failed to fetch admin data");
+    }
+  }
+
+  async function getNotification() {
+    try {
+      const res = await axios.get(
+        `${BASE_URLS.BACKEND_BASEURL}notifications`,{
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setNotification(res.data);
+      console.log("Notification API Response:", res.data); // Debug API response
+    } catch (error) {
+      console.error("Error fetching notification:", error);
+    }
+  }
+
+  // Fetch user growth data
+  async function getUserGrowthData() {
+    try {
+      const res = await axios.get(
+        `${BASE_URLS.BACKEND_BASEURL}admin/user-growth?range=${timePeriod}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("User Growth API Response:", res.data); // Debug API response
+      const { newUsers = [], returningUsers = [] } = res.data;
+
+      // Validate API response
+      if (!Array.isArray(newUsers) || !Array.isArray(returningUsers)) {
+        console.error(
+          "Invalid API response: newUsers or returningUsers is not an array"
+        );
+        setError("Invalid user growth data");
+        setIsLoading(false);
+        return;
+      }
+
+      const labels = generateLabels(timePeriod);
+      let newUsersData = new Array(labels.length).fill(0);
+      let returningUsersData = new Array(labels.length).fill(0);
+
+      if (timePeriod === "weekly") {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 6);
+
+        newUsers.forEach(({ _id, count = 0 }) => {
+          try {
+            const date = new Date(_id);
+            if (isNaN(date.getTime())) {
+              console.warn(`Invalid date format in newUsers _id: ${_id}`);
+              return;
+            }
+            const index = Math.floor(
+              (date - startDate) / (1000 * 60 * 60 * 24)
+            );
+            if (index >= 0 && index < labels.length) {
+              newUsersData[index] = count;
+            }
+          } catch (e) {
+            console.warn(`Error parsing newUsers _id: ${_id}`, e);
+          }
+        });
+
+        returningUsers.forEach(({ _id, count = 0 }) => {
+          try {
+            const date = new Date(_id);
+            if (isNaN(date.getTime())) {
+              console.warn(`Invalid date format in returningUsers _id: ${_id}`);
+              return;
+            }
+            const index = Math.floor(
+              (date - startDate) / (1000 * 60 * 60 * 24)
+            );
+            if (index >= 0 && index < labels.length) {
+              returningUsersData[index] = count;
+            }
+          } catch (e) {
+            console.warn(`Error parsing returningUsers _id: ${_id}`, e);
+          }
+        });
+      } else if (timePeriod === "yearly") {
+        newUsers.forEach(({ _id, count = 0 }) => {
+          const month = parseInt(_id, 10);
+          if (month >= 1 && month <= 12) {
+            newUsersData[month - 1] = count;
+          }
+        });
+
+        returningUsers.forEach(({ _id, count = 0 }) => {
+          const month = parseInt(_id, 10);
+          if (month >= 1 && month <= 12) {
+            returningUsersData[month - 1] = count;
+          }
+        });
+      } else {
+        newUsers.forEach(({ _id, count = 0 }) => {
+          const day = parseInt(_id, 10);
+          if (day >= 1 && day <= labels.length) {
+            newUsersData[day - 1] = count;
+          }
+        });
+
+        returningUsers.forEach(({ _id, count = 0 }) => {
+          const day = parseInt(_id, 10);
+          if (day >= 1 && day <= labels.length) {
+            returningUsersData[day - 1] = count;
+          }
+        });
+      }
+
+      // Calculate max value for dynamic y-axis scaling
+      const maxUsers = Math.max(...newUsersData, ...returningUsersData, 10);
+
+      setUserGrowthData({
+        labels,
+        datasets: [
+          {
+            label: "New Users",
+            data: newUsersData,
+            borderColor: "limegreen",
+            backgroundColor: (ctx) => {
+              const chart = ctx.chart;
+              const gradient = chart.ctx.createLinearGradient(
+                0,
+                0,
+                0,
+                chart.height
+              );
+              gradient.addColorStop(0, "rgba(0, 255, 0, 0.2)");
+              gradient.addColorStop(1, "rgba(0, 255, 0, 0.05)");
+              return gradient;
+            },
+            tension: 0.4,
+            fill: true,
+            pointRadius: 0,
+          },
+          {
+            label: "Returning Users",
+            data: returningUsersData,
+            borderColor: "crimson",
+            backgroundColor: (ctx) => {
+              const chart = ctx.chart;
+              const gradient = chart.ctx.createLinearGradient(
+                0,
+                0,
+                0,
+                chart.height
+              );
+              gradient.addColorStop(0, "rgba(255, 0, 0, 0.2)");
+              gradient.addColorStop(1, "rgba(255, 0, 0, 0.05)");
+              return gradient;
+            },
+            tension: 0.4,
+            fill: true,
+            pointRadius: 0,
+          },
+        ],
+      });
+
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching user growth data:", err);
+      setError("Failed to fetch user growth data");
+      setIsLoading(false);
+    }
+  }
+
+  // Memoized user growth options
+  const userGrowthOptions = useMemo(() => {
+    const maxUsers = Math.max(
+      ...(userGrowthData.datasets[0]?.data || [0]),
+      ...(userGrowthData.datasets[1]?.data || [0]),
+      10
+    );
+    return {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+          align: "start",
+          labels: {
+            boxWidth: 12,
+            boxHeight: 12,
+            borderRadius: 6,
+            usePointStyle: true,
+            pointStyle: "circle",
+            padding: 10,
+            color: "#3d3d3d",
+            font: { size: 14, weight: "500" },
+          },
+        },
+        tooltip: { enabled: false },
+        centerText: false, // Disable centerTextPlugin for Line chart
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: "#3d3d3d",
+            font: { size: 12, weight: "500" },
+            maxTicksLimit:
+              timePeriod === "weekly" ? 7 : timePeriod === "monthly" ? 10 : 12,
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: "#3d3d3d",
+            font: { size: 12, weight: "500" },
+            stepSize:
+              maxUsers > 100 ? Math.ceil(maxUsers / 10) : maxUsers > 50 ? 5 : 1,
+            callback: (value) => value,
+          },
+          suggestedMin: 0,
+          suggestedMax: Math.ceil(maxUsers * 1.2),
+        },
+      },
+      elements: {
+        line: { borderWidth: 2 },
+      },
+    };
+  }, [userGrowthData, timePeriod]);
+
+  // Fetch revenue data (unchanged)
+  async function fetchRevenueData() {
+    try {
+      const res = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin/revenue`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      console.log("Revenue API Response:", res.data);
+      setRevenueData(res.data);
+      setIsRevenueLoading(false);
+    } catch (err) {
+      console.error("Error fetching revenue data:", err);
+      setError("Failed to fetch revenue data");
+      setIsRevenueLoading(false);
+    }
+  }
+
+  // Handle dropdown change
+  const handleTimePeriodChange = (e) => {
+    setTimePeriod(e.target.value);
+    setIsLoading(true);
+  };
 
   useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
+    getData()
+  },[]);
 
-    const ctx = chart.ctx;
+  // Fetch data on mount and when timePeriod changes
+  useEffect(() => {
+    
+    getUserGrowthData();
+    fetchRevenueData();
+    getNotification();
 
-    const greenGradient = ctx.createLinearGradient(0, 0, 0, 300);
-    greenGradient.addColorStop(0, "rgba(0, 255, 0, 0.2)");
-    greenGradient.addColorStop(1, "rgba(0, 255, 0, 0.05)");
+    // Polling every 60 seconds
+    const interval = setInterval(() => {
+      getUserGrowthData();
+      fetchRevenueData();
+    }, 60000);
 
-    const redGradient = ctx.createLinearGradient(0, 0, 0, 300);
-    redGradient.addColorStop(0, "rgba(255, 0, 0, 0.2)");
-    redGradient.addColorStop(1, "rgba(255, 0, 0, 0.05)");
+    return () => clearInterval(interval);
+  }, [timePeriod]);
 
-    setUserGrowthData({
-      labels: [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      ],
+  // Check if all data is loaded
+  useEffect(() => {
+    if (growthData && revenueData && !isRevenueLoading) {
+      setIsLoading(false);
+    }
+  }, [growthData, revenueData, isRevenueLoading]);
+
+  // Memoized doughnut data (unchanged)
+  const commissionRevenue = revenueData
+    ? Math.max(0, revenueData.totalEarnings - revenueData.boostEarnings)
+    : 0;
+  const boostRevenue = revenueData ? revenueData.boostEarnings : 0;
+  const totalEarnings = revenueData ? revenueData.totalEarnings : 0;
+
+  const doughnutData = useMemo(() => {
+    console.log("Calculating doughnutData:", {
+      commissionRevenue,
+      boostRevenue,
+      totalEarnings,
+    });
+    return {
+      labels: ["Commission Revenue", "Boosted Profile"],
       datasets: [
         {
-          label: "New Users",
-          data: [2000, 3000, 2500, 6000, 4000, 3500, 5000, 4000, 4300, 3000, 3800, 4700],
-          borderColor: "limegreen",
-          backgroundColor: greenGradient,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 0,
+          data: [commissionRevenue, boostRevenue],
+          backgroundColor: ["#f06", "#f77"],
+          borderWidth: 0,
+          hoverOffset: 4,
         },
-        {
-          label: "Returning Users",
-          data: [1000, 2000, 4000, 5500, 4200, 3000, 5200, 4500, 4700, 4400, 2900, 6200],
-          borderColor: "crimson",
-          backgroundColor: redGradient,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 0,
-        },
-      ]
-    });
-  }, []);
+      ],
+    };
+  }, [commissionRevenue, boostRevenue]);
 
-  const userGrowthOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: "top",
-        align: "start",
-        labels: {
-          boxWidth: 12,
-          boxHeight: 12,
-          borderRadius: 6,
-          usePointStyle: true,
-          pointStyle: "circle",
-          padding: 10,
-          color: "#3d3d3d",
-          font: {
-            size: 14,
-            weight: "500",
-          },
+  const doughnutOptions = useMemo(
+    () => ({
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        centerText: {
+          totalEarnings: totalEarnings,
         },
       },
-      tooltip: {
-        enabled: false,
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          color: "#3d3d3d",
-          font: {
-            size: 12,
-            weight: "500",
-          },
-        },
-      },
-      y: {
-        grid: { display: false },
-        ticks: {
-          color: "#3d3d3d",
-          font: {
-            size: 12,
-            weight: "500",
-          },
-          stepSize: 2000,
-          callback: function (value) {
-            return `${value / 1000}k`;
-          },
-        },
-        suggestedMin: 0,
-        suggestedMax: 8000,
-      },
-    },
-    elements: {
-      line: { borderWidth: 2 },
-    },
-  };
+    }),
+    [totalEarnings]
+  );
 
-  const doughnutData = {
-    labels: ["Commission Revenue", "Boosted Profile", "Other Revenue"],
-    datasets: [
-      {
-        data: [28500, 28500, 28500],
-        backgroundColor: ["#f06", "#f77", "#0f6"],
-        borderWidth: 0,
-        hoverOffset: 4,
-      },
-    ],
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  const doughnutOptions = {
-    cutout: "75%",
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false },
-    },
-  };
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
-    <div className="kaab-dashboard">
-      <h2 className="kaab-heading">Welcome, Admin!</h2>
-      <p className="kaab-subheading">
-        Your control center for managing our platform quickly and efficiently.
-      </p>
+    growthData && (
+      <div className="kaab-dashboard">
+        <h2 className="kaab-heading">Welcome, Admin!</h2>
+        <p className="kaab-subheading">
+          Your control center for managing our platform quickly and efficiently.
+        </p>
 
-      <div className="kaab-stats">
-        <div className="kaab-card">
-          <p className="first-child">
-            Total Users <i className="ri-arrow-right-up-line"></i>
-          </p>
-          <h3>
-            5,234 <span className="kaab-green">+6%</span>
-            <p className="kaab-muted">vs. last month</p>
-          </h3>
-        </div>
-        <div className="kaab-card">
-          <p className="first-child">
-            Active Event Staff <i className="ri-arrow-right-up-line"></i>
-          </p>
-          <h3>
-            1,200 <span className="kaab-green">+4%</span>
-            <p className="kaab-muted">vs. last month</p>
-          </h3>
-        </div>
-        <div className="kaab-card">
-          <p className="first-child">
-            Active Event Organizers <i className="ri-arrow-right-up-line"></i>
-          </p>
-          <h3>
-            800 <p className="kaab-muted">Stable compared to last month</p>
-          </h3>
-        </div>
-        <div className="kaab-card">
-          <p className="first-child">
-            Monthly Revenue <i className="ri-arrow-right-up-line"></i>
-          </p>
-          <h3>
-            $45,000 <span className="kaab-green">+5%</span>
-            <p className="kaab-muted">vs. previous month</p>
-          </h3>
-        </div>
-      </div>
-
-      <div className="kaab-main">
-        <div className="kaab-notifications">
-          <h3>Recent Notifications</h3>
-          {[
-            {
-              title: "New Booking Dispute",
-              time: "30 minutes ago",
-              desc: "A dispute was raised for the VIP Gala Night booking due to a payment discrepancy.",
-              actions: ["Review Profile"],
-            },
-            {
-              title: "New User Registration",
-              time: "1 hour ago",
-              desc: "John Doe, a new organizer from Sydney, has joined the platform and awaits verification.",
-              actions: ["Review Profile", "Approve Registration"],
-            },
-            {
-              title: "Flagged Content",
-              time: "1 hour ago",
-              desc: "A review by Emily Roberts has been flagged for potential spam.",
-              actions: ["Dismiss Flag", "Review Flagged Review"],
-            },
-          ].map((n, i) => (
-            <div key={i} className="kaab-notification">
-              <strong>{n.title}</strong> <span>{n.time}</span>
-              <p>{n.desc}</p>
-              <div className="kaab-actions">
-                {n.actions.map((action, j) => (
-                  <button key={j}>{action}</button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="kaab-charts">
-          <div className="kaab-graph">
-            <div className="kaab-graph-header">
-              <h4>User Growth <i className="ri-arrow-right-up-line"></i></h4>
-              
-            </div>
-
-              <div className="absolute inline-flex items-center right-[16px]">
-              <select
-                className="kaab-dropdown pl-3 pr-[25px] py-2 bg-[#FFFFFF] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+        <div className="kaab-stats">
+          <div className="kaab-card">
+            <p className="first-child">
+              Total Users <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line cursor-pointer"></i>
+            </p>
+            <h3>
+              {growthData.totalUsers}{" "}
+              <span
+                className={
+                  growthData.percentUserGrowth.startsWith("-")
+                    ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                    : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                }
               >
-                <option value="">Monthly</option>
-              </select>
-              <div className="absolute right-2 pointer-events-none">
-                <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i class="ri-arrow-down-s-line"></i>
+                {growthData.percentUserGrowth}%
+              </span>
+              <p className="kaab-muted">vs. last month</p>
+            </h3>
+          </div>
+          <div className="kaab-card">
+            <p className="first-child">
+              Active Event Staff <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line"></i>
+            </p>
+            <h3>
+              {growthData.staffCount}{" "}
+              <span
+                className={
+                  growthData.percentStaffGrowth.startsWith("-")
+                    ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                    : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                }
+              >
+                {growthData.percentStaffGrowth}%
+              </span>
+              <p className="kaab-muted">vs. last month</p>
+            </h3>
+          </div>
+          <div className="kaab-card">
+            <p className="first-child">
+              Active Event Organizers <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line"></i>
+            </p>
+            <h3>
+              {growthData.organiserCount}{" "}
+              <p className="kaab-muted">Stable compared to last month</p>
+            </h3>
+          </div>
+          <div className="kaab-card">
+            <p className="first-child">
+              Monthly Revenue <i onClick={() => navigate("/dashboard/transactions")} className="ri-arrow-right-up-line"></i>
+            </p>
+            <h3>
+              ${growthData.currentMonthEarnings}{" "}
+              <span
+                className={
+                  growthData.precentChangeInEarnings.startsWith("-")
+                    ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                    : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
+                }
+              >
+                {growthData.precentChangeInEarnings}%
+              </span>
+              <p className="kaab-muted">vs. previous month</p>
+            </h3>
+          </div>
+        </div>
+
+        <div className="kaab-main">
+          <div className="kaab-notifications">
+            <h3>Recent Notifications</h3>
+            {notification && notification.length > 0 ? (
+              notification.map((n, i) => (
+                <div key={i} className="kaab-notification">
+                  <strong>
+                    {n.type === "job_applied" ? "New Job Application" : n.type === 'ticket_submission' ? 'New Ticket Raised' : n.type}
+                  </strong>{" "}
+                  <span>{getRelativeTime(n.createdAt)}</span>
+                  <p dangerouslySetInnerHTML={{ __html: n.message }} />
+                  <div className="">
+                    {n.type === "ticket_submission" && (
+                      <button onClick={()=> navigate('/dashboard/support/ticket')} className="px-4 py-2 bg-gradient-to-l text-sm font-medium from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 text-white">View Ticket</button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div>No notifications available</div>
+            )}
+          </div>
+
+          <div className="kaab-charts">
+            <div className="kaab-graph">
+              <div className="kaab-graph-header">
+                <h4>
+                  User Growth <i className="ri-arrow-right-up-line"></i>
+                </h4>
+              </div>
+              <div className="absolute inline-flex items-center right-[16px]">
+                <select
+                  className="kaab-dropdown pl-3 pr-[25px] py-2 bg-[#FFFFFF] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+                  value={timePeriod}
+                  onChange={handleTimePeriodChange}
+                >
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+                <div className="absolute right-2 pointer-events-none">
+                  <div className="w-5 h-5 relative flex items-center justify-center">
+                    <i className="ri-arrow-down-s-line"></i>
+                  </div>
                 </div>
               </div>
+              {userGrowthData.datasets.length > 0 ? (
+                <Line
+                  ref={chartRef}
+                  data={userGrowthData}
+                  options={userGrowthOptions}
+                  plugins={[addLegendSpacing]}
+                />
+              ) : (
+                <div>No user growth data available</div>
+              )}
             </div>
 
-
-            <Line ref={chartRef} data={userGrowthData} options={userGrowthOptions} plugins={[addLegendSpacing]}/>
-          </div>
-
-          <div className="kaab-revenue">
-            <h4>Revenue Breakdown <i className="ri-arrow-right-up-line"></i></h4>
-            <div className="d-flex">
-              <Doughnut
-                data={doughnutData}
-                options={doughnutOptions}
-                plugins={[centerTextPlugin]}
-              />
-              <ul className="kaab-revenue-list">
-                <li>
-                  <span className="kaab-dot red"></span> Commission Revenue — $28,500 (63%)
-                </li>
-                <li>
-                  <span className="kaab-dot pink"></span> Boosted Profile — $28,500 (63%)
-                </li>
-                <li>
-                  <span className="kaab-dot green"></span> Other Revenue — $28,500 (63%)
-                </li>
-              </ul>
+            <div className="kaab-revenue">
+              <h4>
+                Revenue Breakdown <i className="ri-arrow-right-up-line"></i>
+              </h4>
+              <div className="d-flex">
+                {isRevenueLoading ? (
+                  <div>Loading revenue data...</div>
+                ) : (
+                  <Doughnut data={doughnutData} options={doughnutOptions} />
+                )}
+                <ul className="kaab-revenue-list">
+                  {revenueData && totalEarnings > 0 ? (
+                    <>
+                      <li>
+                        <span className="kaab-dot red"></span> Commission
+                        Revenue — ${commissionRevenue.toFixed(2)} (
+                        {((commissionRevenue / totalEarnings) * 100).toFixed(1)}
+                        %)
+                      </li>
+                      <li>
+                        <span className="kaab-dot pink"></span> Boosted Profile
+                        — ${boostRevenue.toFixed(2)} (
+                        {((boostRevenue / totalEarnings) * 100).toFixed(1)}%)
+                      </li>
+                      <li className="kaab-total-revenue">
+                        Total Revenue: ${totalEarnings.toFixed(2)}
+                      </li>
+                    </>
+                  ) : (
+                    <li>No revenue data available</li>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    )
   );
 };
 

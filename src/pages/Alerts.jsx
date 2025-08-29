@@ -4,6 +4,7 @@ import { formatDistanceToNow, set } from "date-fns";
 import BASE_URLS from "../config";
 import { ChatState } from "../Context/ChatProvider";
 import StripeWrapper from "../components/StripeWrapper";
+import { useNavigate } from "react-router-dom";
 
 function Alerts() {
   const [activeTab, setActiveTab] = useState("job_applied");
@@ -15,53 +16,8 @@ function Alerts() {
   const { user } = ChatState();
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
+  const navigate = useNavigate();
   // console.log("User from context:", user);
-
-  // Dummy data for bookings
-  const dummyBookings = [
-    {
-      _id: "booking1",
-      type: "booking",
-      user: {
-        name: "Alice Johnson",
-        city: "Melbourne",
-        country: "Australia",
-        profileImage:
-          "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      },
-      metadata: {
-        jobId: {
-          eventName: "Corporate Gala",
-          rateOffered: 20,
-          jobDate: "2025-07-15T14:00:00Z",
-        },
-        jobTitle: "Event Coordinator",
-        bookingStatus: "confirmed",
-      },
-      createdAt: "2025-06-15T10:00:00Z",
-    },
-    {
-      _id: "booking2",
-      type: "booking",
-      user: {
-        name: "Bob Smith",
-        city: "Sydney",
-        country: "Australia",
-        profileImage:
-          "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      },
-      metadata: {
-        jobId: {
-          eventName: "Wedding Reception",
-          rateOffered: 25,
-          jobDate: "2025-07-20T18:00:00Z",
-        },
-        jobTitle: "Caterer",
-        bookingStatus: "confirmed",
-      },
-      createdAt: "2025-06-16T09:30:00Z",
-    },
-  ];
 
   useEffect(() => {
     // Step 1: Get user's currency
@@ -128,7 +84,7 @@ function Alerts() {
 
       try {
         const res = await axios.post(
-          `http://localhost:4000/api/jobs/pay-for-invite/${inviteId}`,
+          `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
           {
             amount: payableAmount,
             currency: currency,
@@ -161,7 +117,7 @@ function Alerts() {
     console.log("Payable Amount", payableAmount);
     try {
       const res = await axios.post(
-        `http://localhost:4000/api/jobs/pay-for-invite/${inviteId}`,
+        `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
         {
           amount: payableAmount,
           currency: currency,
@@ -192,7 +148,7 @@ function Alerts() {
   function acceptInvite(inviteId) {
     axios
       .patch(
-        `http://localhost:4000/api/jobs/invitation/${inviteId}/accept`,
+        `${BASE_URLS.BACKEND_BASEURL}jobs/invitation/${inviteId}/accept`,
         {},
         {
           headers: {
@@ -202,7 +158,24 @@ function Alerts() {
       )
       .then((response) => {
         console.log(response.data);
-        // setNotifications((prev) => prev.map((n) => n._id !== inviteId));
+        setNotifications((prev) =>
+          prev.map((n) => {
+            const currentInviteId = n?.metadata?.inviteId?._id;
+            if (currentInviteId === inviteId) {
+              return {
+                ...n,
+                metadata: {
+                  ...n.metadata,
+                  inviteId: {
+                    ...n.metadata.inviteId,
+                    status: "accepted",
+                  },
+                },
+              };
+            }
+            return n;
+          })
+        );
       })
       .catch((error) => {
         console.error(error);
@@ -222,16 +195,11 @@ function Alerts() {
         );
         // Combine API data with dummy bookings
         const apiNotifications = res.data || [];
-        // const combinedNotifications = [
-        //   ...apiNotifications.filter((n) => n.type !== "booking"), // Exclude any real bookings from API
-        //   ...dummyBookings, // Add dummy bookings
-        // ];
+
         setNotifications(apiNotifications);
         console.log("Notifications fetched successfully:", apiNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        // If API fails, still show dummy bookings
-        setNotifications(dummyBookings);
       }
     };
 
@@ -242,16 +210,31 @@ function Alerts() {
 
   const handleCancelBooking = (bookingId) => {
     setSelectedBookingId(bookingId);
+    console.log("Selected Booking ID:", bookingId);
     setShowCancelPopup(true);
   };
 
   const confirmCancelBooking = () => {
     // Simulate cancelling by removing the booking from the list
-    setNotifications((prev) =>
-      prev.filter((notif) => notif._id !== selectedBookingId)
-    );
-    setShowCancelPopup(false);
-    setSelectedBookingId(null);
+    axios
+      .post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedBookingId}/cancel-booking`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Booking cancelled successfully:", response.data);
+        setShowCancelPopup(false);
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.error("Error cancelling booking:", error);
+        alert("Failed to cancel booking. Please try again later.");
+      });
   };
 
   const renderNotificationCard = (notif) => {
@@ -336,7 +319,6 @@ function Alerts() {
                   className="font-medium"
                   dangerouslySetInnerHTML={{ __html: notif?.message }}
                 ></span>
-
               </p>
               <div className="flex items-center text-sm text-gray-500">
                 <i className="ri-calendar-event-line mr-1 text-lg" />
@@ -369,7 +351,9 @@ function Alerts() {
                   {notif?.user?._id === user?.user ? (
                     <>
                       <button
-                        onClick={() => handleCancelBooking(notif._id)}
+                        onClick={() =>
+                          handleCancelBooking(notif.metadata?.jobId?._id)
+                        }
                         className="text-sm text-gray-500 hover:text-black"
                       >
                         Reject Invite
@@ -413,7 +397,9 @@ function Alerts() {
                   ) : (
                     <>
                       <button
-                        onClick={() => handleCancelBooking(notif._id)}
+                        onClick={() =>
+                          handleCancelBooking(notif.metadata?.jobId._id)
+                        }
                         className="text-sm text-gray-600 hover:text-black"
                       >
                         Cancel
@@ -511,15 +497,17 @@ function Alerts() {
                 <i className="ri-heart-fill  text-red-500 mr-1" />
               </div>
               <button
-                onClick={() => handleCancelBooking(notif._id)}
+                onClick={() => handleCancelBooking(notif.metadata?.jobId._id)}
                 className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
               >
                 {/* <i className="ri-close-line text-lg" /> */}
                 Cancel Booking
               </button>
-              <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
-                Message Hostess
-              </button>
+              {notif?.user?._id !== user?.user ? (
+                <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
+                  Message Hostess
+                </button>
+              ) : null}
             </div>
           </div>
         );

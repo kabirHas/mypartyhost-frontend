@@ -54,23 +54,25 @@ function ViewJobDetails() {
       `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
     );
     const platformFeeRate = await axios.get(
-      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD`
+      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD` // Assuming platform fee is in USD
     );
     const rate = rateRes.data.conversion_rates[currency] || 1;
     let convertedAmount = actualAmount * rate;
     let platformFee = 20;
     console.log("Platform Fee:", platformFee);
     let convertedPlatformFee = platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
-    let actualAmountInUSD = actualAmount * platformFeeRate.data.conversion_rates[currency] || 1;
+    let actualAmountInUSD = actualAmount * rateRes.data.conversion_rates['USD'] || 1;
 
-    let realAmt = actualAmount * jobDetail.duration;
+    // let realAmt = actualAmount * jobDetail.duration;
     let realAmtAfterPlatform =
     (actualAmount  * 10 / 100) + platformFee;
-    let amountUSDAfterPlatform = (actualAmountInUSD * 10 / 100) + convertedPlatformFee;
+    let amountUSDAfterPlatform = actualAmountInUSD.toFixed(2) * 10 / 100 + platformFee;
+    console.log("Real Amount After Platform Fee:", realAmtAfterPlatform);
+    console.log("Amount in USD ", amountUSDAfterPlatform);
 
     if (duration === "hour") {
       realAmtAfterPlatform = (actualAmount * jobDetail.duration * 10) / 100 + platformFee;
-      amountUSDAfterPlatform = ((actualAmountInUSD * jobDetail.duration) * 10 / 100) + convertedPlatformFee;
+      amountUSDAfterPlatform = ((actualAmountInUSD * jobDetail.duration) * 10 / 100) + platformFee;
       convertedAmount *= jobDetail.duration;
       console.log("10 Percent", (convertedAmount * 10) / 100);
       let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
@@ -80,7 +82,7 @@ function ViewJobDetails() {
 
       try {
         const res = await axios.post(
-          `http://localhost:4000/api/jobs/${jobId}/hire/${applicationId}/initiate`,
+          `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
           {
             currency: currency,
             amount: payableAmount.toFixed(2),
@@ -116,11 +118,11 @@ function ViewJobDetails() {
     // convertedAmount *= jobDetail.duration;
     console.log("10 Percent", (convertedAmount * 10) / 100);
     let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
-    console.log("Converted Amount for hourly job:", payableAmount);
+    console.log("Converted Amount for  job:", payableAmount);
 
     try {
       const res = await axios.post(
-        `http://localhost:4000/api/jobs/${jobId}/hire/${applicationId}/initiate`,
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
         {
           currency: currency,
           amount: payableAmount.toFixed(2),
@@ -147,6 +149,25 @@ function ViewJobDetails() {
       alert("Failed to create payment session.");
     }
   };
+
+  const handleDecline = (job) => {
+    console.log("Declining application:", job);
+    axios.post(
+      `${BASE_URLS.BACKEND_BASEURL}jobs/${job.job}/reject/${job._id}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((res) => {
+        console.log("Decline Response:", res.data);
+        // alert("Declined job successfully.");
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.error("Decline Error:", err);
+        alert("Failed to decline job. Please try again.");
+      });
+  }
 
   // Fetch job details and saved profiles
   useEffect(() => {
@@ -350,12 +371,12 @@ function ViewJobDetails() {
                       {a.staff.city}, {a.staff.country}
                     </span>
                     <p className="self-stretch justify-start mt-3 text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                      Offer: {a.currency} {a.offer}/hr
+                      Offer: {a.currency} {a.offer}/{a.duration === 'hour' ? "hr" : "-"} 
                     </p>
                     <p className="mb-4">{a.message}</p>
                     <hr className="border-zinc-500" />
                     <div className="flex items-center justify-end gap-4 pt-4">
-                      <button className="text-zinc-600 flex place-items-center gap-2 text-md">
+                      <button onClick={() => handleDecline(a)} className="text-zinc-600 flex place-items-center gap-2 text-md">
                         Decline <i className="ri-close-line"></i>
                       </button>
                       <button

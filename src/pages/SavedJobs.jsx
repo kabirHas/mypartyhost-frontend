@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import BASE_URLS from "../config";
 
 function SavedJobs() {
     const [activeTab, setActiveTab] = useState("saved");
@@ -14,7 +15,7 @@ function SavedJobs() {
   useEffect(() => {
     const fetchSavedJobs = async () => {
       try {
-        const response = await axios.get("https://mypartyhost.onrender.com/api/jobs/saved", {
+        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/saved`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = response.data.savedJobs || response.data; // Handle different response structures
@@ -53,7 +54,7 @@ function SavedJobs() {
 
     const fetchAppliedJobs = async () => {
   try {
-    const response = await axios.get("https://mypartyhost.onrender.com/api/jobs/applied-jobs", {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/applied-jobs`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
     console.log("Applied jobs response:", response.data);
@@ -76,6 +77,7 @@ function SavedJobs() {
       }`,
       pay: `${item.job?.currency || "AUD"}${item.job?.rateOffered || 0}/${item.job?.paymentType === 'hourly' ? 'h' : 'fixed'}`,
       description: item.job?.jobDescription || "No description available",
+      status: item.status, // Add status field
     }));
     console.log("Formatted applied jobs:", formattedJobs);
     setAppliedJobs(formattedJobs);
@@ -108,7 +110,7 @@ function SavedJobs() {
   if (isRemoving) return; // Prevent multiple clicks
   setIsRemoving(true);
   try {
-    const response = await axios.delete(`https://mypartyhost.onrender.com/api/jobs/${jobId}/saved`, {
+    const response = await axios.delete(`${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/saved`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
     if (response.status === 200 || response.status === 204) {
@@ -174,7 +176,7 @@ const handleApplyJob = async (jobId) => {
     console.log("Job details from savedJobs:", JSON.stringify(job, null, 2));
 
     const response = await axios.post(
-      `https://mypartyhost.onrender.com/api/jobs/${jobId}/apply`,
+      `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/apply`,
       payload,
       { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
     );
@@ -220,7 +222,7 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
   try {
     const token = localStorage.getItem("token");
     await axios.post(
-      `https://mypartyhost.onrender.com/api/jobs/${jobId}/withdraw/${applicationId}`,
+      `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/withdraw/${applicationId}`,
       {}, // <- empty body
       {
         headers: { Authorization: `Bearer ${token}` }, // <- correct headers
@@ -279,14 +281,14 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
             </div>
 
             {activeTab === "saved" ? (
-              <div className="self-stretch flex flex-row justify-start items-start gap-6">
+              <div className="self-stretch flex flex-row flex-wrap justify-start items-start gap-6">
                 {savedJobs.length === 0 ? (
                   <p className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                     No saved jobs found.
                   </p>
                 ) : (
                   savedJobs.map((job) => (
-                    <div className="w-1/2 self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
+                    <div className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
                       <div
                         data-property-1="Favorite"
                         className="flex-1 p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
@@ -358,14 +360,14 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                 )}
               </div>
             ) : (
-              <div className="self-stretch flex flex-row justify-end items-start gap-6">
+              <div className="self-stretch flex flex-row flex-wrap items-start gap-6">
                 {appliedJobs.length === 0 ? (
                   <p className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                     No applied jobs found.
                   </p>
                 ) : (
                   appliedJobs.map((job) => (
-                    <div className="w-1/2 self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
+                    <div className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
                       <div
                         data-property-1="applied"
                         className="flex-1 p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
@@ -416,9 +418,9 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                               </div>
                             </div>
                           </div>
-                          <button onClick={() => handleWithdrawApplication(job.id, job.applicationId)} className="px-6 py-3 rounded-lg outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden">
+                          <button disabled={job.status === 'hired'} onClick={() => handleWithdrawApplication(job.id, job.applicationId)} className="px-6 py-3 rounded-lg outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden">
                             <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
-                              Withdraw Application
+                              {job.status === 'hired' ? 'Congratulations! You are hired🎉' : job.status  === 'rejected' ? 'Your application has been Rejected' :'Withdraw Application'}
                             </div>
                           </button>
                         </div>
