@@ -3,10 +3,12 @@ import API from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "../asset/css/CreatePage.css";
 import Notify from "../utils/notify";
+import { RiArrowLeftLine } from "react-icons/ri";
 
-const UpdatePage = () => {
-  const { id } = useParams();
+const UpdatePage = ({ isOpen, onClose, onPageSaved, editItem }) => {
+  // const { id } = useParams();
   const navigate = useNavigate();
+  const id = editItem?._id;
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -26,9 +28,24 @@ const UpdatePage = () => {
   const [subpartHeading, setSubPartHeading] = useState("");
 
   // Party states for 3 parties: each has image (new file or existing URL), title, description
-  const [party1, setParty1] = useState({ image: null, imagePreview: "", title: "", description: "" });
-  const [party2, setParty2] = useState({ image: null, imagePreview: "", title: "", description: "" });
-  const [party3, setParty3] = useState({ image: null, imagePreview: "", title: "", description: "" });
+  const [party1, setParty1] = useState({
+    image: null,
+    imagePreview: "",
+    title: "",
+    description: "",
+  });
+  const [party2, setParty2] = useState({
+    image: null,
+    imagePreview: "",
+    title: "",
+    description: "",
+  });
+  const [party3, setParty3] = useState({
+    image: null,
+    imagePreview: "",
+    title: "",
+    description: "",
+  });
 
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
@@ -39,13 +56,16 @@ const UpdatePage = () => {
 
   // Load page data by id
   useEffect(() => {
+    if (!id) return;
     API.get(`/pages/${id}`)
       .then((res) => {
         const p = res.data;
         setTitle(p.title || "");
         setSlug(p.slug || "");
         setContent(p.content || "");
-        setSelectedCategories(p.category?.map((c) => (typeof c === "string" ? c : c._id)) || []);
+        setSelectedCategories(
+          p.category?.map((c) => (typeof c === "string" ? c : c._id)) || []
+        );
         setFeaturedImagePreview(p.featuredImage || "");
         setFeaturedImage(null);
         setFeaturedHeading(p.featuredHeading || "");
@@ -98,7 +118,9 @@ const UpdatePage = () => {
     if (checked) {
       setSelectedCategories([...selectedCategories, value]);
     } else {
-      setSelectedCategories(selectedCategories.filter((catId) => catId !== value));
+      setSelectedCategories(
+        selectedCategories.filter((catId) => catId !== value)
+      );
     }
   };
 
@@ -132,9 +154,12 @@ const UpdatePage = () => {
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
 
-    if (partyNum === 1) setParty1((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
-    if (partyNum === 2) setParty2((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
-    if (partyNum === 3) setParty3((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
+    if (partyNum === 1)
+      setParty1((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
+    if (partyNum === 2)
+      setParty2((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
+    if (partyNum === 3)
+      setParty3((prev) => ({ ...prev, image: file, imagePreview: previewUrl }));
   };
 
   const handleSubmit = async (e) => {
@@ -171,268 +196,297 @@ const UpdatePage = () => {
     formData.append("partyDescriptions", party3.description);
 
     try {
-      await API.put(`/pages/${id}`, formData, {
+     let res =  await API.put(`/pages/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
       Notify.success("Page updated successfully");
-      navigate("/dashboard");
+      console.log("Update response:", res.data);
+      onPageSaved(res.data,"editPage")
+      onClose();
+      // navigate("/dashboard");
     } catch (error) {
       console.error("Error updating page:", error);
       Notify.error("Page update failed.");
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      encType="multipart/form-data"
-      className="create-page-form"
-    >
-      <h2>Update Page</h2>
-
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title"
-        type="text"
-        required
-      />
-
-      <input type="hidden" value={slug} />
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Content"
-        required
-      />
-
-      <div>
-        <p>Select Categories:</p>
-        <div className="for-scrolls">
-          {categories.map((cat) => (
-            <label key={cat._id}>
-              <input
-                type="checkbox"
-                value={cat._id}
-                checked={selectedCategories.includes(cat._id)}
-                onChange={handleCheckboxChange}
-              />
-              {cat.name}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p>Featured Image:</p>
-        {featuredImagePreview && (
-          <img
-            src={featuredImagePreview}
-            alt="Featured Preview"
-            style={{
-              width: "200px",
-              height: "auto",
-              marginBottom: "10px",
-              objectFit: "cover",
-            }}
-          />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFeaturedImageChange}
-        />
-      </div>
-
-      <input
-        value={featuredHeading}
-        onChange={(e) => setFeaturedHeading(e.target.value)}
-        placeholder="Featured In Section Heading"
-        type="text"
-        required
-      />
-
-      <div>
-        <p>Gallery Images (max 5):</p>
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginBottom: "10px",
-          }}
-        >
-          {galleryImagesPreview.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt={`Gallery Preview ${i + 1}`}
-              style={{
-                width: "100px",
-                height: "100px",
-                objectFit: "cover",
-                borderRadius: "4px",
-              }}
-            />
-          ))}
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleGalleryChange}
-        />
-      </div>
-
-      <input
-        value={partyHeading}
-        onChange={(e) => setPartyHeading(e.target.value)}
-        placeholder="Party Section Heading"
-        type="text"
-        required
-      />
-
-      <input
-        value={subpartHeading}
-        onChange={(e) => setSubPartHeading(e.target.value)}
-        placeholder="Party Section Subheading"
-        type="text"
-        required
-      />
-
+    <div className="fixed inset-0 z-50 flex">
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-        {/* Party 1 */}
-        <div>
-          <h3>Party 1</h3>
-          <input
-            type="text"
-            value={party1.title}
-            onChange={(e) =>
-              setParty1((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
-            required
-          />
-          <textarea
-            value={party1.description}
-            onChange={(e) =>
-              setParty1((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
-            required
-          />
-          {party1.imagePreview && (
-            <img
-              src={party1.imagePreview}
-              alt="Party 1 Preview"
-              style={{
-                width: "100%",
-                height: "auto",
-                marginBottom: "10px",
-                objectFit: "cover",
-              }}
-            />
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handlePartyImageChange(1, e.target.files[0])}
-          />
+        className="absolute inset-0 bg-zinc-400 bg-opacity-50"
+        onClick={onClose}
+      ></div>
+      <div className="relative ml-auto w-[600px] bg-white shadow-[-7px_2px_250px_32px_rgba(0,0,0,0.15)] border-l border-gray-200 flex flex-col justify-start items-start overflow-auto">
+        <div className="w-full px-4 py-6 bg-white border-b border-gray-200 flex justify-start items-center gap-6">
+          <button className="w-8 h-8" onClick={onClose}>
+            <RiArrowLeftLine className="text-xl text-gray-600" />
+          </button>
+          <h2 className="flex-1 text-gray-800 text-xl font-bold font-['Inter'] leading-normal">
+            Edit Page
+          </h2>
         </div>
+        <form
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+          className="create-page-form p-8"
+        >
+       
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            type="text"
+            required
+          />
 
-        {/* Party 2 */}
-        <div>
-          <h3>Party 2</h3>
-          <input
-            type="text"
-            value={party2.title}
-            onChange={(e) =>
-              setParty2((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
-            required
-          />
-          <textarea
-            value={party2.description}
-            onChange={(e) =>
-              setParty2((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
-            required
-          />
-          {party2.imagePreview && (
-            <img
-              src={party2.imagePreview}
-              alt="Party 2 Preview"
-              style={{
-                width: "100%",
-                height: "auto",
-                marginBottom: "10px",
-                objectFit: "cover",
-              }}
-            />
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handlePartyImageChange(2, e.target.files[0])}
-          />
-        </div>
+          <input type="hidden" value={slug} />
 
-        {/* Party 3 */}
-        <div>
-          <h3>Party 3</h3>
-          <input
-            type="text"
-            value={party3.title}
-            onChange={(e) =>
-              setParty3((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Title"
-            required
-          />
           <textarea
-            value={party3.description}
-            onChange={(e) =>
-              setParty3((prev) => ({ ...prev, description: e.target.value }))
-            }
-            placeholder="Description"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Content"
             required
           />
-          {party3.imagePreview && (
-            <img
-              src={party3.imagePreview}
-              alt="Party 3 Preview"
-              style={{
-                width: "100%",
-                height: "auto",
-                marginBottom: "10px",
-                objectFit: "cover",
-              }}
+
+          <div>
+            <p>Select Categories:</p>
+            <div className="for-scrolls">
+              {categories.map((cat) => (
+                <label key={cat._id}>
+                  <input
+                    type="checkbox"
+                    value={cat._id}
+                    checked={selectedCategories.includes(cat._id)}
+                    onChange={handleCheckboxChange}
+                  />
+                  {cat.name}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p>Featured Image:</p>
+            {featuredImagePreview && (
+              <img
+                src={featuredImagePreview}
+                alt="Featured Preview"
+                style={{
+                  width: "200px",
+                  height: "auto",
+                  marginBottom: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFeaturedImageChange}
             />
-          )}
+          </div>
+
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handlePartyImageChange(3, e.target.files[0])}
+            value={featuredHeading}
+            onChange={(e) => setFeaturedHeading(e.target.value)}
+            placeholder="Featured In Section Heading"
+            type="text"
+            required
           />
-        </div>
+
+          <div>
+            <p>Gallery Images (max 5):</p>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                marginBottom: "10px",
+              }}
+            >
+              {galleryImagesPreview.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt={`Gallery Preview ${i + 1}`}
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                    borderRadius: "4px",
+                  }}
+                />
+              ))}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryChange}
+            />
+          </div>
+
+          <input
+            value={partyHeading}
+            onChange={(e) => setPartyHeading(e.target.value)}
+            placeholder="Party Section Heading"
+            type="text"
+            required
+          />
+
+          <input
+            value={subpartHeading}
+            onChange={(e) => setSubPartHeading(e.target.value)}
+            placeholder="Party Section Subheading"
+            type="text"
+            required
+          />
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "20px",
+              marginTop: "20px",
+            }}
+          >
+            {/* Party 1 */}
+            <div>
+              <h3>Party 1</h3>
+              <input
+                type="text"
+                value={party1.title}
+                onChange={(e) =>
+                  setParty1((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party1.description}
+                onChange={(e) =>
+                  setParty1((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party1.imagePreview && (
+                <img
+                  src={party1.imagePreview}
+                  alt="Party 1 Preview"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handlePartyImageChange(1, e.target.files[0])}
+              />
+            </div>
+
+            {/* Party 2 */}
+            <div>
+              <h3>Party 2</h3>
+              <input
+                type="text"
+                value={party2.title}
+                onChange={(e) =>
+                  setParty2((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party2.description}
+                onChange={(e) =>
+                  setParty2((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party2.imagePreview && (
+                <img
+                  src={party2.imagePreview}
+                  alt="Party 2 Preview"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handlePartyImageChange(2, e.target.files[0])}
+              />
+            </div>
+
+            {/* Party 3 */}
+            <div>
+              <h3>Party 3</h3>
+              <input
+                type="text"
+                value={party3.title}
+                onChange={(e) =>
+                  setParty3((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Title"
+                required
+              />
+              <textarea
+                value={party3.description}
+                onChange={(e) =>
+                  setParty3((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Description"
+                required
+              />
+              {party3.imagePreview && (
+                <img
+                  src={party3.imagePreview}
+                  alt="Party 3 Preview"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    marginBottom: "10px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handlePartyImageChange(3, e.target.files[0])}
+              />
+            </div>
+          </div>
+
+          <button type="submit" disabled={isSubmitDisabled}>
+            Update
+          </button>
+        </form>
       </div>
-
-      <button type="submit" disabled={isSubmitDisabled}>
-        Update
-      </button>
-    </form>
+    </div>
   );
 };
 

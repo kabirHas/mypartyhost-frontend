@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { RiSearchLine, RiArrowDownSLine } from "react-icons/ri";
-import UserSidebar from "../components/UserSIdebar"; // UserSidebar component (from artifact ID: 2ebe23bc-0a64-4e3d-9b87-705348b1b085)
+import UserSidebar from "../components/UserSIdebar";
 import BoostSidebar from "../components/BoostSidebar";
-// UserTable component (from artifact ID: 2ebe23bc-0a64-4e3d-9b87-705348b1b085)
+import axios from "axios";
+import BASE_URLS from "../config";
+
 const UserTable = ({ users, handleToggle, setSelectedUserId }) => {
   return (
     <table className="w-full rounded-2xl border border-[#ECECEC] ">
@@ -116,170 +118,207 @@ const UserTable = ({ users, handleToggle, setSelectedUserId }) => {
   );
 };
 
-// BoostedProfiles component
+const PendingRequestsPopup = ({ pendingUsers, onClose, handleApprove }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
+            Pending Boost Requests
+          </h2>
+          <button onClick={onClose} className="text-[#3D3D3D] text-xl">
+            <i className="ri-close-line"></i>
+          </button>
+        </div>
+        <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto">
+          {pendingUsers.length === 0 ? (
+            <p className="text-[#3D3D3D] text-sm font-normal font-['Inter'] text-center">
+              No pending requests
+            </p>
+          ) : (
+            pendingUsers.map((user) => (
+              <div
+                key={user.id}
+                className="flex justify-between items-center p-3 border-b border-[#ECECEC] last:border-b-0"
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    className="w-6 h-6 rounded-full"
+                    src={user.image}
+                    alt={user.name}
+                  />
+                  <span className="text-[#292929] text-sm font-medium font-['Inter'] leading-tight">
+                    {user.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* <button
+                    onClick={() => handleApprove(user.id)}
+                    className="px-4 py-2 border-[1px] border-[#E61E4D] text-[#E61E4D] rounded-lg text-xs font-medium font-['Inter'] leading-tight hover:bg-[#D81B60]"
+                  >
+                    Cancel
+                  </button> */}
+                  <button
+                    onClick={() => handleApprove(user.id)}
+                    className="px-4 py-2 bg-[#E61E4D] text-white rounded-lg text-xs font-medium font-['Inter'] leading-tight hover:bg-[#D81B60]"
+                  >
+                    Approve
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BoostedProfiles = () => {
-  const [users, setUsers] = useState([
-    {
-      id: "1",
-      name: "Emily Roberts",
-      email: "emily.roberts@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "7-Day",
-      totalViews: 1200,
-      clicks: 110,
-      ctr: "9.2%",
-      totalCost: "$50",
-      bookings: 8,
-      isActive: true,
-      status: "Active",
-      isApproved: true,
-    },
-    {
-      id: "2",
-      name: "Sarah Smith",
-      email: "sarah.smith@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "14-Day",
-      totalViews: 950,
-      clicks: 80,
-      ctr: "8.4%",
-      totalCost: "$100",
-      bookings: 5,
-      isActive: true,
-      status: "Active",
-      isApproved: true,
-    },
-    {
-      id: "3",
-      name: "Olivia Parker",
-      email: "olivia.parker@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "30-Day",
-      totalViews: 3500,
-      clicks: 370,
-      ctr: "10.6%",
-      totalCost: "$150",
-      bookings: 25,
-      isActive: true,
-      status: "Active",
-      isApproved: true,
-    },
-    {
-      id: "4",
-      name: "Emma Taylor",
-      email: "emma.taylor@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "7-Day",
-      totalViews: 800,
-      clicks: 60,
-      ctr: "7.5%",
-      totalCost: "$50",
-      bookings: 3,
-      isActive: true,
-      status: "Active",
-      isApproved: true,
-    },
-    {
-      id: "5",
-      name: "Liam Johnson",
-      email: "liam.johnson@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "14-Day",
-      totalViews: 600,
-      clicks: 50,
-      ctr: "8.3%",
-      totalCost: "$80",
-      bookings: 4,
-      isActive: false,
-      status: "Pending",
-      isApproved: false,
-    },
-    {
-      id: "6",
-      name: "Sophia Brown",
-      email: "sophia.brown@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "7-Day",
-      totalViews: 500,
-      clicks: 40,
-      ctr: "8.0%",
-      totalCost: "$60",
-      bookings: 2,
-      isActive: false,
-      status: "Pending",
-      isApproved: false,
-    },
-    {
-      id: "7",
-      name: "James Wilson",
-      email: "james.wilson@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "30-Day",
-      totalViews: 2000,
-      clicks: 180,
-      ctr: "9.0%",
-      totalCost: "$120",
-      bookings: 10,
-      isActive: false,
-      status: "Pending",
-      isApproved: false,
-    },
-    {
-      id: "8",
-      name: "Ava Davis",
-      email: "ava.davis@example.com",
-      image: "https://placehold.co/24x24",
-      boostPlan: "14-Day",
-      totalViews: 700,
-      clicks: 55,
-      ctr: "7.9%",
-      totalCost: "$90",
-      bookings: 3,
-      isActive: false,
-      status: "Pending",
-      isApproved: false,
-    },
-  ]);
+  const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
-    activeBoosts: 200,
-    pendingApproval: 4,
-    totalRevenue: 2300,
-    averageCtr: 8.5,
+    activeBoosts: 0,
+    pendingApproval: 0,
+    totalRevenue: 0,
+    averageCtr: 0,
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPlan, setFilterPlan] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [boostedData, setBoostedData] = useState(null);
+  const [availablePlans, setAvailablePlans] = useState([]);
+  const [showPendingPopup, setShowPendingPopup] = useState(false); // New state for popup
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URLS.BACKEND_BASEURL}boost/all-boost-profiles`
+      );
+      const boostedData = response.data;
+      setBoostedData(boostedData);
+      console.log("Fetched boosted data:", boostedData);
+
+      const transformedUsers = boostedData.boostedProfiles.map(
+        (profile, index) => {
+          const pendingPayment = boostedData.pendingPayments.find(
+            (payment) =>
+              payment.userId.name.toLowerCase() ===
+              profile.username.toLowerCase()
+          );
+          return {
+            id: profile.id,
+            name: profile.username,
+            email: pendingPayment
+              ? pendingPayment.userId.email
+              : `${profile.username
+                  .replace(/\s+/g, ".")
+                  .toLowerCase()}@example.com`,
+            image: profile.profileImage,
+            boostPlan: profile.boostPlan,
+            totalViews: profile.totalViews,
+            clicks: profile.totalClicks,
+            ctr: `${profile.ctrPercent}%`,
+            totalCost: `$${profile.totalCost}`,
+            bookings: profile.bookedJobs,
+            isActive: profile.status,
+            status: profile.status ? "Active" : "Pending",
+            isApproved: profile.status,
+          };
+        }
+      );
+      setUsers(transformedUsers);
+
+      const uniquePlans = [
+        ...new Set(
+          boostedData.boostedProfiles.map((profile) => profile.boostPlan)
+        ),
+      ];
+      setAvailablePlans(uniquePlans);
+
+      setStats({
+        activeBoosts: boostedData.activeBoost,
+        pendingApproval: boostedData.pendingPayments
+          ? boostedData.pendingPayments.length
+          : 0,
+        totalRevenue: boostedData.boostRevenue.totalEarnings,
+        averageCtr: parseFloat(boostedData.averageCTR),
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [selectedUserId]);
 
   const handleToggle = (userId, currentIsActive) => {
     setUsers((prev) =>
       prev.map((user) =>
         user.id === userId
-          ? { ...user, isActive: !currentIsActive, status: !currentIsActive ? "Inactive" : "Active" }
+          ? {
+              ...user,
+              isActive: !currentIsActive,
+              status: !currentIsActive ? "Active" : "Inactive",
+            }
           : user
       )
     );
     setStats((prev) => ({
       ...prev,
-      activeBoosts: !currentIsActive ? prev.activeBoosts + 1 : prev.activeBoosts - 1,
+      activeBoosts: !currentIsActive
+        ? prev.activeBoosts + 1
+        : prev.activeBoosts - 1,
     }));
-    // alert("User status updated successfully ✅");
   };
 
-  const handleApprove = (userId) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === userId
-          ? { ...user, isApproved: true, status: "Active", isActive: true }
-          : user
-      )
-    );
-    setStats((prev) => ({
-      ...prev,
-      pendingApproval: prev.pendingApproval - 1,
-      activeBoosts: prev.activeBoosts + 1,
-    }));
-    // alert("User boost approved successfully ✅");
+  const handleApprove = async (userId) => {
+    try {
+      // Find the user to get their name for matching with pendingPayments
+      const user = users.find((u) => u.id === userId);
+      if (!user) return;
+
+      // Find the corresponding pending payment
+      const pendingPayment = boostedData.pendingPayments.find(
+        (payment) =>
+          payment.userId.name.toLowerCase() === user.name.toLowerCase()
+      );
+      if (!pendingPayment) return;
+
+      // Make API call to approve the boost
+      await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}boost/payment/approve/${pendingPayment._id}`,
+        { userId: pendingPayment.userId._id },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // Update local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, isApproved: true, status: "Active", isActive: true }
+            : u
+        )
+      );
+      setStats((prev) => ({
+        ...prev,
+        pendingApproval: prev.pendingApproval - 1,
+        activeBoosts: prev.activeBoosts + 1,
+      }));
+      setBoostedData((prev) => ({
+        ...prev,
+        pendingPayments: prev.pendingPayments.filter(
+          (payment) => payment.userId._id !== pendingPayment.userId._id
+        ),
+      }));
+    } catch (error) {
+      console.error("Error approving boost:", error);
+    }
   };
 
   const filteredUsers = users.filter((user) => {
@@ -293,166 +332,180 @@ const BoostedProfiles = () => {
   });
 
   return (
-    <div className="self-stretch relative inline-flex flex-col justify-start items-start gap-2.5 ">
-      <div className="self-stretch flex flex-col justify-start items-start gap-4">
-        <div className="w-full  flex flex-col justify-start items-start gap-2">
-          <h1 className="self-stretch text-[#292929] text-4xl font-bold font-['Inter'] leading-10">
-            Boosted Profiles
-          </h1>
-          <p className="self-stretch text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-            Manage and track all promoted profiles, monitor performance, and control boost settings efficiently.
-          </p>
-        </div>
-        <div className="self-stretch flex flex-col justify-start items-start gap-3">
-          <div className="self-stretch inline-flex justify-start items-center gap-2 flex-wrap">
-            <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch inline-flex justify-start items-center gap-4">
-                <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Total Active Boosts
-                </span>
-              </div>
-              <div className="self-stretch inline-flex justify-start items-center gap-2">
-                <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
-                  {stats.activeBoosts}
-                </span>
-                <div className="flex justify-start items-center gap-1">
-                  <div className="p-1 bg-green-600 rounded-3xl flex justify-center items-center gap-2.5">
-                    <span className="text-white text-xs font-normal font-['Inter'] leading-none">
-                      +2%
-                    </span>
-                  </div>
-                  <span className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    vs. last month
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch inline-flex justify-start items-center gap-4">
-                <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Pending Approval
-                </span>
-              </div>
-              <div className="self-stretch inline-flex justify-start items-center gap-2">
-                <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
-                  {stats.pendingApproval}
-                </span>
-                <div className="flex-1 flex justify-end items-center gap-1">
-                  <button
-                    onClick={() => {
-                      const pendingUsers = users.filter((u) => u.status === "Pending");
-                      if (pendingUsers.length > 0) handleApprove(pendingUsers[0].id);
-                    }}
-                    className="text-[#E61E4D] text-sm font-medium font-['Inter'] underline leading-tight"
-                    disabled={stats.pendingApproval === 0}
-                  >
-                    Approve
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch inline-flex justify-start items-center gap-4">
-                <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Total Revenue from Boosts
-                </span>
-              </div>
-              <div className="self-stretch inline-flex justify-start items-center gap-2">
-                <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
-                  ${stats.totalRevenue.toLocaleString()}
-                </span>
-                <div className="w-28 flex justify-start items-center gap-1">
-                  <div className="p-1 bg-green-600 rounded-3xl flex justify-center items-center gap-2.5">
-                    <span className="text-white text-xs font-normal font-['Inter'] leading-none">
-                      +2%
-                    </span>
-                  </div>
-                  <span className="flex-1 text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                    vs. previous month
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch inline-flex justify-start items-center gap-4">
-                <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                  Average CTR
-                </span>
-              </div>
-              <div className="self-stretch inline-flex justify-start items-center gap-2">
-                <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
-                  {stats.averageCtr}%
-                </span>
-              </div>
-            </div>
+    boostedData && (
+      <div className="self-stretch relative inline-flex flex-col justify-start items-start gap-2.5">
+        <div className="self-stretch flex flex-col justify-start items-start gap-4">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <h1 className="self-stretch text-[#292929] text-4xl font-bold font-['Inter'] leading-10">
+              Boosted Profiles
+            </h1>
+            <p className="self-stretch text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+              Manage and track all promoted profiles, monitor performance, and
+              control boost settings efficiently.
+            </p>
           </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-6">
-            <h2 className="self-stretch text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
-              Boosted Profiles List
-            </h2>
+          <div className="self-stretch flex flex-col justify-start items-start gap-3">
+            <div className="self-stretch inline-flex justify-start items-center gap-2 flex-wrap">
+              <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
+                <div className="self-stretch inline-flex justify-start items-center gap-4">
+                  <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Total Active Boosts
+                  </span>
+                </div>
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
+                    {stats.activeBoosts}
+                  </span>
+                  <div className="flex justify-start items-center gap-1">
+                    <div className="p-1 bg-green-600 rounded-3xl flex justify-center items-center gap-2.5">
+                      <span className="text-white text-xs font-normal font-['Inter'] leading-none">
+                        +{boostedData.approvedGrowthPercent}%
+                      </span>
+                    </div>
+                    <span className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                      vs. last month
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
+                <div className="self-stretch inline-flex justify-start items-center gap-4">
+                  <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Pending Approval
+                  </span>
+                </div>
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
+                    {stats.pendingApproval}
+                  </span>
+                  <div className="flex-1 flex justify-end items-center gap-1">
+                    <button
+                      onClick={() => setShowPendingPopup(true)}
+                      className="text-[#E61E4D] text-sm font-medium font-['Inter'] underline leading-tight"
+                      disabled={stats.pendingApproval === 0}
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
+                <div className="self-stretch inline-flex justify-start items-center gap-4">
+                  <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Total Revenue from Boosts
+                  </span>
+                </div>
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
+                    {boostedData.boostRevenue.totalEarnings
+                      ? `$${boostedData.boostRevenue.totalEarnings}`
+                      : "N/A"}
+                  </span>
+                  <div className="w-28 flex justify-start items-center gap-1">
+                    <div className="p-1 bg-green-600 rounded-3xl flex justify-center items-center gap-2.5">
+                      <span className="text-white text-xs font-normal font-['Inter'] leading-none">
+                        +{boostedData.boostRevenue.earningsGrowth}%
+                      </span>
+                    </div>
+                    <span className="flex-1 text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                      vs. previous month
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-[200px] p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-6">
+                <div className="self-stretch inline-flex justify-start items-center gap-4">
+                  <span className="flex-1 text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                    Average CTR
+                  </span>
+                </div>
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <span className="text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
+                    {boostedData.averageCTR}%
+                  </span>
+                </div>
+              </div>
+            </div>
             <div className="self-stretch flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch inline-flex justify-between items-center flex-wrap gap-4">
-                <div className="relative bg-white rounded-lg w-full sm:w-1/3 pr-3 bg-zinc-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-3 overflow-hidden">
-                  <div className="p-2 bg-pink-100 flex justify-start items-center">
-                    <RiSearchLine className="w-8 h-8 text-[#E61E4D]" />
+              <h2 className="self-stretch text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
+                Boosted Profiles List
+              </h2>
+              <div className="self-stretch flex flex-col justify-start items-start gap-6">
+                <div className="self-stretch inline-flex justify-between items-center flex-wrap gap-4">
+                  <div className="relative bg-white rounded-lg w-full sm:w-1/3 pr-3 bg-zinc-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-3 overflow-hidden">
+                    <div className="p-2 bg-pink-100 flex justify-start items-center">
+                      <RiSearchLine className="w-8 h-8 text-[#E61E4D]" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search by name, email, or user ID..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-transparent text-zinc-500 text-sm font-normal font-['Inter'] leading-tight focus:outline-none py-2"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Search by name, email, or user ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-transparent text-zinc-500 text-sm font-normal font-['Inter'] leading-tight focus:outline-none py-2"
-                  />
-                </div>
-                <div className="flex justify-start items-center gap-4">
-                  <div className="relative inline-flex items-center">
-                    <select
-                      value={filterPlan}
-                      onChange={(e) => setFilterPlan(e.target.value)}
-                      className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
-                    >
-                      <option value="">All Plans</option>
-                      <option value="7-Day">7-Day</option>
-                      <option value="14-Day">14-Day</option>
-                      <option value="30-Day">30-Day</option>
-                    </select>
-                    <div className="absolute right-1 pointer-events-none">
-                      <RiArrowDownSLine className="w-5 h-5 text-[#656565]" />
+                  <div className="flex justify-start items-center gap-4">
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={filterPlan}
+                        onChange={(e) => setFilterPlan(e.target.value)}
+                        className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                      >
+                        <option value="">All Plans</option>
+                        {availablePlans.map((plan) => (
+                          <option key={plan} value={plan}>
+                            {plan}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-1 pointer-events-none">
+                        <RiArrowDownSLine className="w-5 h-5 text-[#656565]" />
+                      </div>
+                    </div>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                      <div className="absolute right-1 pointer-events-none">
+                        <RiArrowDownSLine className="w-5 h-5 text-[#656565]" />
+                      </div>
                     </div>
                   </div>
-                  <div className="relative inline-flex items-center">
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
-                    >
-                      <option value="">All Statuses</option>
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Pending">Pending</option>
-                    </select>
-                    <div className="absolute right-1 pointer-events-none">
-                      <RiArrowDownSLine className="w-5 h-5 text-[#656565]" />
-                    </div>
-                  </div>
                 </div>
+                <UserTable
+                  users={filteredUsers}
+                  handleToggle={handleToggle}
+                  setSelectedUserId={setSelectedUserId}
+                />
               </div>
-              <UserTable
-                users={filteredUsers}
-                handleToggle={handleToggle}
-                setSelectedUserId={setSelectedUserId}
-              />
             </div>
           </div>
         </div>
+        {selectedUserId && (
+          <BoostSidebar
+          user={boostedData.boostedProfiles.find((user) => user.id === selectedUserId)}
+            onClose={() =>{
+              setSelectedUserId(null);
+              fetchData(); // Refresh data when sidebar is closed
+            }}
+          />
+        )}
+        {showPendingPopup && (
+          <PendingRequestsPopup
+            pendingUsers={users.filter((u) => u.status === "Pending")}
+            onClose={() => setShowPendingPopup(false)}
+            handleApprove={handleApprove}
+          />
+        )}
       </div>
-      {selectedUserId && (
-        <BoostSidebar
-          userId={selectedUserId}
-          onClose={() => setSelectedUserId(null)}
-        />
-      )}
-    </div>
+    )
   );
 };
 

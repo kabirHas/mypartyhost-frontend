@@ -1,179 +1,45 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import BASE_URLS from "../config";
 
 function PastBookingDetail() {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const bookingFromState = location.state?.booking;
 
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const [review, setReview] = useState(null);
 
-  const bookingsData = {
-    "Confirmed Bookings": [
-      {
-        id: "conf-1",
-        title: "Exclusive Beach Party – Energetic Hostess Required",
-        status: "Confirmed",
-        statusColor: "bg-lime-100",
-        role: "Hostess",
-        rate: "$100/hr",
-        location: "123 Harbour Street, Sydney, NSW",
-        date: "15th March 2025",
-        time: "6:00 PM – 11:00 PM",
-        message: "Organizer left 1 message for you.",
-        eventType: "Beach Party",
-        duration: "5 hours",
-        description: "A vibrant beach party with live music and entertainment.",
-        organizer: {
-          name: "Olivia Parker",
-          location: "Sydney, NSW",
-          rating: "4.8",
-          reviews: 120,
-          phone: "+61 2 1234 5678",
-          email: "oliviaparker@gmail.com",
-          image: "https://placehold.co/48x48",
-        },
-        paymentInfo: {
-          totalHours: "5 hours",
-          eventFee: "$500",
-          bookingFee: "$50",
-          paidToHostess: "$450",
-        },
-      },
-      {
-        id: "conf-2",
-        title: "Corporate Gala – Event Host",
-        status: "Confirmed",
-        statusColor: "bg-lime-100",
-        role: "Host",
-        rate: "$120/hr",
-        location: "456 George Street, Sydney, NSW",
-        date: "20th March 2025",
-        time: "7:00 PM – 12:00 AM",
-        message: "Organizer left 2 messages for you.",
-        eventType: "Corporate Event",
-        duration: "5 hours",
-        description: "A formal gala with keynote speeches and networking.",
-        organizer: {
-          name: "James Wilson",
-          location: "Sydney, NSW",
-          rating: "4.9",
-          reviews: 150,
-          phone: "+61 2 9876 5432",
-          email: "jameswilson@gmail.com",
-          image: "https://placehold.co/48x48",
-        },
-        paymentInfo: {
-          totalHours: "5 hours",
-          eventFee: "$600",
-          bookingFee: "$60",
-          paidToHostess: "$540",
-        },
-      },
-    ],
-    "Invites Received": [
-      {
-        id: "inv-1",
-        title: "Charity Event – Promotional Staff",
-        status: "Pending",
-        statusColor: "bg-orange-200",
-        role: "Promoter",
-        rate: "$80/hr",
-        location: "789 Pitt Street, Sydney, NSW",
-        date: "25th March 2025",
-        time: "5:00 PM – 10:00 PM",
-        message: "Organizer invited you to this event.",
-        eventType: "Charity Event",
-        duration: "5 hours",
-        description: "Promote a charity fundraiser with community engagement.",
-        organizer: {
-          name: "Emma Thompson",
-          location: "Sydney, NSW",
-          rating: "4.7",
-          reviews: 80,
-          phone: "+61 2 4567 8901",
-          email: "emmathompson@gmail.com",
-          image: "https://placehold.co/48x48",
-        },
-        paymentInfo: {
-          totalHours: "5 hours",
-          eventFee: "$400",
-          bookingFee: "$40",
-          paidToHostess: "$360",
-        },
-      },
-    ],
-    "Past Bookings": [
-      {
-        id: "past-1",
-        title: "New Year Celebration Party",
-        status: "Completed",
-        statusColor: "bg-lime-100",
-        role: "Hostess",
-        rate: "$90/hr",
-        location: "101 Bondi Beach, Sydney, NSW",
-        date: "1st January 2025",
-        time: "8:00 PM – 2:00 AM",
-        message: "Event completed successfully.",
-        eventType: "New Year Party",
-        duration: "6 hours",
-        description: "A grand celebration to welcome the new year.",
-        organizer: {
-          name: "Liam Davis",
-          location: "Sydney, NSW",
-          rating: "4.6",
-          reviews: 200,
-          phone: "+61 2 2345 6789",
-          email: "liamdavis@gmail.com",
-          image: "https://placehold.co/48x48",
-        },
-        paymentInfo: {
-          totalHours: "6 hours",
-          eventFee: "$540",
-          bookingFee: "$54",
-          paidToHostess: "$486",
-        },
-        organizerFeedback:
-          "Samantha’s professionalism and energy made our gala night a success. Highly recommended!",
-        organizerRating: 5,
-      },
-    ],
-    "Cancelled Bookings": [
-      {
-        id: "cancel-1",
-        title: "Beach Party – Event Staff",
-        status: "Cancelled",
-        statusColor: "bg-gray-200",
-        role: "Staff",
-        rate: "$85/hr",
-        location: "321 Manly Beach, Sydney, NSW",
-        date: "10th March 2025",
-        time: "4:00 PM – 9:00 PM",
-        message: "Event was cancelled by the organizer.",
-        eventType: "Beach Party",
-        duration: "5 hours",
-        description:
-          "A beach party that was cancelled due to weather conditions.",
-        organizer: {
-          name: "Sophie Brown",
-          location: "Sydney, NSW",
-          rating: "4.5",
-          reviews: 90,
-          phone: "+61 2 3456 7890",
-          email: "sophiebrown@gmail.com",
-          image: "https://placehold.co/48x48",
-        },
-        paymentInfo: {
-          totalHours: "5 hours",
-          eventFee: "$425",
-          bookingFee: "$42.50",
-          paidToHostess: "$382.50",
-        },
-      },
-    ],
+  const getReview = async () => {
+    try {
+      const response = await axios.get(
+        `h${BASE_URLS.BACKEND_BASEURL}review/my-reviews`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const currentReview = response.data.reviews.find(
+        (r) =>
+          r.eventId === booking.jobId && r.reviewer === booking.organizer._id
+      );
+      // console.log(currentReview);
+      setReview(currentReview || null);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const booking = bookingsData["Past Bookings"].find((b) => b.id === id);
+  useEffect(() => {
+    getReview();
+  }, []);
+
+  const booking = bookingFromState;
+  // console.log(booking.organizer._id);
 
   if (!booking) {
     return (
@@ -184,11 +50,34 @@ function PastBookingDetail() {
   }
 
   const handleFeedbackSubmit = () => {
-    console.log(`Submitting feedback for booking ID: ${id}`, {
+    const feedbackData = {
+      event: booking.jobId,
       rating,
-      feedback,
-    });
-    // Implement API call to submit feedback
+      comment: feedback || "No feedback provided",
+    };
+    console.log(booking.organizer._id)
+
+    console.log("Feedback data:", feedbackData);
+
+    axios
+      .post(
+        `${BASE_URLS.BACKEND_BASEURL}review/${booking.organizer._id}`,
+        feedbackData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Feedback submitted successfully:", response.data);
+        // Optionally, you can reset the form or show a success message
+      })
+      .catch((error) => {
+        console.error("Error submitting feedback:", error);
+        // Optionally, you can show an error message to the user
+      });
+
     setRating(0);
     setFeedback("");
   };
@@ -199,7 +88,7 @@ function PastBookingDetail() {
 
   return (
     <div className="self-stretch bg-[#F9F9F9] w-full py-12 inline-flex flex-col justify-start items-center gap-8">
-      <div className=" flex flex-col justify-start items-start gap-4">
+      <div className="flex flex-col justify-start items-start gap-4">
         <button
           onClick={() => navigate(-1)}
           className="px-3 py-2 rounded-full outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2"
@@ -319,7 +208,7 @@ function PastBookingDetail() {
                           <i
                             key={index}
                             className={`ri-star-fill w-4 h-4 ${
-                              index < booking.organizerRating
+                              review && index < review.rating
                                 ? "text-orange-500"
                                 : "text-gray-300"
                             }`}
@@ -329,7 +218,7 @@ function PastBookingDetail() {
                     </div>
                   </div>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    {booking.organizerFeedback || "No feedback provided."}
+                    {review?.comment || "No feedback provided."}
                   </div>
                 </div>
                 <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -430,7 +319,6 @@ function PastBookingDetail() {
           </div>
         </div>
       </div>
-      {/* Counter Offer Popup */}
     </div>
   );
 }

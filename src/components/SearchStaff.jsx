@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
 import "../asset/css/Staff.css";
 import BASE_URLS from "../config";
+import { Link } from "react-router-dom";
 
 const SearchStaff = () => {
   const [staff, setStaff] = useState([]);
@@ -104,7 +105,7 @@ const SearchStaff = () => {
 
       <div className="Search-container">
         {staff.map((person) => (
-          <div className="staff-card" key={person._id}>
+          <Link to={`/staff-profile/${person.user._id}`} className="staff-card" key={person._id}>
             <div
               className="staff-info"
               style={{
@@ -123,7 +124,7 @@ const SearchStaff = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 <div className="pagination-cont d-flex">

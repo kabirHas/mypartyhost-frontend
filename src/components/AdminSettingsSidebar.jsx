@@ -1,36 +1,49 @@
 import React from "react";
 import { RiArrowDownSLine, RiEyeLine, RiArrowLeftLine, RiArrowUpSLine } from "react-icons/ri";
+import axios from "axios";
+import BASE_URLS from "../config";
 
 const AdminSettingsSidebar = ({
   isOpen,
   mode,
-  selectedRole,
+  selectedId,
+  admins,
   roles,
   onClose,
   onAddAdmin,
   onSavePermissions,
+  onSaveRolePermissions,
 }) => {
   // State for add admin form
   const [newAdmin, setNewAdmin] = React.useState({
     name: "",
     email: "",
-    role: "Admin",
+    role: "admin",
     password: "",
   });
 
+  // State for image file and preview
+  const [imageFile, setImageFile] = React.useState(null);
+  const [imagePreview, setImagePreview] = React.useState(null);
+
   // State for permission form
   const [permissions, setPermissions] = React.useState({
-    accessDashboard: false,
-    viewAnalytics: false,
-    manageUserProfiles: false,
-    editUserDetails: false,
-    viewActivityLogs: false,
-    manageEvents: false,
-    approveRejectEvents: false,
-    overrideBookingSettings: false,
-    manageTransactions: false,
-    editPaymentSettings: false,
-    viewFinancialReports: false,
+    canAccessDashboard: false,
+    canViewAnalytics: false,
+    canManageUser: false,
+    canEditUserProfiles: false,
+    canViewActivityLogs: false,
+    canManageEvent: false,
+    canApproveJobs: false,
+    canOverrideBookingRules: false,
+    canManageTrasactions: false,
+    canEditPaymentSettings: false,
+    canViewFinancailReports: false,
+    canAcceptBookings: false,
+    canMessage: false,
+    canApply: false,
+    canSubmitReview: false,
+    canPostEvents: false,
   });
 
   // State for collapsible sections
@@ -39,28 +52,90 @@ const AdminSettingsSidebar = ({
     userProfile: true,
     eventBooking: true,
     finance: true,
+    userActions: true,
   });
 
-  // Set permissions when selectedRole changes
+  // State for API feedback
+  const [error, setError] = React.useState(null);
+  const [success, setSuccess] = React.useState(null);
+
+  // Determine if editing role or admin
+  const isRoleEdit = roles.some((r) => r.id === selectedId);
+  const selectedRole = isRoleEdit ? roles.find((r) => r.id === selectedId) : null;
+  const selectedAdmin = !isRoleEdit ? admins.find((a) => a._id === selectedId) : null;
+
+  // Set permissions when selectedId changes
   React.useEffect(() => {
-    if (mode === "editPermissions" && selectedRole) {
-      const role = roles.find((r) => r.id === selectedRole);
-      if (role) {
-        setPermissions(role.permissions);
+    if (mode === "editPermissions" && selectedId) {
+      if (isRoleEdit && selectedRole) {
+        setPermissions(selectedRole.permissions);
+      } else if (!isRoleEdit && selectedAdmin) {
+        setPermissions({
+          canAccessDashboard: selectedAdmin.canAccessDashboard,
+          canViewAnalytics: selectedAdmin.canViewAnalytics,
+          canManageUser: selectedAdmin.canManageUser,
+          canEditUserProfiles: selectedAdmin.canEditUserProfiles,
+          canViewActivityLogs: selectedAdmin.canViewActivityLogs,
+          canManageEvent: selectedAdmin.canManageEvent,
+          canApproveJobs: selectedAdmin.canApproveJobs,
+          canOverrideBookingRules: selectedAdmin.canOverrideBookingRules,
+          canManageTrasactions: selectedAdmin.canManageTrasactions,
+          canEditPaymentSettings: selectedAdmin.canEditPaymentSettings,
+          canViewFinancailReports: selectedAdmin.canViewFinancailReports,
+          canAcceptBookings: selectedAdmin.canAcceptBookings,
+          canMessage: selectedAdmin.canMessage,
+          canApply: selectedAdmin.canApply,
+          canSubmitReview: selectedAdmin.canSubmitReview,
+          canPostEvents: selectedAdmin.canPostEvents,
+        });
       }
     }
-  }, [mode, selectedRole, roles]);
+  }, [mode, selectedId, admins, roles, isRoleEdit, selectedRole, selectedAdmin]);
 
   // Handle admin form input changes
   const handleAdminInputChange = (e) => {
     setNewAdmin({ ...newAdmin, [e.target.name]: e.target.value });
   };
 
-  // Handle permission checkbox changes
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+        const avatar = document.querySelector(".avatar");
+        avatar.style.backgroundImage = `url(${e.target.result})`;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle permission checkbox changes (update local state only)
   const handlePermissionChange = (e) => {
-    const newPermissions = { ...permissions, [e.target.name]: e.target.checked };
-    setPermissions(newPermissions);
-    onSavePermissions(newPermissions); // Auto-save on change
+    const { name, checked } = e.target;
+    setPermissions({ ...permissions, [name]: checked });
+    console.log(`Permission changed locally: ${name} = ${checked}`);
+  };
+
+  // Handle save permissions
+  const handleSavePermissionsButton = async () => {
+    setError(null);
+    setSuccess(null);
+    try {
+      if (isRoleEdit) {
+        await onSaveRolePermissions(selectedId, permissions);
+        setSuccess(`Permissions updated for role ${selectedRole?.name}`);
+      } else {
+        await onSavePermissions(selectedId, permissions);
+        setSuccess(`Permissions updated for user ${selectedAdmin?.name}`);
+      }
+      console.log(`Permissions saved for ${isRoleEdit ? 'role' : 'admin'} ${selectedId}:`, permissions);
+    } catch (error) {
+      console.error("Error saving permissions:", error);
+      setError(error.response?.data?.message || "Failed to save permissions. Please try again.");
+    }
   };
 
   // Handle section toggle
@@ -68,32 +143,72 @@ const AdminSettingsSidebar = ({
     setOpenSections({ ...openSections, [section]: !openSections[section] });
   };
 
-  // Handle add admin form submission
-  const handleAddAdmin = (e) => {
+  // Handle add admin form submission with API call
+  const handleAddAdmin = async (e) => {
     e.preventDefault();
-    onAddAdmin(newAdmin);
-    setNewAdmin({ name: "", email: "", role: "Admin", password: "" });
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData();
+    formData.append("name", newAdmin.name);
+    formData.append("email", newAdmin.email);
+    formData.append("role", newAdmin.role);
+    formData.append("password", newAdmin.password);
+    if (imageFile) {
+      formData.append("profileImage", imageFile);
+    }
+    // Apply default permissions for the role
+    const rolePermissions = roles.find((r) => r.id === newAdmin.role)?.permissions || {};
+    Object.keys(rolePermissions).forEach((key) => {
+      formData.append(key, rolePermissions[key]);
+    });
+
+    try {
+      const response = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}admin/create-user`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setSuccess("Admin added successfully!");
+      console.log("Adding new admin:", formData);
+      console.log("API Response:", response.data);
+      onAddAdmin(response.data.user);
+      setNewAdmin({ name: "", email: "", role: "admin", password: "" });
+      setImageFile(null);
+      setImagePreview(null);
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to add admin. Please try again.");
+      console.error("API Error:", err);
+    }
   };
 
   // Handle cancel action
   const handleCancel = () => {
-    setNewAdmin({ name: "", email: "", role: "Admin", password: "" });
+    setNewAdmin({ name: "", email: "", role: "admin", password: "" });
+    setImageFile(null);
+    setImagePreview(null);
+    setError(null);
+    setSuccess(null);
     onClose();
   };
 
   // Handle restore default
   const handleRestoreDefault = () => {
-    const role = roles.find((r) => r.id === selectedRole);
-    if (role) {
-      setPermissions(role.defaultPermissions || role.permissions);
-      onSavePermissions(role.defaultPermissions || role.permissions);
+    let defaultPerms;
+    if (isRoleEdit) {
+      defaultPerms = selectedRole.defaultPermissions;
+    } else {
+      const adminRole = roles.find((r) => r.id === selectedAdmin.role);
+      defaultPerms = adminRole ? adminRole.defaultPermissions : {};
     }
-  };
-
-  // Handle permission form submission
-  const handleSavePermissions = (e) => {
-    e.preventDefault();
-    onSavePermissions(permissions);
+    setPermissions(defaultPerms);
+    console.log(`Restored default permissions locally for ${isRoleEdit ? 'role' : 'admin'} ${selectedId}:`, defaultPerms);
   };
 
   if (!isOpen) return null;
@@ -114,9 +229,7 @@ const AdminSettingsSidebar = ({
           <h2 className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
             {mode === "addAdmin"
               ? "Add New Admin"
-              : `Edit Permissions: ${
-                  roles.find((r) => r.id === selectedRole)?.name
-                }`}
+              : `Edit Permissions: ${isRoleEdit ? selectedRole?.name : selectedAdmin?.name || ""}`}
           </h2>
         </div>
         <div className="h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
@@ -126,25 +239,26 @@ const AdminSettingsSidebar = ({
             <div className="self-stretch flex flex-col justify-start items-start gap-4">
               {/* Avatar Placeholder */}
               <div
-                className="w-36 h-36 bg-zinc-300 rounded-full cursor-pointer"
+                className="w-36 h-36 bg-zinc-300 rounded-full cursor-pointer relative"
                 onClick={() => {
                   const input = document.createElement("input");
                   input.type = "file";
                   input.accept = "image/*";
-                  input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      const avatar = document.querySelector(".avatar");
-                      avatar.style.backgroundImage = `url(${e.target.result})`;
-                    };
-                    reader.readAsDataURL(file);
-                  };
+                  input.onchange = handleImageChange;
                   input.click();
                 }}
               >
-                <div className="avatar w-36 h-36 bg-zinc-300 rounded-full" />
+                <div
+                  className="avatar w-36 h-36 bg-zinc-300 rounded-full bg-cover bg-center"
+                  style={{ backgroundImage: imagePreview ? `url(${imagePreview})` : "none" }}
+                />
+                <div className="absolute bottom-0 right-0 bg-[#E61E4D] text-white text-xs px-2 py-1 rounded-full">
+                  Upload
+                </div>
               </div>
+              {/* Display API feedback */}
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              {success && <div className="text-green-500 text-sm">{success}</div>}
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
                 {/* User Name */}
                 <div className="self-stretch h-20 flex flex-col justify-start items-start gap-2">
@@ -220,10 +334,11 @@ const AdminSettingsSidebar = ({
                       <option value="" disabled>
                         Choose a role
                       </option>
-                      <option value="Super Admin">Super Admin</option>
-                      <option value="Admin">Admin</option>
-                      <option value="Moderator">Moderator</option>
-                      <option value="User">User</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
                     </select>
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                       <RiArrowDownSLine className="w-6 h-6 text-[#656565]" />
@@ -258,17 +373,17 @@ const AdminSettingsSidebar = ({
                 <div className="inline-flex flex-col justify-start items-start gap-2">
                   <div className="inline-flex justify-start items-center gap-6">
                     <div className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                      User:
+                      {isRoleEdit ? "Role" : "User"}:
                     </div>
                     <div className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2">
                       <div className="justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
-                        {roles.find((r) => r.id === selectedRole)?.name || "Moderator"}
+                        {isRoleEdit ? selectedRole?.name : selectedAdmin?.name || "Unknown"}
                       </div>
                       <RiArrowDownSLine className="w-5 h-5 text-[#656565]" />
                     </div>
                   </div>
                   <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                    Changes saves automatically
+                    Click Save Permissions to apply changes
                   </div>
                 </div>
                 <button
@@ -278,6 +393,9 @@ const AdminSettingsSidebar = ({
                   Restore default
                 </button>
               </div>
+              {/* Error/Success Messages */}
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              {success && <div className="text-green-500 text-sm">{success}</div>}
               {/* Permission Sections */}
               <div className="self-stretch flex flex-col justify-start items-start gap-2">
                 {/* General Access Permissions */}
@@ -300,8 +418,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="accessDashboard"
-                          checked={permissions.accessDashboard}
+                          name="canAccessDashboard"
+                          checked={permissions.canAccessDashboard}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -317,10 +435,10 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="viewAnalytics"
-                          checked={permissions.viewAnalytics}
+                          name="canViewAnalytics"
+                          checked={permissions.canViewAnalytics}
                           onChange={handlePermissionChange}
-                         className="w-4 h-4 accent-[#E61E4D]"
+                          className="w-4 h-4 accent-[#E61E4D]"
                         />
                         <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
                           <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
@@ -354,10 +472,10 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="manageUserProfiles"
-                          checked={permissions.manageUserProfiles}
+                          name="canManageUser"
+                          checked={permissions.canManageUser}
                           onChange={handlePermissionChange}
-                        className="w-4 h-4 accent-[#E61E4D]"
+                          className="w-4 h-4 accent-[#E61E4D]"
                         />
                         <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
                           <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
@@ -371,8 +489,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="editUserDetails"
-                          checked={permissions.editUserDetails}
+                          name="canEditUserProfiles"
+                          checked={permissions.canEditUserProfiles}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -388,8 +506,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="viewActivityLogs"
-                          checked={permissions.viewActivityLogs}
+                          name="canViewActivityLogs"
+                          checked={permissions.canViewActivityLogs}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -425,8 +543,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="manageEvents"
-                          checked={permissions.manageEvents}
+                          name="canManageEvent"
+                          checked={permissions.canManageEvent}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -442,8 +560,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="approveRejectEvents"
-                          checked={permissions.approveRejectEvents}
+                          name="canApproveJobs"
+                          checked={permissions.canApproveJobs}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -459,8 +577,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="overrideBookingSettings"
-                          checked={permissions.overrideBookingSettings}
+                          name="canOverrideBookingRules"
+                          checked={permissions.canOverrideBookingRules}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -496,8 +614,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="manageTransactions"
-                          checked={permissions.manageTransactions}
+                          name="canManageTrasactions"
+                          checked={permissions.canManageTrasactions}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -513,8 +631,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="editPaymentSettings"
-                          checked={permissions.editPaymentSettings}
+                          name="canEditPaymentSettings"
+                          checked={permissions.canEditPaymentSettings}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -530,8 +648,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="viewFinancialReports"
-                          checked={permissions.viewFinancialReports}
+                          name="canViewFinancailReports"
+                          checked={permissions.canViewFinancailReports}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -547,9 +665,114 @@ const AdminSettingsSidebar = ({
                     </div>
                   )}
                 </div>
+                {/* User Action Permissions */}
+                {/* <div className="self-stretch p-3 bg-[#FFFFFF] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#ECECEC] flex flex-col justify-start items-start gap-4">
+                  <div
+                    className="self-stretch inline-flex justify-start items-center gap-4 cursor-pointer"
+                    onClick={() => toggleSection("userActions")}
+                  >
+                    <div className="flex-1 justify-start text-[#292929] text-sm font-bold font-['Inter'] leading-tight">
+                      User Action Permissions
+                    </div>
+                    {openSections.userActions ? (
+                      <RiArrowUpSLine className="w-6 h-6 text-[#656565]" />
+                    ) : (
+                      <RiArrowDownSLine className="w-6 h-6 text-[#656565]" />
+                    )}
+                  </div>
+                  {openSections.userActions && (
+                    <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                      <label className="self-stretch inline-flex justify-start items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="canAcceptBookings"
+                          checked={permissions.canAcceptBookings}
+                          onChange={handlePermissionChange}
+                          className="w-4 h-4 accent-[#E61E4D]"
+                        />
+                        <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
+                            Accept Bookings
+                          </div>
+                          <div className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-none">
+                            Accept or decline booking requests
+                          </div>
+                        </div>
+                      </label>
+                      <label className="self-stretch inline-flex justify-start items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="canMessage"
+                          checked={permissions.canMessage}
+                          onChange={handlePermissionChange}
+                          className="w-4 h-4 accent-[#E61E4D]"
+                        />
+                        <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
+                            Send Messages
+                          </div>
+                          <div className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-none">
+                            Communicate with other users via messaging
+                          </div>
+                        </div>
+                      </label>
+                      <label className="self-stretch inline-flex justify-start items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="canApply"
+                          checked={permissions.canApply}
+                          onChange={handlePermissionChange}
+                          className="w-4 h-4 accent-[#E61E4D]"
+                        />
+                        <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
+                            Apply for Events
+                          </div>
+                          <div className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-none">
+                            Submit applications for events or jobs
+                          </div>
+                        </div>
+                      </label>
+                      <label className="self-stretch inline-flex justify-start items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="canSubmitReview"
+                          checked={permissions.canSubmitReview}
+                          onChange={handlePermissionChange}
+                          className="w-4 h-4 accent-[#E61E4D]"
+                        />
+                        <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
+                            Submit Reviews
+                          </div>
+                          <div className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-none">
+                            Post reviews for events or users
+                          </div>
+                        </div>
+                      </label>
+                      <label className="self-stretch inline-flex justify-start items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="canPostEvents"
+                          checked={permissions.canPostEvents}
+                          onChange={handlePermissionChange}
+                          className="w-4 h-4 accent-[#E61E4D]"
+                        />
+                        <div className="w-48 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-sm font-normal font-['Inter'] leading-tight">
+                            Post Events
+                          </div>
+                          <div className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-none">
+                            Create and publish new events
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                </div> */}
               </div>
               {/* Save/Cancel Buttons */}
-              {/* <div className="self-stretch flex justify-end gap-4">
+              <div className="self-stretch flex justify-end gap-4">
                 <button
                   type="button"
                   onClick={onClose}
@@ -559,12 +782,12 @@ const AdminSettingsSidebar = ({
                 </button>
                 <button
                   type="submit"
-                  onClick={handleSavePermissions}
+                  onClick={handleSavePermissionsButton}
                   className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight"
                 >
                   Save Permissions
                 </button>
-              </div> */}
+              </div>
             </div>
           </div>
         )}

@@ -33,6 +33,7 @@ const ProfileUpdate = () => {
     profileImage: "",
   });
 
+  const [userData, setUserData] = useState(null);
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -70,12 +71,13 @@ const ProfileUpdate = () => {
 
   const fetchProfile = () => {
     axios
-      .get(`${Base_URLS.API}/auth/profile`, {
+      .get(`http://localhost:4000/api/auth/profile`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         withCredentials: true,
       })
       .then((res) => {
         const data = res.data;
+        setUserData(data);
 
         const user = data;
         console.log("user:", user);
@@ -338,7 +340,7 @@ const ProfileUpdate = () => {
             )}
           </div>
         </div>
-        <ReviewSection />
+        <ReviewSection reviews={userData?.reviews}/>
       </div>
 
       <div className="right-panel">
@@ -391,9 +393,9 @@ const ProfileUpdate = () => {
                             setFormData((prev) => ({
                               ...prev,
                               country: selected ? selected.value : "",
-                              flag: selected ? selected.flag : "", 
+                              flag: selected ? selected.flag : "",
                             }));
-                            setFlagUrl(selected ? selected.flag : ""); 
+                            setFlagUrl(selected ? selected.flag : "");
                           }}
                           placeholder="Select Country"
                           isClearable

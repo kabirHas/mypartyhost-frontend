@@ -270,7 +270,7 @@ const OrganizerDashboard = () => {
                 {item.type === "job_invite"
                   ? "invited you to"
                   : "wants to join"}{" "}
-                <b>{item.metadata.jobTitle}</b> - Let's Start the Party!{" "}
+                <b>{item.metadata?.jobTitle}</b> - Let's Start the Party!{" "}
                 <span className="link">
                   {item.type === "job_invite" ? "View Job" : "View Application"}
                 </span>
@@ -297,7 +297,7 @@ const OrganizerDashboard = () => {
                         >
                           <h3>
                             <Link
-                              to="/staff-profile"
+                              to={`/staff-profile/${person.user._id}`}
                               className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
                             >
                               {person.user.name.toUpperCase()}
