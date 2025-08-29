@@ -47,7 +47,7 @@ function SavedJobs() {
     if (localStorage.getItem("token")) {
       fetchSavedJobs();
     } else {
-      alert("Please log in to view saved jobs.");
+      // alert("Please log in to view saved jobs.");
       navigate("/login");
     }
   
@@ -115,7 +115,7 @@ function SavedJobs() {
     });
     if (response.status === 200 || response.status === 204) {
       setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
-      alert("Job removed from saved list.");
+      // alert("Job removed from saved list.");
     } else {
       alert("Failed to remove job. Please try again.");
     }
@@ -291,7 +291,7 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                     <div className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
                       <div
                         data-property-1="Favorite"
-                        className="flex-1 p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
+                        className="flex-1 h-[420px] p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-6">
                           <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -331,7 +331,7 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                           </p>
                         </div>
                         <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-[#F9F9F9]"></div>
-                        <div className="inline-flex justify-start items-center gap-6">
+                        <div className="inline-flex justify-end items-center gap-6">
                           <button
                             onClick={() => handleRemoveJob(job.id)}
                             className="px-6 py-2 rounded-lg outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden"

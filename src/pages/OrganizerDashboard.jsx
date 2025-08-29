@@ -270,7 +270,7 @@ const OrganizerDashboard = () => {
                 {item.type === "job_invite"
                   ? "invited you to"
                   : "wants to join"}{" "}
-                <b>{item.metadata.jobTitle}</b> - Let's Start the Party!{" "}
+                <b>{item.metadata?.jobTitle}</b> - Let's Start the Party!{" "}
                 <span className="link">
                   {item.type === "job_invite" ? "View Job" : "View Application"}
                 </span>

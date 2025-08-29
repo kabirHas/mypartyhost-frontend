@@ -60,7 +60,7 @@ function Alerts() {
     );
 
     const rate = rateRes.data.conversion_rates[currency] || 1;
-    const convertedAmount = (rateOffered * rate).toFixed(2);
+    let convertedAmount = (rateOffered * rate).toFixed(2);
     console.log("Converted Amount", convertedAmount);
     let platformFee = 20;
     let convertedPlatformFee =
@@ -284,23 +284,26 @@ function Alerts() {
           <div className="bg-white text-base font-medium font-['Inter'] leading-snug text-[#292929] rounded-2xl">
             {/* Top: Profile & Rate */}
             <div className="flex items-start justify-between">
-              <div className="flex gap-2">
-                <img
-                  src={notif?.sender?.profileImage}
-                  alt={notif?.sender?.name || "User Profile"}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div>
-                  <h2 className="font-semibold text-base">
-                    {notif?.sender?.name}
-                  </h2>
-                  <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
-                    <i className="ri-map-pin-line mr-1 text-lg" />
-                    {notif?.sender?.city},
-                    {notif?.sender?.country || "Location not specified"}
+              {(() => {
+                const actor = notif?.sender?._id === user?._id ? notif?.user : notif?.sender;
+                return (
+                  <div className="flex gap-2">
+                    <img
+                      src={actor?.profileImage}
+                      alt={actor?.name || "User Profile"}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h2 className="font-semibold text-base">{actor?.name}</h2>
+                      <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
+                        <i className="ri-map-pin-line mr-1 text-lg" />
+                        {actor?.city},
+                        {actor?.country || "Location not specified"}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
               <div className="text-right font-semibold">
                 ${notif?.metadata?.jobId?.rateOffered || 12}/hr
               </div>

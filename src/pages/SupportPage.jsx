@@ -62,49 +62,70 @@ export default function SupportPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [openIndex1, setOpenIndex1] = useState(null);
   const [openIndex2, setOpenIndex2] = useState(null);
-  const [tickets, setTickets] = useState(null);
+  const [tickets, setTickets] = useState([]);
 
-  const fetchTickets = async ()=>{
-    if(user.role === "superadmin"){
-      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin/help-and-support`,{
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      const formattedTickets = response.data.helpAndSupport.filter(ticket => ticket.status === "in-progress").map((ticket) => {
-        const date = ticket.createdAt ? (new Date(ticket.createdAt), "MMM dd, yyyy") : "NA";
-        return {
-          id: ticket._id,
-          subject: ticket.subject,
-          date,
-          status: ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
-        };
-      });
-      console.log(formattedTickets)
-      setTickets(formattedTickets);
-    }else{
-      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}contact/user`,{
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      const formattedTickets = response.data.filter(ticket => ticket.status === "in-progress").map((ticket) => {
-        const date = ticket.createdAt ? (new Date(ticket.createdAt), "MMM dd, yyyy") : "NA";
-        return {
-          id: ticket._id,
-          subject: ticket.subject,
-          date,
-          status: ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
-        };
-      });
-      console.log(formattedTickets)
-      setTickets(formattedTickets);
+  const fetchTickets = async () => {
+    try {
+      if (user.role === "superadmin") {
+        const response = await axios.get(
+          `${BASE_URLS.BACKEND_BASEURL}admin/help-and-support`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const formattedTickets = response.data.helpAndSupport
+          .filter((ticket) => ticket.status === "in-progress")
+          .map((ticket) => {
+            const date = ticket.createdAt
+              ? (new Date(ticket.createdAt), "MMM dd, yyyy")
+              : "NA";
+            return {
+              id: ticket._id,
+              subject: ticket.subject,
+              date,
+              status:
+                ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
+            };
+          });
+        console.log(formattedTickets);
+        setTickets(formattedTickets);
+      } else {
+        const response = await axios.get(
+          `${BASE_URLS.BACKEND_BASEURL}contact/user`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const formattedTickets = response.data
+          .filter((ticket) => ticket.status === "in-progress")
+          .map((ticket) => {
+            const date = ticket.createdAt
+              ? (new Date(ticket.createdAt), "MMM dd, yyyy")
+              : "NA";
+            return {
+              id: ticket._id,
+              subject: ticket.subject,
+              date,
+              status:
+                ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1),
+            };
+          });
+        console.log(formattedTickets);
+        setTickets(formattedTickets);
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setTickets([]);
     }
-  }
+  };
 
-  useEffect(()=>{
-    fetchTickets()
-  },[])
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
   const filteredFaqs =
     activeTab === "All"
@@ -136,7 +157,9 @@ export default function SupportPage() {
           className="kaab-view-tickets-btn"
           onClick={() => navigate("/dashboard/support/ticket")}
         >
-          {user.role === "superadmin" ? "View All Tickets" : "View Your Tickets"}
+          {user.role === "superadmin"
+            ? "View All Tickets"
+            : "View Your Tickets"}
         </button>
       </div>
 
@@ -247,12 +270,17 @@ export default function SupportPage() {
 
         <div className="kaab-quick-updates">
           <h5>Quick Updates</h5>
-          <p>You have {tickets &&tickets.length} active tickets with new updates.</p>
+          <p>
+            You have {tickets && tickets.length} active tickets with new
+            updates.
+          </p>
           <button
             onClick={() => navigate("/dashboard/support/ticket")}
             className="kaab-view-tickets-btn"
           >
-            {user.role === "superadmin" ? 'View All Tickets' : 'View Your Tickets'}
+            {user.role === "superadmin"
+              ? "View All Tickets"
+              : "View Your Tickets"}
           </button>
         </div>
       </div>
