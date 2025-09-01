@@ -47,6 +47,9 @@ import TransactionManagement from "../pages/TransactionManagement";
 import StaffDashboard from "../pages/StaffDashboard";
 import AcceptBookingReq from "../pages/AcceptBookingReq";
 import CreateEventMultiStepForm from "../pages/CreateEventMultiStepForm";
+import BoostPaymentSuccess from "../pages/BoostPaymentSuccess";
+import HirePaymentSuccess from "../pages/HirePaymentSuccess";
+import HireInvitePaymentSuccess from "../pages/HireInvitePaymentSuccess";
 
 // export const getStaticRoutes = (isLoggedIn, userRole) => {
 //   // const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -213,7 +216,7 @@ import CreateEventMultiStepForm from "../pages/CreateEventMultiStepForm";
 //       element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
 //       key="event"
 //     />,
-    
+
 //     <Route
 //       path="/bookings/:id"
 //       element={isLoggedIn ? <BookingDetails /> : <Navigate to="/login" />}
@@ -268,10 +271,9 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
       key="dashboard"
     >
-
       {isAdmin && (
         <>
-        <Route index element={<AdminDashboard />} />
+          <Route index element={<AdminDashboard />} />
           <Route
             path="/dashboard/analytics"
             element={<AdminDashboard />}
@@ -323,6 +325,16 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
             key="content-management"
           />
           <Route
+            path="/dashboard/all-pages/create-page"
+            element={isLoggedIn ? <CreatePage /> : <Navigate to="/login" />}
+            key="create-page"
+          />
+          <Route
+            path="/dashboard/create-faq"
+            element={isLoggedIn ? <CreateFaq /> : <Navigate to="/login" />}
+            key="create-faq"
+          />
+          <Route
             path="/dashboard/security"
             element={<Security />}
             key="security"
@@ -335,10 +347,9 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         </>
       )}
 
-
       {isStaff && (
         <>
-        <Route index element={<StaffDashboard />} />
+          <Route index element={<StaffDashboard />} />
           <Route
             path="/dashboard/find-jobs"
             element={<FindJobs />}
@@ -354,12 +365,8 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
             element={<ManageBookings />}
             key="manage-bookings"
           />
-          
-          <Route
-            path="/dashboard/alerts"
-            element={<Alerts />}
-            key="alerts"
-          />
+
+          <Route path="/dashboard/alerts" element={<Alerts />} key="alerts" />
           <Route
             path="/dashboard/messages"
             element={<MessagePage />}
@@ -379,43 +386,39 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       )}
 
       {isOrganizer && (
-  <>
-    <Route index element={<OrganizerDashboard />} />
-    <Route
-      path="/dashboard/manage-jobs"
-      element={<ManageJobsLayout />}
-      key="manage-jobs"
-    >
-      <Route index element={<ManageJobs />} />
-      <Route path=":id/view" element={<ViewJobDetails />} />
-    </Route>
-    <Route
-      path="/dashboard/saved-profile"
-      element={<SavedProfiles />}
-      key="saved-profile"
-    />
-    <Route
-      path="/dashboard/alerts"
-      element={<Alerts />}
-      key="alerts"
-    />
-    <Route
-      path="/dashboard/messages"
-      element={<MessagePage />}
-      key="messages"
-    />
-    <Route
-      path="/dashboard/billing"
-      element={<PaymentPage />}
-      key="billing"
-    />
-    <Route
-      path="/dashboard/support"
-      element={<SupportPage />}
-      key="support"
-    />
-  </>
-)}
+        <>
+          <Route index element={<OrganizerDashboard />} />
+          <Route
+            path="/dashboard/manage-jobs"
+            element={<ManageJobsLayout />}
+            key="manage-jobs"
+          >
+            <Route index element={<ManageJobs />} />
+            <Route path=":id/view" element={<ViewJobDetails />} />
+          </Route>
+          <Route
+            path="/dashboard/saved-profile"
+            element={<SavedProfiles />}
+            key="saved-profile"
+          />
+          <Route path="/dashboard/alerts" element={<Alerts />} key="alerts" />
+          <Route
+            path="/dashboard/messages"
+            element={<MessagePage />}
+            key="messages"
+          />
+          <Route
+            path="/dashboard/billing"
+            element={<PaymentPage />}
+            key="billing"
+          />
+          <Route
+            path="/dashboard/support"
+            element={<SupportPage />}
+            key="support"
+          />
+        </>
+      )}
 
       {/* Common Routes */}
       <Route
@@ -439,8 +442,6 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
         key="new-ticket"
       />
     </Route>,
-    
-    
 
     <Route
       path="/bookings/:id"
@@ -464,7 +465,9 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     />,
     <Route
       path="/multi-step/"
-      element={isLoggedIn ? <CreateEventMultiStepForm /> : <Navigate to="/login" />}
+      element={
+        isLoggedIn ? <CreateEventMultiStepForm /> : <Navigate to="/login" />
+      }
       key="manage-bookings"
     />,
     <Route
@@ -473,27 +476,55 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       key="event"
     />,
 
+    <Route
+      path="/staff-profile/:id"
+      element={<StaffPublicProfile />}
+      key="profile"
+    />,
 
-<Route
-            path="/staff-profile"
-            element={<StaffPublicProfile />}
-            key="profile"
-          />,
+    <Route path="/profile" element={<StaffSinglePage />} key="profile" />,
+    <Route path="/apply-job" element={<ApplyJob />} key="apply-job" />,
 
     <Route
-            path="/profile"
-            element={<StaffSinglePage />}
-            key="profile"
-          />,
-          <Route
-            path="/apply-job"
-            element={<ApplyJob />}
-            key="apply-job"
-          />,
-          
+      path="/bookings/:id"
+      element={isLoggedIn ? <BookingDetails /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/invites/:id"
+      element={isLoggedIn ? <InvitesReceived /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/past-booking/:id"
+      element={isLoggedIn ? <PastBookingDetail /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/accept-booking/"
+      element={isLoggedIn ? <AcceptBookingReq /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/multi-step/"
+      element={
+        isLoggedIn ? <CreateEventMultiStepForm /> : <Navigate to="/login" />
+      }
+      key="manage-bookings"
+    />,
+    <Route
+      path="/create-job"
+      element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
+      key="event"
+    />,
+    <Route path="/payment-success" element={<BoostPaymentSuccess />} />,
+    <Route path="/hire-payment-success" element={<HirePaymentSuccess />} />,
+    <Route
+      path="/hire-invite-payment-success"
+      element={<HireInvitePaymentSuccess />}
+    />,
 
-
-    <Route path="/success" element={<SuccessScreen />} key="success" />
+    <Route path="/success" element={<SuccessScreen />} key="success" />,
   ];
 };
 

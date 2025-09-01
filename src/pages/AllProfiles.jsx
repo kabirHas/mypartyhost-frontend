@@ -11,13 +11,18 @@ const AllProfiles = () => {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [lastLoginFilter, setLastLoginFilter] = useState("");
-  const [limit, setLimit] = useState(10); // Default limit
+  const [limit, setLimit] = useState(10);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [error, setError] = useState(""); // For error messages
 
   const fetchUsers = () => {
     axios
-      .get(`${BASE_URLS.BACKEND_BASEURL}user`)
+      .get(`${BASE_URLS.BACKEND_BASEURL}user`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
       .then((res) => {
         setUsers(res.data);
         setFilteredUsers(res.data);
@@ -46,14 +51,14 @@ const AllProfiles = () => {
       result = result.filter((u) => u.role === roleFilter);
     }
 
-    // ✅ Status Filter (assuming status isActive)
+    // ✅ Status Filter
     if (statusFilter === "Active") {
       result = result.filter((u) => u.isActive === true);
     } else if (statusFilter === "Inactive") {
       result = result.filter((u) => u.isActive === false);
     }
 
-    // 🕒 Last Login (mock filter: not implemented in API, adjust as needed)
+    // 🕒 Last Login
     if (lastLoginFilter === "1 hr") {
       result = result.filter(
         (u) => Date.now() - new Date(u.lastLogin).getTime() < 3600000
@@ -99,6 +104,9 @@ const AllProfiles = () => {
   return (
     <div className=" ">
       <div className="max-w-[1400px] p-2 mx-auto">
+        {error && (
+          <div className="text-red-500 text-sm mb-4">{error}</div>
+        )}
         <div className="flex gap-4 justify-between items-center mb-6">
           <div className="w-3/4">
             <h1 className="self-stretch justify-start text-[#292929] text-3xl font-bold font-['Inter'] leading-10">
@@ -113,7 +121,7 @@ const AllProfiles = () => {
           <button
             onClick={() => {
               setIsCreateMode(true);
-              setSelectedUserId(null); // ensure no view mode active
+              setSelectedUserId(null);
             }}
             className="px-6 py-3 bg-gradient-to-l text-base font-medium font-['Inter'] leading-snug text-white from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden"
           >
@@ -123,16 +131,6 @@ const AllProfiles = () => {
 
         {/* 🔍 Filters */}
         <div className="flex flex-wrap justify-between align-center gap-4 mb-6">
-          {/* <div className="relative w-full sm:w-1/3">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or email"
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none"
-            />
-            <i className="ri-search-line bg-pink-300 px-2 bg-opacity-40 absolute left-1 top-1/2 transform -translate-y-1/2 text-pink-600 text-lg" />
-          </div> */}
           <div className="relative bg-white rounded-lg w-full sm:w-1/3 pr-3 bg-zinc-100 rounded-LG outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-3 overflow-hidden">
             <div className="p-2 bg-pink-100 flex justify-start items-center">
               <svg
@@ -168,13 +166,13 @@ const AllProfiles = () => {
               </select>
               <div className="absolute right-2 pointer-events-none">
                 <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i class="ri-arrow-down-s-line"></i>
+                  <i className="ri-arrow-down-s-line"></i>
                 </div>
               </div>
             </div>
             <div className="relative inline-flex items-center">
               <select
-                className="px-4 py-2  bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
+                className="px-4 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
                 value={lastLoginFilter}
                 onChange={(e) => setLastLoginFilter(e.target.value)}
               >
@@ -191,12 +189,12 @@ const AllProfiles = () => {
             <div className="relative inline-flex items-center">
               <select
                 className="px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none pr-10"
-                value={lastLoginFilter}
+                value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="">Status</option>
                 <option value="Active">Active</option>
-                <option value="Inactive">In Active</option>
+                <option value="Inactive">Inactive</option>
               </select>
               <div className="absolute right-2 pointer-events-none">
                 <div className="w-5 h-5 relative flex items-center justify-center">
@@ -257,10 +255,9 @@ const AllProfiles = () => {
                         alt="profile"
                         className="w-8 h-8 rounded-full object-cover"
                       />
-
                       <span className="capitalize">{u.name}</span>
                     </td>
-                    <td className="px-6 border-r  text-xs border-zinc-200 py-4 capitalize">
+                    <td className="px-6 border-r text-xs border-zinc-200 py-4 capitalize">
                       {u.role}
                     </td>
                     <td className="px-6 border-r border-zinc-200 py-4">
@@ -363,7 +360,7 @@ const AllProfiles = () => {
             setIsCreateMode(false);
             fetchUsers();
           }}
-          isCreate={isCreateMode} // 👈 pass new prop
+          isCreate={isCreateMode}
         />
       )}
     </div>

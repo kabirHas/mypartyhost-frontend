@@ -1,28 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TransactionDetailSidebar from "../components/TransactionDeatilsSidebar";
-
-const allTransactions = Array.from({ length: 68 }, (_, i) => {
-  const statuses = ["Successful", "Pending", "Failed"];
-  const types = ["Booking Payment", "Commission", "Refund", "Boosted Profile"];
-  const methods = ["Credit Card", "PayPal", "Stripe"];
-  const users = ["Emily Carter", "Olivia Jones", "Ava Smith", "Sophia Brown"];
-  const amounts = ["$50", "$30", "-$200", "$100"];
-
-  return {
-    id: `#TRX-${String(i + 1).padStart(3, "0")}`,
-    user: users[i % users.length],
-    type: types[i % types.length],
-    amount: amounts[i % amounts.length],
-    method: methods[i % methods.length],
-    datetime: `${10 + (i % 10)} Mar 2025, ${2 + (i % 8)}:${(i * 3) % 60} PM`,
-    status: statuses[i % statuses.length],
-  };
-});
+import axios from "axios";
+import BASE_URLS from "../config";
 
 const statusColors = {
   Successful: "bg-[#D3FFCC] text-[#128807]",
+  Refunded: "bg-[#FFD6D6] text-[#B00020]",
   Pending: "bg-[#FFDBB7] text-[#B25F00]",
-  Failed: "bg-[#FFD6D6] text-[#B00020]",
+  Approved: "bg-[#D3FFCC] text-[#128807]", // Map "approved" to green like "Successful"
 };
 
 const TransactionManagement = () => {
@@ -30,31 +15,86 @@ const TransactionManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [transactionData, setTransactionData] = useState([]);
+  const [filterType, setFilterType] = useState("");
+  const [filterMethod, setFilterMethod] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [availableTypes, setAvailableTypes] = useState([]);
+  const [availableMethods, setAvailableMethods] = useState([]);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  const filtered = allTransactions.filter((trx) =>
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin/transaction`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const transactions = response.data.transactions;
+
+      // Transform API data to match table schema
+      const transformedTransactions = transactions.map((trx) => {
+        const isBoostedProfile = trx.transactionType === "Boosted Profile";
+        const userName = isBoostedProfile ? trx.userId?.name : trx.organiserId?.name || "Unknown";
+        const paymentMethod = trx.cardBrand ? 
+          trx.cardBrand.charAt(0).toUpperCase() + trx.cardBrand.slice(1) : "Unknown";
+        const amount = trx.transactionType === "Refund" ? 
+          `-$${trx.amountUSD}` : `$${trx.amountUSD}`;
+        const status = trx.status === "paid" ? "Successful" : 
+          trx.status === "refunded" ? "Refunded" : 
+          trx.status === "approved" ? "Approved" : 
+          "Pending";
+        const createdAt = new Date(trx.createdAt);
+        const formattedDateTime = createdAt.toLocaleString("en-US", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+
+        return {
+          id: trx.stripeSessionId || trx.stripePaymentIntentId || trx._id,
+          user: userName,
+          type: trx.transactionType,
+          amount: amount,
+          method: paymentMethod,
+          datetime: formattedDateTime,
+          status: status,
+        };
+      });
+
+      setTransactionData(transformedTransactions);
+
+      // Extract unique transaction types and payment methods for filters
+      setAvailableTypes([...new Set(transformedTransactions.map((trx) => trx.type))]);
+      setAvailableMethods([...new Set(transformedTransactions.map((trx) => trx.method))]);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const filtered = transactionData.filter((trx) =>
     (trx.id + trx.user + trx.type + trx.method + trx.status)
       .toLowerCase()
-      .includes(search.toLowerCase())
+      .includes(search.toLowerCase()) &&
+    (filterType ? trx.type === filterType : true) &&
+    (filterMethod ? trx.method === filterMethod : true) &&
+    (filterStatus ? trx.status === filterStatus : true)
   );
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentTransactions = filtered.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const currentTransactions = filtered.slice(startIndex, startIndex + itemsPerPage);
 
   const handleDownloadCSV = () => {
     const csvContent = [
-      [
-        "Transaction ID",
-        "User",
-        "Type",
-        "Amount",
-        "Method",
-        "DateTime",
-        "Status",
-      ],
+      ["Transaction ID", "User", "Type", "Amount", "Method", "DateTime", "Status"],
       ...filtered.map((trx) => [
         trx.id,
         trx.user,
@@ -63,7 +103,7 @@ const TransactionManagement = () => {
         trx.method,
         trx.datetime,
         trx.status,
-      ]),
+      ].map((field) => `"${field}"`)),
     ]
       .map((e) => e.join(","))
       .join("\n");
@@ -119,8 +159,7 @@ const TransactionManagement = () => {
         <div>
           <h1 className="kaab-payment-heading">Transaction Management</h1>
           <p className="kaab-payment-subtext">
-            Track, monitor, and manage all financial transactions across the
-            platform.
+            Track, monitor, and manage all financial transactions across the platform.
           </p>
         </div>
       </div>
@@ -137,68 +176,78 @@ const TransactionManagement = () => {
           />
         </div>
 
-
-<div className="flex flex-wrap gap-2 sm:gap-4">
-            <div className="relative inline-flex items-center">
-              <select
-                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
-              >
-                <option value="">Hostess</option>
-                <option value="organiser">Organiser</option>
-                <option value="staff">Staff</option>
-                <option value="superadmin">Superadmin</option>
-              </select>
-              <div className="absolute right-2 pointer-events-none">
-                <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i class="ri-arrow-down-s-line"></i>
-                </div>
-              </div>
-            </div>
-            <div className="relative inline-flex items-center">
-              <select
-                className="pl-3 pr-[25px] py-2  bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
-              >
-                <option value="">Hostess</option>
-                <option value="1 hr">1 Hour</option>
-                <option value="24 hrs">24 Hours</option>
-              </select>
-              <div className="absolute right-1 pointer-events-none">
-                <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
-                </div>
-              </div>
-            </div>
-            <div className="relative inline-flex items-center">
-              <select
-                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
-              >
-                <option value="">Commission</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">In Active</option>
-              </select>
-              <div className="absolute right-2 pointer-events-none">
-                <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
-                </div>
-              </div>
-            </div>
-            <div className="relative inline-flex items-center">
-              <select
-                className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
-              >
-                <option value="">Dec 2024 - Mar 2025</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">In Active</option>
-              </select>
-              <div className="absolute right-2 pointer-events-none">
-                <div className="w-5 h-5 relative flex items-center justify-center">
-                  <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
-                </div>
+        <div className="flex flex-wrap gap-2 sm:gap-4">
+          <div className="relative inline-flex items-center">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+            >
+              <option value="">All Types</option>
+              {availableTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-2 pointer-events-none">
+              <div className="w-5 h-5 relative flex items-center justify-center">
+                <i className="ri-arrow-down-s-line"></i>
               </div>
             </div>
           </div>
-
-
+          <div className="relative inline-flex items-center">
+            <select
+              value={filterMethod}
+              onChange={(e) => setFilterMethod(e.target.value)}
+              className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+            >
+              <option value="">All Methods</option>
+              {availableMethods.map((method) => (
+                <option key={method} value={method}>
+                  {method}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-2 pointer-events-none">
+              <div className="w-5 h-5 relative flex items-center justify-center">
+                <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+              </div>
+            </div>
+          </div>
+          <div className="relative inline-flex items-center">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+            >
+              <option value="">All Statuses</option>
+              <option value="Successful">Successful</option>
+              <option value="Refunded">Refunded</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+            </select>
+            <div className="absolute right-2 pointer-events-none">
+              <div className="w-5 h-5 relative flex items-center justify-center">
+                <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+              </div>
+            </div>
+          </div>
+          <div className="relative inline-flex items-center">
+            <select
+              className="pl-3 pr-[25px] py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+            >
+              <option value="">Dec 2024 - Mar 2025</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <div className="absolute right-2 pointer-events-none">
+              <div className="w-5 h-5 relative flex items-center justify-center">
+                <i className="ri-arrow-down-s-line text-Token-Text-Secondary text-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
@@ -286,7 +335,10 @@ const TransactionManagement = () => {
             </div>
             <div className="p-3 flex justify-center items-center flex-1">
               <button
-                onClick={() => setShowSidebar(true)}
+                onClick={() => {
+                  setSelectedTransaction(trx);
+                  setShowSidebar(true);
+                }}
                 className="text-pink-600 border border-pink-600 px-3 py-1 rounded-full hover:underline text-xs"
               >
                 Details
@@ -316,7 +368,7 @@ const TransactionManagement = () => {
                 </option>
               ))}
             </select>
-            <i class="ri-arrow-down-s-line text-[#999]"></i>
+            <i className="ri-arrow-down-s-line text-[#999]"></i>
           </div>
         </div>
 
@@ -367,7 +419,10 @@ const TransactionManagement = () => {
         </button>
       </div>
       {showSidebar && (
-        <TransactionDetailSidebar onClose={() => setShowSidebar(false)} />
+        <TransactionDetailSidebar onClose={() => {
+          setShowSidebar(false);
+          setSelectedTransaction(null);
+        }} transaction={selectedTransaction} />
       )}
     </div>
   );
