@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BASE_URLS from '../config';
 import API from '../api';
-import "../asset/css/Style2.css"
 
 const CreateFaq = () => {
   const [page, setPage] = useState('');

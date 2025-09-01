@@ -10,7 +10,6 @@
 
 .event-column {
     flex: 1 1;
-    padding: 0 15px;
 }
 
 .EventOptions {
@@ -43,7 +42,7 @@
 
 .event-image img {
     height: auto;
-    width: 560px;
+    width: 280px;
 }
 
 .event-column h2 {
@@ -77,5 +76,22 @@
 
 .event-column hr {
     margin: 12px 0;
-    opacity: .7;
+    opacity: .7 !important;
+    color: #292929 !important;
 }
+
+.event-column.left, .event-column.right {
+    display: flex;
+    padding: 0;
+    align-items: center;
+}
+
+.event-image {
+    flex: 0 0 280px;
+}
+
+.event-text {
+    flex: 0 0 calc(100% - 279.9px);
+    padding: 0 15px;
+}
+

@@ -108,10 +108,23 @@ footer .logo {
     align-items: flex-start;
   }
 
-  .footer-right {
+.footer-right {
     text-align: left;
     margin-top: 20px;
-  }
+    max-width: 100%;
+    width: 100%;
+}
+.footer-left {
+    max-width: 100%;
+}
+.subscribe-form {
+    flex-direction: column;
+}
+.footer-links a {
+    font-weight: 600;
+    line-height: 40px;
+    display: inline-block;
+}
 }
 
 p.copyright {

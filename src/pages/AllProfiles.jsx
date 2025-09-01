@@ -15,7 +15,7 @@ const AllProfiles = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
 
-  useEffect(() => {
+  const fetchUsers = () => {
     axios
       .get(`${BASE_URLS.BACKEND_BASEURL}user`)
       .then((res) => {
@@ -23,6 +23,9 @@ const AllProfiles = () => {
         setFilteredUsers(res.data);
       })
       .catch((err) => console.error(err));
+  };
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -66,6 +69,32 @@ const AllProfiles = () => {
 
     setFilteredUsers(result);
   }, [search, roleFilter, statusFilter, lastLoginFilter, users, limit]);
+
+  const handleToggleStatus = async (userId, currentStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${BASE_URLS.BACKEND_BASEURL}admin/edit-user/${userId}`,
+        {
+          isActive: !currentStatus,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // 👈 Send token
+          },
+        }
+      );
+
+      // Update frontend
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === userId ? { ...u, isActive: !currentStatus } : u
+        )
+      );
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  };
 
   return (
     <div className=" ">
@@ -258,26 +287,32 @@ const AllProfiles = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 border-r border-zinc-200 py-4 text-center">
+                    <td className="px-6 border-r border-zinc-200 py-4 text-center flex items-center justify-center">
+                      <span className="text-zinc-500 mr-2">
+                        {u?.isActive ? "Active" : "Inactive"}
+                      </span>
+
                       <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <span className="text-zinc-500 mr-2">
-                          {u?.isActive ? "Active" : "Inactive"}
-                        </span>
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={u?.isActive}
-                        />
-                        <div
-                          className={`w-11 h-6 rounded-full ${
-                            u?.isActive ? "bg-[#E61E4D]" : "bg-gray-400"
-                          } flex items-center px-1 transition-colors`}
-                        >
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={u?.isActive}
+                            onChange={() =>
+                              handleToggleStatus(u._id, u.isActive)
+                            } // 👈 Fix
+                          />
                           <div
-                            className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                              u?.isActive ? "translate-x-5" : ""
-                            }`}
-                          ></div>
+                            className={`w-11 h-6 rounded-full ${
+                              u?.isActive ? "bg-[#E61E4D]" : "bg-gray-400"
+                            } flex items-center px-1 transition-colors`}
+                          >
+                            <div
+                              className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
+                                u?.isActive ? "translate-x-5" : ""
+                              }`}
+                            ></div>
+                          </div>
                         </div>
                       </label>
                     </td>
@@ -326,6 +361,7 @@ const AllProfiles = () => {
           onClose={() => {
             setSelectedUserId(null);
             setIsCreateMode(false);
+            fetchUsers();
           }}
           isCreate={isCreateMode} // 👈 pass new prop
         />

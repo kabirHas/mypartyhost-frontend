@@ -394,3 +394,24 @@ input[type="email"], input[type="password"] {
 .scrollbar-hide::-webkit-scrollbar {
   display: none; 
 }
+
+.chammel-select svg {
+    color: transparent;
+}
+
+.chammel-select> div {
+    padding: .5rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 400;
+    border: 1px solid #ececec;
+    line-height: 1.25;
+    border-radius: .5rem;
+}
+
+.chammel-select> div> div {
+    padding: 0 !important;
+    font-size: 0.875rem !important;
+    font-weight: 400;
+    line-height: 1.25;
+    color: rgb(101 101 101)!important;
+}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import BASE_URLS from "../config";
-import "../asset/css/Style2.css";
 import { ChatState } from "../Context/ChatProvider";
 
 export default function DashboardLayout() {
