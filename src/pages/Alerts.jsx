@@ -4,7 +4,7 @@ import { formatDistanceToNow, set } from "date-fns";
 import BASE_URLS from "../config";
 import { ChatState } from "../Context/ChatProvider";
 import StripeWrapper from "../components/StripeWrapper";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Alerts() {
   const [activeTab, setActiveTab] = useState("job_applied");
@@ -19,121 +19,112 @@ function Alerts() {
   const navigate = useNavigate();
   // console.log("User from context:", user);
 
+  // helpers
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+  const makeConverter = (ratesUSD) => {
+    // ratesUSD: { USD->INR, USD->EUR, ... }
+    return (amount, from, to) => {
+      if (from === to) return amount;
+      const rUSD_to_to = ratesUSD[to];
+      const rUSD_to_from = ratesUSD[from];
+      if (!rUSD_to_to || !rUSD_to_from) throw new Error("Missing FX rate");
+      return amount * (rUSD_to_to / rUSD_to_from);
+    };
+  };
+
+  // ---- component ----
+
+  const PLATFORM_FEE_USD = 20;
+  const SERVICE_FEE_RATE = 0.1; // 10%
+
   useEffect(() => {
-    // Step 1: Get user's currency
+    // Step 1: Get user's currency once on mount
+    const controller = new AbortController();
     axios
-      .get("https://ipapi.co/json/")
+      .get("https://ipapi.co/json/", { signal: controller.signal })
       .then((res) => {
-        const userCurrency = res.data.currency;
+        const userCurrency = res?.data?.currency || "USD";
         setCurrency(userCurrency);
         console.log("User's currency:", userCurrency);
       })
-      .catch((err) => console.error(err));
-  }, [currency]);
+      .catch((err) => {
+        console.error(err);
+        setCurrency("USD");
+      });
+    return () => controller.abort();
+  }, []); // <-- run once
+
+  // Optional: cache USD-based FX table once
+  const [usdRates, setUsdRates] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    axios
+      .get(
+        "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD",
+        { signal: controller.signal }
+      )
+      .then((res) => setUsdRates(res?.data?.conversion_rates || null))
+      .catch((e) => console.error("FX fetch failed", e));
+    return () => controller.abort();
+  }, []);
 
   const handleProceedToPayment = async (
     invite,
     jobId,
     inviteId,
-    rateOffered,
-    actualCurrency,
-    duration,
-    paymentType
+    rateOffered, // number, in actualCurrency
+    actualCurrency, // e.g., 'EUR'
+    duration, // number (hours) if hourly
+    paymentType // 'hourly' | 'fixed'
   ) => {
-    console.log("fjapsf", {
-      invite,
-      jobId,
-      inviteId,
-      rateOffered,
-      actualCurrency,
-      duration,
-      paymentType,
-    });
-
-    if (!currency) return;
-
-    const rateRes = await axios.get(
-      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
-    );
-    const platformFeeRate = await axios.get(
-      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD`
-    );
-
-    const rate = rateRes.data.conversion_rates[currency] || 1;
-    let convertedAmount = (rateOffered * rate).toFixed(2);
-    console.log("Converted Amount", convertedAmount);
-    let platformFee = 20;
-    let convertedPlatformFee =
-      platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
-    let actualAmountInUSD =
-      rateOffered * platformFeeRate.data.conversion_rates[currency] || 1;
-    console.log({ convertedAmount, convertedPlatformFee });
-    let realAmtAfterPlatform = (rateOffered * 10) / 100 + platformFee;
-    let amountUSDAfterPlatform = actualAmountInUSD * 0.1 + convertedPlatformFee;
-    console.log("Amount after platform fee in USD", amountUSDAfterPlatform);
-
-    if (paymentType === "hourly") {
-      realAmtAfterPlatform = (rateOffered * duration * 10) / 100 + platformFee;
-      amountUSDAfterPlatform =
-        (actualAmountInUSD * duration * 10) / 100 + convertedPlatformFee;
-      convertedAmount = rateOffered * duration * rate;
-      console.log("Converted Amt after platform", convertedAmount);
-
-      let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
-      console.log("Payable Amount", payableAmount);
-
-      try {
-        const res = await axios.post(
-          `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
-          {
-            amount: payableAmount,
-            currency: currency,
-            convertedAmount,
-            convertedPlatformFee,
-            actualAmount: rateOffered * duration,
-            actualCurrency,
-            amountUSD: amountUSDAfterPlatform.toFixed(2),
-            platformFee,
-            convertedPlatformFee,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (res.data.stripeRequired) {
-          window.location.href = res.data.url;
-        } else {
-          alert("Payment successful");
-        }
-      } catch (error) {
-        console.error("Error processing payment:", error);
-        alert("Payment failed. Please try again later.");
-      }
-    }
-
-    let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
-    console.log("Payable Amount", payableAmount);
     try {
+      if (!currency || !usdRates) {
+        console.warn("Missing currency or FX rates");
+        return;
+      }
+
+      const convert = makeConverter(usdRates);
+
+      // 1) Base amount in actualCurrency
+      const baseAmount = Number(
+        paymentType === "hourly" ? rateOffered * duration : rateOffered
+      );
+
+      // 2) Convert base to user's currency
+      const convertedAmount = convert(baseAmount, actualCurrency, currency); // user currency
+
+      // 3) Fees in user's currency
+      const serviceFeeUser = convertedAmount * SERVICE_FEE_RATE; // 10%
+      const platformFeeUser = convert(PLATFORM_FEE_USD, "USD", currency);
+
+      const payableAmount = round2(serviceFeeUser + platformFeeUser); // final charge in user's currency
+
+      // 4) USD-side numbers (for records/settlement)
+      const baseUSD = convert(baseAmount, actualCurrency, "USD");
+      const amountUSDAfterPlatform = round2(
+        baseUSD * SERVICE_FEE_RATE + PLATFORM_FEE_USD
+      );
+
+      // 5) Round display fields (not before)
+      const payload = {
+        amount: payableAmount, // charge in user's currency
+        currency: currency, // user's currency
+        convertedAmount: round2(convertedAmount), // base (no fees) in user currency
+        convertedPlatformFee: round2(platformFeeUser), // platform fee in user currency
+        actualAmount: round2(baseAmount), // base in actualCurrency
+        actualCurrency,
+        amountUSD: amountUSDAfterPlatform, // total fees in USD (10% + $20)
+        platformFee: PLATFORM_FEE_USD, // in USD
+      };
+
+      console.log("Payment payload", payload);
+
       const res = await axios.post(
         `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
-        {
-          amount: payableAmount,
-          currency: currency,
-          convertedAmount,
-          convertedPlatformFee,
-          actualAmount: rateOffered,
-          actualCurrency,
-          amountUSD: amountUSDAfterPlatform.toFixed(2),
-          platformFee,
-          convertedPlatformFee,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        payload,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       if (res.data.stripeRequired) {
         window.location.href = res.data.url;
@@ -142,9 +133,136 @@ function Alerts() {
       }
     } catch (error) {
       console.error("Error processing payment:", error);
-      alert("Payment failed. Please try again later.");
+      // alert("Payment failed. Please try again later.");
     }
   };
+
+  // useEffect(() => {
+  //   // Step 1: Get user's currency
+  //   axios
+  //     .get("https://ipapi.co/json/")
+  //     .then((res) => {
+  //       const userCurrency = res.data.currency;
+  //       setCurrency(userCurrency);
+  //       console.log("User's currency:", userCurrency);
+  //     })
+  //     .catch((err) => console.error(err));
+  // }, [currency]);
+
+  // const handleProceedToPayment = async (
+  //   invite,
+  //   jobId,
+  //   inviteId,
+  //   rateOffered,
+  //   actualCurrency,
+  //   duration,
+  //   paymentType
+  // ) => {
+  //   console.log("fjapsf", {
+  //     invite,
+  //     jobId,
+  //     inviteId,
+  //     rateOffered,
+  //     actualCurrency,
+  //     duration,
+  //     paymentType,
+  //   });
+
+  //   if (!currency) return;
+
+  //   const rateRes = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
+  //   );
+  //   const platformFeeRate = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${currency}`
+  //   );
+
+  //   const rate = rateRes.data.conversion_rates[currency] || 1;
+  //   let convertedAmount = (rateOffered * rate).toFixed(2);
+  //   console.log("Converted Amount", convertedAmount);
+  //   let platformFee = 20;
+  //   let convertedPlatformFee =
+  //     platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
+  //   let actualAmountInUSD =
+  //     rateOffered * platformFeeRate.data.conversion_rates[currency] || 1;
+  //   console.log({ convertedAmount, convertedPlatformFee });
+  //   let realAmtAfterPlatform = (rateOffered * 10) / 100 + platformFee;
+  //   let amountUSDAfterPlatform = actualAmountInUSD * 0.1 + convertedPlatformFee;
+  //   console.log("Amount after platform fee in USD", amountUSDAfterPlatform);
+
+  //   if (paymentType === "hourly") {
+  //     realAmtAfterPlatform = (rateOffered * duration * 10) / 100 + platformFee;
+  //     amountUSDAfterPlatform =
+  //       (actualAmountInUSD * duration * 10) / 100 + convertedPlatformFee;
+  //     convertedAmount = rateOffered * duration * rate;
+  //     console.log("Converted Amt after platform", convertedAmount);
+
+  //     let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+  //     console.log("Payable Amount", payableAmount);
+
+  //     // try {
+  //     //   const res = await axios.post(
+  //     //     `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
+  //     //     {
+  //     //       amount: payableAmount,
+  //     //       currency: currency,
+  //     //       convertedAmount,
+  //     //       convertedPlatformFee,
+  //     //       actualAmount: rateOffered * duration,
+  //     //       actualCurrency,
+  //     //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //     //       platformFee,
+  //     //       convertedPlatformFee,
+  //     //     },
+  //     //     {
+  //     //       headers: {
+  //     //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     //       },
+  //     //     }
+  //     //   );
+  //     //   if (res.data.stripeRequired) {
+  //     //     window.location.href = res.data.url;
+  //     //   } else {
+  //     //     alert("Payment successful");
+  //     //   }
+  //     // } catch (error) {
+  //     //   console.error("Error processing payment:", error);
+  //     //   alert("Payment failed. Please try again later.");
+  //     // }
+  //   }
+
+  //   let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+  //   console.log("Payable Amount", payableAmount);
+  //   // try {
+  //   //   const res = await axios.post(
+  //   //     `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
+  //   //     {
+  //   //       amount: payableAmount,
+  //   //       currency: currency,
+  //   //       convertedAmount,
+  //   //       convertedPlatformFee,
+  //   //       actualAmount: rateOffered,
+  //   //       actualCurrency,
+  //   //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //   //       platformFee,
+  //   //       convertedPlatformFee,
+  //   //     },
+  //   //     {
+  //   //       headers: {
+  //   //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //   //       },
+  //   //     }
+  //   //   );
+  //   //   if (res.data.stripeRequired) {
+  //   //     window.location.href = res.data.url;
+  //   //   } else {
+  //   //     alert("Payment successful");
+  //   //   }
+  //   // } catch (error) {
+  //   //   console.error("Error processing payment:", error);
+  //   //   alert("Payment failed. Please try again later.");
+  //   // }
+  // };
   function acceptInvite(inviteId) {
     axios
       .patch(
@@ -261,12 +379,12 @@ function Alerts() {
                 {notif?.metadata?.applicationMessage || "No message provided."}
               </p>
               <div className="mt-3 md:mt-0">
-                <a
-                  href={`/application/${notif?.data?.applicationId}`}
+                <Link
+                  to={`/dashboard/manage-jobs/${notif?.metadata?.jobId?._id}/view`}
                   className="text-[#E61E4D] font-medium no-underline hover:underline"
                 >
                   View Application
-                </a>
+                </Link>
               </div>
             </div>
             {notif?.createdAt && (
@@ -285,7 +403,10 @@ function Alerts() {
             {/* Top: Profile & Rate */}
             <div className="flex items-start justify-between">
               {(() => {
-                const actor = notif?.sender?._id === user?._id ? notif?.user : notif?.sender;
+                const actor =
+                  notif?.sender?._id === user?._id
+                    ? notif?.user
+                    : notif?.sender;
                 return (
                   <div className="flex gap-2">
                     <img
@@ -305,7 +426,8 @@ function Alerts() {
                 );
               })()}
               <div className="text-right font-semibold">
-                ${notif?.metadata?.jobId?.rateOffered || 12}/hr
+                {notif?.metadata?.jobId?.currency} -{" "}
+                {notif?.metadata?.jobId?.rateOffered || 12}/hr
               </div>
             </div>
 

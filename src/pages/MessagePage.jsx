@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import "../asset/css/MessagePage.css";
 import { FaSearch, FaCheckDouble, FaTimes } from "react-icons/fa";
 import { ChatState } from "../Context/ChatProvider";
 import axios from "axios";
 import BASE_URLS from "../config";
-import io from "socket.io-client"; 
+import io from "socket.io-client";
 
 const ENDPOINT = "https://mypartyhost.onrender.com";
 let socket;
@@ -53,6 +53,8 @@ const MessagePage = () => {
   const [chatsLoaded, setChatsLoaded] = useState(false);
   const hasOpenedFromStateRef = useRef(false);
   const lastOpenedUserIdRef = useRef(null);
+
+  console.log(" Chat ny contxt:", user);
 
   const removeGroupMember = async (chatId, userId) => {
     try {
@@ -240,7 +242,10 @@ const MessagePage = () => {
     if (lastOpenedUserIdRef.current === userIdFromState) return;
 
     const existing = chats.find(
-      (c) => !c.isGroupChat && c.users && c.users.some((u) => u._id === userIdFromState)
+      (c) =>
+        !c.isGroupChat &&
+        c.users &&
+        c.users.some((u) => u._id === userIdFromState)
     );
 
     if (existing) {
@@ -323,9 +328,6 @@ const MessagePage = () => {
                 return chat;
               })
             );
-
-           
-            
           })
           .catch((err) => {
             console.error("Error marking message as read:", err);
@@ -339,7 +341,7 @@ const MessagePage = () => {
 
   // useEffect(() => {
   //   if (!socket) return;
-  
+
   //   socket.on("message read", (chatId) => {
   //     setChats((prevChats) =>
   //       prevChats.map((chat) =>
@@ -355,15 +357,15 @@ const MessagePage = () => {
   //       )
   //     );
   //   });
-  
+
   //   return () => {
   //     socket.off("message read");
   //   };
   // }, [user]);
-  
+
   useEffect(() => {
     if (!socket) return;
-  
+
     socket.on("message read", ({ chatId, readerId }) => {
       // Only update if current user is the sender
       setChats((prevChats) =>
@@ -384,12 +386,11 @@ const MessagePage = () => {
         })
       );
     });
-  
+
     return () => {
       socket.off("message read");
     };
   }, [user]);
-  
 
   // Fetch messages for selected chat
   useEffect(() => {
@@ -433,7 +434,6 @@ const MessagePage = () => {
               notification.chat._id !== selectedChatCompare.current._id
           )
         );
-
       } else {
         // If the message is for a different chat, add it to notifications
         if (!notifications.some((n) => n._id === newMessageReceived._id)) {
@@ -582,13 +582,41 @@ const MessagePage = () => {
     setSelectedUsers(selectedUsers.filter((u) => u._id !== userId));
   };
 
+  // const getChatName = () => {
+  //   if (!selectedChat) return "Select a chat";
+  //   return selectedChat.isGroupChat
+  //     ? selectedChat.chatName
+  //     : selectedChat.users[0]._id === user._id
+  //     ? selectedChat.users[1].name
+  //     : selectedChat.users[0].name;
+  // };
+
+  const getUserId = (u) => {
+    if (!u) return null;
+    if (typeof u === "string") return u;
+    if (u._id) return u._id; // organizer/admin case
+    if (u.user) {
+      if (typeof u.user === "string") return u.user; // staff case where user field is id string
+      if (u.user._id) return u.user._id; // staff case where user is nested object
+    }
+    return null;
+  };
+
+  const loggedInUserId = useMemo(() => getUserId(user), [user]);
+
   const getChatName = () => {
     if (!selectedChat) return "Select a chat";
-    return selectedChat.isGroupChat
-      ? selectedChat.chatName
-      : selectedChat.users[0]._id === user._id
-      ? selectedChat.users[1].name
-      : selectedChat.users[0].name;
+    if (selectedChat.isGroupChat) return selectedChat.chatName;
+    // const otherUser = selectedChat.users.find((u) => u._id !== user.user);
+    const otherUser = selectedChat.users.find((u) => {
+      if (user.role === "staff") {
+        return u._id !== user.user; // staff ke case me
+      } else {
+        return u._id !== user._id; // admin/organizer ke case me
+      }
+    });
+
+    return otherUser?.name || "Unknown User";
   };
 
   return (
@@ -670,7 +698,7 @@ const MessagePage = () => {
             </button>
           )}
         </div>
-        <div className="kaab-message-list">
+        {/* <div className="kaab-message-list">
           {filteredChats && filteredChats.length > 0 ? (
             filteredChats.map((chat) => (
               <div
@@ -734,6 +762,79 @@ const MessagePage = () => {
                 )}
               </div>
             ))
+          ) : (
+            <div className="kaab-no-messages">
+              <img src="/images/no-messages.png" alt="No Messages" />
+              <p>No messages found</p>
+            </div>
+          )}
+        </div> */}
+        <div className="kaab-message-list">
+          {filteredChats && filteredChats.length > 0 ? (
+            filteredChats.map((chat) => {
+              // yaha pe fix
+              const currentUserId =
+                user.role === "staff" ? user.user : user._id;
+              const otherUser = chat.users.find((u) => u._id !== currentUserId);
+
+              return (
+                <div
+                  key={chat._id}
+                  onClick={() => setSelectedChat(chat)}
+                  className={`kaab-message-item ${
+                    selectedChat && selectedChat._id === chat._id
+                      ? "active"
+                      : ""
+                  }`}
+                >
+                  <img
+                    src={
+                      chat.isGroupChat
+                        ? "https://imgs.search.brave.com/IlEhT8Dcgu3T4mm7t9xhl6UsFEooWIWZ3wDtgeDtZsc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMDAv/NTUwLzUzNS9zbWFs/bC91c2VyX2ljb25f/MDA3LmpwZw"
+                        : otherUser?.profileImage
+                    }
+                    alt={chat.isGroupChat ? chat.chatName : otherUser?.name}
+                  />
+                  <div className="kaab-message-info">
+                    <div className="kaab-message-name-time">
+                      <span>
+                        {chat.isGroupChat ? chat.chatName : otherUser?.name}
+                      </span>
+                      <span>
+                        {chat.updatedAt
+                          ? new Date(chat.updatedAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Time not available"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="kaab-message-preview">
+                        {chat.latestMessage?.content?.length > 18
+                          ? `${chat.latestMessage?.content.slice(0, 18)}...`
+                          : chat.latestMessage?.content}
+                      </div>
+                      <div className="kaab-message-status">
+                        {chat.latestMessage?.read ? (
+                          <i className="ri-check-double-line text-red-400"></i>
+                        ) : (
+                          <i className="ri-check-line text-red-400"></i>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {notifications.find((n) => n.chat?._id === chat._id) && (
+                    <span className="kaab-unread-count">
+                      {
+                        notifications.filter((n) => n.chat?._id === chat._id)
+                          .length
+                      }
+                    </span>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <div className="kaab-no-messages">
               <img src="/images/no-messages.png" alt="No Messages" />
