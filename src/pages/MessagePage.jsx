@@ -692,7 +692,7 @@ const MessagePage = () => {
           {user && user.role == "superadmin" && (
             <button
               onClick={togglePopup}
-              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full"
+              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full z-[99]"
             >
               <i className="ri-add-line text-xl"></i>
             </button>
