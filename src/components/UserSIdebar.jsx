@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URLS from "../config";
 import { RiArrowLeftLine } from "react-icons/ri";
-import { Link } from "react-router-dom";
 import Select from "react-select";
 import Notify from "../utils/notify";
 
@@ -283,13 +282,7 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                 <h3 className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
                   Permissions & Role Management
                 </h3>
-                <h3 className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
-                  Permissions & Role Management
-                </h3>
                 <div className="space-y-2 flex gap-3 items-center">
-                  <label className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                    Current Role:
-                  </label>
                   <label className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                     Current Role:
                   </label>
@@ -322,9 +315,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                         onChange={handleInputChange}
                         className="accent-[#E61E4D] w-4 h-4"
                       />
-                      <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                        {perm.label}
-                      </span>
                       <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                         {perm.label}
                       </span>
@@ -367,15 +357,9 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                       <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                         {user.name}
                       </span>
-                      <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                        {user.name}
-                      </span>
                     </span>
                     <span className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                       User Type:{" "}
-                      <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                        {user.role}
-                      </span>
                       <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                         {user.role}
                       </span>
@@ -423,26 +407,14 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                   <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                     {user.email}
                   </span>
-                  Email:{" "}
-                  <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                    {user.email}
-                  </span>
                 </span>
                 <span className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                   Phone:{" "}
                   <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                     {user.phone}
                   </span>
-                  Phone:{" "}
-                  <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                    {user.phone}
-                  </span>
                 </span>
                 <span className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                  User ID:{" "}
-                  <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                    {user._id}
-                  </span>
                   User ID:{" "}
                   <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                     {user._id}
@@ -482,9 +454,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                 <p className="self-stretch justify-start text-[#3D3D3D] text-base font-bold font-['Inter'] leading-snug">
                   Assigned Permissions
                 </p>
-                <p className="self-stretch justify-start text-[#3D3D3D] text-base font-bold font-['Inter'] leading-snug">
-                  Assigned Permissions
-                </p>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div className="flex items-center">
                     <input
@@ -493,9 +462,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                       className="mr-2 accent-[#E61E4D] w-4 h-4"
                       readOnly
                     />
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Accept bookings
-                    </span>
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Accept bookings
                     </span>
@@ -510,9 +476,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Message users
                     </span>
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Message users
-                    </span>
                   </div>
                   <div className="flex items-center">
                     <input
@@ -521,9 +484,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                       className="mr-2 accent-[#E61E4D] w-4 h-4"
                       readOnly
                     />
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Apply Events
-                    </span>
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Apply Events
                     </span>
@@ -538,9 +498,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Submit reviews
                     </span>
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Submit reviews
-                    </span>
                   </div>
                   <div className="flex items-center">
                     <input
@@ -549,9 +506,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                       className="mr-2 accent-[#E61E4D] w-4 h-4"
                       readOnly
                     />
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Post Events
-                    </span>
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Post Events
                     </span>
@@ -566,16 +520,10 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                     <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                       Post Events
                     </span>
-                    <span className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Post Events
-                    </span>
                   </div>
                 </div>
               </div>
               <div className="self-stretch p-4 bg-[#F9F9F9] rounded-2xl inline-flex flex-col justify-start items-start gap-4">
-                <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
-                  Activity Log
-                </div>
                 <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
                   Activity Log
                 </div>
@@ -627,9 +575,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
               <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                 Reason:
               </div>
-              <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                Reason:
-              </div>
               <div className="relative flex-1">
                 <select
                   value={reason}
@@ -637,9 +582,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                   className="flex-1 px-3 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#656565] text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug appearance-none pr-10 focus:outline-blue-500 focus:outline-2"
                 >
                   <option value="">Select Reason</option>
-                  <option value="violation">
-                    Violation of platform policies
-                  </option>
                   <option value="violation">
                     Violation of platform policies
                   </option>
@@ -654,9 +596,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
               </div>
             </div>
             <div className="self-stretch inline-flex justify-start items-center gap-3 ">
-              <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
-                Duration:
-              </div>
               <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                 Duration:
               </div>
@@ -676,7 +615,6 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                 </div>
               </div>
             </div>
-            <hr className="w-full border border-zinc-300" />
             <hr className="w-full border border-zinc-300" />
             <div className="inline-flex w-full justify-end gap-3">
               <button
@@ -700,4 +638,3 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
 };
 
 export default UserSidebar;
-
