@@ -19,8 +19,139 @@ function ViewJobDetails() {
   const [currency, setCurrency] = useState("USD");
   const { user } = ChatState();
 
+  // useEffect(() => {
+  //   // Step 1: Get user's currency
+  //   axios
+  //     .get("https://ipapi.co/json/")
+  //     .then((res) => {
+  //       const userCurrency = res.data.currency;
+  //       setCurrency(userCurrency);
+  //       console.log("User's currency:", userCurrency);
+  //     })
+  //     .catch((err) => console.error(err));
+  // }, [currency]);
+
+  // const handleProceedToPayment = async (
+  //   jobId,
+  //   applicationId,
+  //   actualAmount,
+  //   actualCurrency,
+  //   duration,
+  //   staffId,
+  //   jobDetail
+  // ) => {
+  //   console.log(
+  //     jobId,
+  //     applicationId,
+  //     actualAmount,
+  //     actualCurrency,
+  //     duration,
+  //     staffId,
+  //     jobDetail.duration
+  //   );
+  //   if (!currency) return;
+  //   const rateRes = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
+  //   );
+  //   const platformFeeRate = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD` // Assuming platform fee is in USD
+  //   );
+  //   const rate = rateRes.data.conversion_rates[currency] || 1;
+  //   let convertedAmount = actualAmount * rate;
+  //   let platformFee = 20;
+  //   console.log("Platform Fee:", platformFee);
+  //   let convertedPlatformFee = platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
+  //   let actualAmountInUSD = actualAmount * rateRes.data.conversion_rates['USD'] || 1;
+
+  //   // let realAmt = actualAmount * jobDetail.duration;
+  //   let realAmtAfterPlatform =
+  //   (actualAmount  * 10 / 100) + platformFee;
+  //   let amountUSDAfterPlatform = actualAmountInUSD.toFixed(2) * 10 / 100 + platformFee;
+  //   console.log("Real Amount After Platform Fee:", realAmtAfterPlatform);
+  //   console.log("Amount in USD ", amountUSDAfterPlatform);
+
+  //   if (duration === "hour") {
+  //     realAmtAfterPlatform = (actualAmount * jobDetail.duration * 10) / 100 + platformFee;
+  //     amountUSDAfterPlatform = ((actualAmountInUSD * jobDetail.duration) * 10 / 100) + platformFee;
+  //     convertedAmount *= jobDetail.duration;
+  //     console.log("10 Percent", (convertedAmount * 10) / 100);
+  //     let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
+  //     console.log("Converted Amount for hourly job:", payableAmount);
+
+      
+
+  //     // try {
+  //     //   const res = await axios.post(
+  //     //     `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
+  //     //     {
+  //     //       currency: currency,
+  //     //       amount: payableAmount.toFixed(2),
+  //     //       convertedAmount,
+  //     //       actualAmount: actualAmount * jobDetail.duration,
+  //     //       actualCurrency: actualCurrency,
+  //     //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //     //       actualAmountPayable : realAmtAfterPlatform,
+  //     //       platformFee,
+  //     //       convertedPlatformFee,
+
+  //     //     },
+  //     //     {
+  //     //       headers: {
+  //     //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     //       },
+  //     //     }
+  //     //   );
+  //     //   if (res.data.stripeRequired) {
+  //     //     window.location.href = res.data.url;
+  //     //   } else {
+  //     //     alert("Payment done from wallet. Staff hired!");
+  //     //   }
+  //     //   // window.location.href = res.data.url;
+  //     // } catch (error) {
+  //     //   console.error("Payment Error:", error);
+  //     //   alert("Failed to create payment session.");
+  //     // }
+  //   }
+
+  //   // console.log('Converted Amount:',  convertedAmount);
+
+  //   // convertedAmount *= jobDetail.duration;
+  //   console.log("10 Percent", (convertedAmount * 10) / 100);
+  //   let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
+  //   console.log("Converted Amount for  job:", payableAmount);
+
+  //   // try {
+  //   //   const res = await axios.post(
+  //   //     `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
+  //   //     {
+  //   //       currency: currency,
+  //   //       amount: payableAmount.toFixed(2),
+  //   //       convertedAmount,
+  //   //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //   //       actualAmount: actualAmount * jobDetail.duration,
+  //   //       actualCurrency: actualCurrency,
+  //   //       actualAmountPayable : realAmtAfterPlatform,
+  //   //       platformFee,
+  //   //       convertedPlatformFee,
+
+
+  //   //     },
+  //   //     {
+  //   //       headers: {
+  //   //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //   //       },
+  //   //     }
+  //   //   );
+
+  //   //   window.location.href = res.data.url;
+  //   // } catch (error) {
+  //   //   console.error("Payment Error:", error);
+  //   //   alert("Failed to create payment session.");
+  //   // }
+  // };
+
   useEffect(() => {
-    // Step 1: Get user's currency
+    // Step 1: Get user's currency (only once on mount)
     axios
       .get("https://ipapi.co/json/")
       .then((res) => {
@@ -29,112 +160,72 @@ function ViewJobDetails() {
         console.log("User's currency:", userCurrency);
       })
       .catch((err) => console.error(err));
-  }, [currency]);
-
+  }, []); // ✅ empty dependency
+  
   const handleProceedToPayment = async (
     jobId,
     applicationId,
-    actualAmount,
-    actualCurrency,
-    duration,
+    actualAmount,     // base rate (hourly or fixed)
+    actualCurrency,   // currency in which job was posted
+    duration,         // "hour" or "fixed"
     staffId,
     jobDetail
   ) => {
-    console.log(
-      jobId,
-      applicationId,
-      actualAmount,
-      actualCurrency,
-      duration,
-      staffId,
-      jobDetail.duration
-    );
-    if (!currency) return;
-    const rateRes = await axios.get(
-      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
-    );
-    const platformFeeRate = await axios.get(
-      `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD` // Assuming platform fee is in USD
-    );
-    const rate = rateRes.data.conversion_rates[currency] || 1;
-    let convertedAmount = actualAmount * rate;
-    let platformFee = 20;
-    console.log("Platform Fee:", platformFee);
-    let convertedPlatformFee = platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
-    let actualAmountInUSD = actualAmount * rateRes.data.conversion_rates['USD'] || 1;
-
-    // let realAmt = actualAmount * jobDetail.duration;
-    let realAmtAfterPlatform =
-    (actualAmount  * 10 / 100) + platformFee;
-    let amountUSDAfterPlatform = actualAmountInUSD.toFixed(2) * 10 / 100 + platformFee;
-    console.log("Real Amount After Platform Fee:", realAmtAfterPlatform);
-    console.log("Amount in USD ", amountUSDAfterPlatform);
-
-    if (duration === "hour") {
-      realAmtAfterPlatform = (actualAmount * jobDetail.duration * 10) / 100 + platformFee;
-      amountUSDAfterPlatform = ((actualAmountInUSD * jobDetail.duration) * 10 / 100) + platformFee;
-      convertedAmount *= jobDetail.duration;
-      console.log("10 Percent", (convertedAmount * 10) / 100);
-      let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
-      console.log("Converted Amount for hourly job:", payableAmount);
-
-      
-
-      try {
-        const res = await axios.post(
-          `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
-          {
-            currency: currency,
-            amount: payableAmount.toFixed(2),
-            convertedAmount,
-            actualAmount: actualAmount * jobDetail.duration,
-            actualCurrency: actualCurrency,
-            amountUSD: amountUSDAfterPlatform.toFixed(2),
-            actualAmountPayable : realAmtAfterPlatform,
-            platformFee,
-            convertedPlatformFee,
-
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (res.data.stripeRequired) {
-          window.location.href = res.data.url;
-        } else {
-          alert("Payment done from wallet. Staff hired!");
-        }
-        // window.location.href = res.data.url;
-      } catch (error) {
-        console.error("Payment Error:", error);
-        alert("Failed to create payment session.");
-      }
-    }
-
-    // console.log('Converted Amount:',  convertedAmount);
-
-    // convertedAmount *= jobDetail.duration;
-    console.log("10 Percent", (convertedAmount * 10) / 100);
-    let payableAmount = (convertedAmount * 10) / 100 + convertedPlatformFee;
-    console.log("Converted Amount for  job:", payableAmount);
-
     try {
+      if (!currency) return;
+  
+      // ✅ Step 1: Calculate base amount in original currency
+      const baseAmount =
+        duration === "hour"
+          ? actualAmount * jobDetail.duration // hourly total
+          : actualAmount;                     // fixed total
+  
+      // ✅ Step 2: Get conversion rates
+      const rateRes = await axios.get(
+        `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
+      );
+      const platformFeeRate = await axios.get(
+        `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD` // platform fee is in USD
+      );
+  
+      const rate = rateRes.data.conversion_rates[currency] || 1;
+  
+      // ✅ Step 3: Convert amounts
+      const convertedAmount = baseAmount * rate; // total in user's currency
+      const platformFee = 20; // in USD
+      const convertedPlatformFee =
+        platformFee * (platformFeeRate.data.conversion_rates[currency] || 1);
+  
+      const actualAmountInUSD =
+        baseAmount * (rateRes.data.conversion_rates["USD"] || 1);
+  
+      // ✅ Step 4: Apply fees
+      const serviceFeeUser = convertedAmount * 0.1;
+      const payableAmount = serviceFeeUser + convertedPlatformFee;
+  
+      const amountUSDAfterPlatform = actualAmountInUSD * 0.1 + platformFee;
+  
+      console.log("=== PAYMENT DEBUG ===");
+      console.log("Base Amount:", baseAmount, actualCurrency);
+      console.log("Converted Amount:", convertedAmount, currency);
+      console.log("Service Fee (User):", serviceFeeUser);
+      console.log("Platform Fee (USD):", platformFee);
+      console.log("Converted Platform Fee:", convertedPlatformFee);
+      console.log("Total Payable (User Currency):", payableAmount);
+      console.log("Total Payable (USD):", amountUSDAfterPlatform);
+  
+      // ✅ Step 5: Send to backend
       const res = await axios.post(
         `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/hire/${applicationId}/initiate`,
         {
-          currency: currency,
-          amount: payableAmount.toFixed(2),
-          convertedAmount,
-          amountUSD: amountUSDAfterPlatform.toFixed(2),
-          actualAmount: actualAmount * jobDetail.duration,
-          actualCurrency: actualCurrency,
-          actualAmountPayable : realAmtAfterPlatform,
+          currency, // user currency
+          amount: payableAmount.toFixed(2), // total payable (user currency)
+          convertedAmount: convertedAmount.toFixed(2), // base in user currency
+          actualAmount: baseAmount, // actual in original currency
+          actualCurrency,
+          amountUSD: amountUSDAfterPlatform.toFixed(2), // total in USD
           platformFee,
-          convertedPlatformFee,
-
-
+          convertedPlatformFee: convertedPlatformFee.toFixed(2),
         },
         {
           headers: {
@@ -142,13 +233,18 @@ function ViewJobDetails() {
           },
         }
       );
-
-      window.location.href = res.data.url;
+  
+      if (res.data.stripeRequired) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Payment done from wallet. Staff hired!");
+      }
     } catch (error) {
       console.error("Payment Error:", error);
       alert("Failed to create payment session.");
     }
   };
+  
 
   const handleDecline = (job) => {
     console.log("Declining application:", job);

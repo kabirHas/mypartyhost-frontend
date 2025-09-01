@@ -6,6 +6,7 @@ import axios from "axios";
 import BASE_URLS from "../config";
 
 const UserTable = ({ users, handleToggle, setSelectedUserId }) => {
+  console.log("Users", users);
   return (
     <table className="w-full rounded-2xl border border-[#ECECEC] ">
       <thead>
@@ -221,12 +222,13 @@ const BoostedProfiles = () => {
             ctr: `${profile.ctrPercent}%`,
             totalCost: `$${profile.totalCost}`,
             bookings: profile.bookedJobs,
-            isActive: profile.status,
-            status: profile.status ? "Active" : "Pending",
-            isApproved: profile.status,
+            isActive: profile.isBoosted,
+            status: profile.isBoosted ? "Active" : "Inactive",
+            isApproved: profile.isBoosted,
           };
         }
       );
+      console.log("Transformed Users", transformedUsers);
       setUsers(transformedUsers);
 
       const uniquePlans = [

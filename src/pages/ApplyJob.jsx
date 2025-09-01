@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
+import BASE_URLS from "../config";
 
 const ApplyJob = () => {
   const { state } = useLocation();
@@ -84,7 +85,7 @@ const handleSubmit = async (e) => {
     // });
 
     const response = await axios.post(
-      `https://mypartyhost.onrender.com/api/jobs/${job?.id}/apply`,
+      `${BASE_URLS.BACKEND_BASEURL}jobs/${job?.id}/apply`,
       {
         job: job?.id,
         staff: staffId,
@@ -271,7 +272,7 @@ const handleSubmit = async (e) => {
                         type="number"
                         value={offer}
                         onChange={(e) => setOffer(e.target.value)}
-                        className="w-25 pl-2 outline-none bg-transparent text-base text-[#3D3D3D] font-['Inter']"
+                        className="w-full pl-2 outline-none bg-transparent text-base text-[#3D3D3D] font-['Inter']"
                         min="0"
                         step="0.01"
                         placeholder="Enter rate"

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "../asset/css/PaymentPage.css";
 import axios from "axios";
 import BASE_URLS from "../config";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const PaymentPage = () => {
   const [search, setSearch] = useState("");
@@ -98,11 +100,21 @@ const PaymentPage = () => {
               month: "short",
               day: "numeric",
             }),
-            id: item._id,
+            id: item.stripeTransactionId || item._id,
             type,
             description: item.jobId.eventName || "N/A",
+            jobTitle: item.jobId.jobTitle || "N/A",
             status: displayStatus,
             statusColor,
+            // Add payment details for invoice
+            amount: item.amount,
+            currency: item.currency,
+            platformFee: item.platformFee,
+            actualAmount: item.actualAmount,
+            actualCurrency: item.actualCurrency,
+            amountUSD: item.amountUSD,
+            convertedAmount: item.convertedAmount,
+            convertedPlatformFee: item.convertedPlatformFee,
           };
         });
 
@@ -199,6 +211,140 @@ const PaymentPage = () => {
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page when items per page changes
+  };
+
+  // Function to generate and download invoice PDF
+  const handleDownloadInvoice = (transaction) => {
+    const doc = new jsPDF();
+    
+    // Add company header with better spacing
+    doc.setFontSize(20);
+    doc.setTextColor(230, 30, 77);
+    doc.text("MyPartyHost", 20, 25);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Professional Event Services", 20, 32);
+    doc.text("123 Event Street, Party City, PC 12345", 20, 38);
+    doc.text("Phone: +1 (555) 123-4567 | Email: info@mypartyhost.com", 20, 44);
+    
+    // Add invoice title with line separator
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(230, 30, 77);
+    doc.line(20, 50, 190, 50);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(45, 45, 45);
+    doc.text("INVOICE", 20, 60);
+    
+    // Add invoice details in compact format
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    
+    // Left column - Invoice info (compact)
+    doc.text("Invoice Number:", 20, 75);
+    doc.setTextColor(45, 45, 45);
+    doc.text(transaction.id, 20, 82);
+    
+    doc.setTextColor(100, 100, 100);
+    doc.text("Invoice Date:", 20, 92);
+    doc.setTextColor(45, 45, 45);
+    doc.text(new Date(transaction.rawDate).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    }), 20, 99);
+    
+    doc.setTextColor(100, 100, 100);
+    doc.text("Transaction Type:", 20, 109);
+    doc.setTextColor(45, 45, 45);
+    doc.text(transaction.type, 20, 116);
+    
+    // Right column - Status and Payment Method
+    doc.setTextColor(100, 100, 100);
+    doc.text("Status:", 120, 75);
+    doc.setTextColor(45, 45, 45);
+    doc.text(transaction.status, 120, 82);
+    
+    // Add payment method info if available
+    if (transaction.cardBrand && transaction.cardLast4) {
+      doc.setTextColor(100, 100, 100);
+      doc.text("Payment Method:", 120, 92);
+      doc.setTextColor(45, 45, 45);
+      doc.text(`${transaction.cardBrand.toUpperCase()} ****${transaction.cardLast4}`, 120, 99);
+    }
+    
+    // Add event details section with line separator
+    doc.setLineWidth(0.3);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 125, 190, 125);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(230, 30, 77);
+    doc.text("Event Details", 20, 135);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Event Name:", 20, 145);
+    doc.setTextColor(45, 45, 45);
+    doc.text(transaction.description, 20, 152);
+    
+    doc.setTextColor(100, 100, 100);
+    doc.text("Job Title:", 20, 162);
+    doc.setTextColor(45, 45, 45);
+    doc.text(transaction.jobTitle || "N/A", 20, 169);
+    
+    // Add transaction details table with actual API data (compact)
+    const tableData = [
+      ["Event Service", `${transaction.currency} ${(transaction.amount - transaction.convertedPlatformFee).toFixed(2)}`],
+      ["Platform Fee", `${transaction.currency} ${transaction.convertedPlatformFee.toFixed(2)}`],
+      ["", ""],
+      ["Total", `${transaction.currency} ${transaction.amount.toFixed(2)}`]
+    ];
+    
+    autoTable(doc, {
+      startY: 180,
+      head: [["Description", "Amount"]],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [230, 30, 77],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.3
+      },
+      columnStyles: {
+        0: { cellWidth: 120, halign: 'left' },
+        1: { cellWidth: 60, halign: 'right' }
+      },
+      margin: { left: 20, right: 20 }
+    });
+    
+    // Add footer (compact)
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setLineWidth(0.3);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, pageHeight - 25, 190, pageHeight - 25);
+    
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Thank you for choosing MyPartyHost for your event needs!", 20, pageHeight - 18);
+    doc.text("For any questions, please contact us at support@mypartyhost.com", 20, pageHeight - 12);
+    doc.text("Terms and conditions apply. All payments are processed securely.", 20, pageHeight - 6);
+    
+    // Download the PDF
+    const fileName = `Invoice_${transaction.id}_${transaction.description.replace(/\s+/g, '_')}.pdf`;
+    doc.save(fileName);
   };
 
 
@@ -335,10 +481,13 @@ const PaymentPage = () => {
                   </div>
                 </div>
                 <div className="flex-1 py-6 px-3 flex justify-center items-center gap-4">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#ECECEC] rounded-full">
+                  <button 
+                    onClick={() => handleDownloadInvoice(transaction)}
+                    className="flex items-center gap-2 px-3 py-2 bg-white border border-[#ECECEC] rounded-full hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
                     <span className="text-[#3D3D3D] text-sm font-medium">Invoice</span>
                     <img src="/images/DownloadSimple.png" alt="download" />
-                  </div>
+                  </button>
                 </div>
               </div>
             ))
