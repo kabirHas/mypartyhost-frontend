@@ -27,7 +27,7 @@ const App = () => {
 
 
   useEffect(() => {
-    const handleLogin = () => {
+    const handleLogin = () => { 
       setIsLoggedIn(true);
       setUserRole(localStorage.getItem('role'));
     };

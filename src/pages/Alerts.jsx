@@ -1,57 +1,304 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, set } from "date-fns";
 import BASE_URLS from "../config";
+import { ChatState } from "../Context/ChatProvider";
+import StripeWrapper from "../components/StripeWrapper";
+import { Link, useNavigate } from "react-router-dom";
 
 function Alerts() {
   const [activeTab, setActiveTab] = useState("job_applied");
   const [notifications, setNotifications] = useState([]);
   const [showCancelPopup, setShowCancelPopup] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const { user } = ChatState();
+  const [amount, setAmount] = useState(0);
+  const [currency, setCurrency] = useState("USD");
+  const navigate = useNavigate();
+  // console.log("User from context:", user);
 
-  // Dummy data for bookings
-  const dummyBookings = [
-    {
-      _id: "booking1",
-      type: "booking",
-      user: {
-        name: "Alice Johnson",
-        city: "Melbourne",
-        country: "Australia",
-        profileImage: "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      },
-      metadata: {
-        jobId: {
-          eventName: "Corporate Gala",
-          rateOffered: 20,
-          jobDate: "2025-07-15T14:00:00Z",
-        },
-        jobTitle: "Event Coordinator",
-        bookingStatus: "confirmed",
-      },
-      createdAt: "2025-06-15T10:00:00Z",
-    },
-    {
-      _id: "booking2",
-      type: "booking",
-      user: {
-        name: "Bob Smith",
-        city: "Sydney",
-        country: "Australia",
-        profileImage: "https://plus.unsplash.com/premium_photo-1747852228947-34162c2193c8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      },
-      metadata: {
-        jobId: {
-          eventName: "Wedding Reception",
-          rateOffered: 25,
-          jobDate: "2025-07-20T18:00:00Z",
-        },
-        jobTitle: "Caterer",
-        bookingStatus: "confirmed",
-      },
-      createdAt: "2025-06-16T09:30:00Z",
-    },
-  ];
+  // helpers
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+  const makeConverter = (ratesUSD) => {
+    // ratesUSD: { USD->INR, USD->EUR, ... }
+    return (amount, from, to) => {
+      if (from === to) return amount;
+      const rUSD_to_to = ratesUSD[to];
+      const rUSD_to_from = ratesUSD[from];
+      if (!rUSD_to_to || !rUSD_to_from) throw new Error("Missing FX rate");
+      return amount * (rUSD_to_to / rUSD_to_from);
+    };
+  };
+
+  // ---- component ----
+
+  const PLATFORM_FEE_USD = 20;
+  const SERVICE_FEE_RATE = 0.1; // 10%
+
+  useEffect(() => {
+    // Step 1: Get user's currency once on mount
+    const controller = new AbortController();
+    axios
+      .get("https://ipapi.co/json/", { signal: controller.signal })
+      .then((res) => {
+        const userCurrency = res?.data?.currency || "USD";
+        setCurrency(userCurrency);
+        console.log("User's currency:", userCurrency);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCurrency("USD");
+      });
+    return () => controller.abort();
+  }, []); // <-- run once
+
+  // Optional: cache USD-based FX table once
+  const [usdRates, setUsdRates] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    axios
+      .get(
+        "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD",
+        { signal: controller.signal }
+      )
+      .then((res) => setUsdRates(res?.data?.conversion_rates || null))
+      .catch((e) => console.error("FX fetch failed", e));
+    return () => controller.abort();
+  }, []);
+
+  const handleProceedToPayment = async (
+    invite,
+    jobId,
+    inviteId,
+    rateOffered, // number, in actualCurrency
+    actualCurrency, // e.g., 'EUR'
+    duration, // number (hours) if hourly
+    paymentType // 'hourly' | 'fixed'
+  ) => {
+    try {
+      if (!currency || !usdRates) {
+        console.warn("Missing currency or FX rates");
+        return;
+      }
+
+      const convert = makeConverter(usdRates);
+
+      // 1) Base amount in actualCurrency
+      const baseAmount = Number(
+        paymentType === "hourly" ? rateOffered * duration : rateOffered
+      );
+
+      // 2) Convert base to user's currency
+      const convertedAmount = convert(baseAmount, actualCurrency, currency); // user currency
+
+      // 3) Fees in user's currency
+      const serviceFeeUser = convertedAmount * SERVICE_FEE_RATE; // 10%
+      const platformFeeUser = convert(PLATFORM_FEE_USD, "USD", currency);
+
+      const payableAmount = round2(serviceFeeUser + platformFeeUser); // final charge in user's currency
+
+      // 4) USD-side numbers (for records/settlement)
+      const baseUSD = convert(baseAmount, actualCurrency, "USD");
+      const amountUSDAfterPlatform = round2(
+        baseUSD * SERVICE_FEE_RATE + PLATFORM_FEE_USD
+      );
+
+      // 5) Round display fields (not before)
+      const payload = {
+        amount: payableAmount, // charge in user's currency
+        currency: currency, // user's currency
+        convertedAmount: round2(convertedAmount), // base (no fees) in user currency
+        convertedPlatformFee: round2(platformFeeUser), // platform fee in user currency
+        actualAmount: round2(baseAmount), // base in actualCurrency
+        actualCurrency,
+        amountUSD: amountUSDAfterPlatform, // total fees in USD (10% + $20)
+        platformFee: PLATFORM_FEE_USD, // in USD
+      };
+
+      console.log("Payment payload", payload);
+
+      const res = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
+        payload,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      if (res.data.stripeRequired) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Payment successful");
+      }
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      // alert("Payment failed. Please try again later.");
+    }
+  };
+
+  // useEffect(() => {
+  //   // Step 1: Get user's currency
+  //   axios
+  //     .get("https://ipapi.co/json/")
+  //     .then((res) => {
+  //       const userCurrency = res.data.currency;
+  //       setCurrency(userCurrency);
+  //       console.log("User's currency:", userCurrency);
+  //     })
+  //     .catch((err) => console.error(err));
+  // }, [currency]);
+
+  // const handleProceedToPayment = async (
+  //   invite,
+  //   jobId,
+  //   inviteId,
+  //   rateOffered,
+  //   actualCurrency,
+  //   duration,
+  //   paymentType
+  // ) => {
+  //   console.log("fjapsf", {
+  //     invite,
+  //     jobId,
+  //     inviteId,
+  //     rateOffered,
+  //     actualCurrency,
+  //     duration,
+  //     paymentType,
+  //   });
+
+  //   if (!currency) return;
+
+  //   const rateRes = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${actualCurrency}`
+  //   );
+  //   const platformFeeRate = await axios.get(
+  //     `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/${currency}`
+  //   );
+
+  //   const rate = rateRes.data.conversion_rates[currency] || 1;
+  //   let convertedAmount = (rateOffered * rate).toFixed(2);
+  //   console.log("Converted Amount", convertedAmount);
+  //   let platformFee = 20;
+  //   let convertedPlatformFee =
+  //     platformFee * platformFeeRate.data.conversion_rates[currency] || 1;
+  //   let actualAmountInUSD =
+  //     rateOffered * platformFeeRate.data.conversion_rates[currency] || 1;
+  //   console.log({ convertedAmount, convertedPlatformFee });
+  //   let realAmtAfterPlatform = (rateOffered * 10) / 100 + platformFee;
+  //   let amountUSDAfterPlatform = actualAmountInUSD * 0.1 + convertedPlatformFee;
+  //   console.log("Amount after platform fee in USD", amountUSDAfterPlatform);
+
+  //   if (paymentType === "hourly") {
+  //     realAmtAfterPlatform = (rateOffered * duration * 10) / 100 + platformFee;
+  //     amountUSDAfterPlatform =
+  //       (actualAmountInUSD * duration * 10) / 100 + convertedPlatformFee;
+  //     convertedAmount = rateOffered * duration * rate;
+  //     console.log("Converted Amt after platform", convertedAmount);
+
+  //     let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+  //     console.log("Payable Amount", payableAmount);
+
+  //     // try {
+  //     //   const res = await axios.post(
+  //     //     `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
+  //     //     {
+  //     //       amount: payableAmount,
+  //     //       currency: currency,
+  //     //       convertedAmount,
+  //     //       convertedPlatformFee,
+  //     //       actualAmount: rateOffered * duration,
+  //     //       actualCurrency,
+  //     //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //     //       platformFee,
+  //     //       convertedPlatformFee,
+  //     //     },
+  //     //     {
+  //     //       headers: {
+  //     //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     //       },
+  //     //     }
+  //     //   );
+  //     //   if (res.data.stripeRequired) {
+  //     //     window.location.href = res.data.url;
+  //     //   } else {
+  //     //     alert("Payment successful");
+  //     //   }
+  //     // } catch (error) {
+  //     //   console.error("Error processing payment:", error);
+  //     //   alert("Payment failed. Please try again later.");
+  //     // }
+  //   }
+
+  //   let payableAmount = convertedAmount * 0.1 + convertedPlatformFee;
+  //   console.log("Payable Amount", payableAmount);
+  //   // try {
+  //   //   const res = await axios.post(
+  //   //     `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
+  //   //     {
+  //   //       amount: payableAmount,
+  //   //       currency: currency,
+  //   //       convertedAmount,
+  //   //       convertedPlatformFee,
+  //   //       actualAmount: rateOffered,
+  //   //       actualCurrency,
+  //   //       amountUSD: amountUSDAfterPlatform.toFixed(2),
+  //   //       platformFee,
+  //   //       convertedPlatformFee,
+  //   //     },
+  //   //     {
+  //   //       headers: {
+  //   //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //   //       },
+  //   //     }
+  //   //   );
+  //   //   if (res.data.stripeRequired) {
+  //   //     window.location.href = res.data.url;
+  //   //   } else {
+  //   //     alert("Payment successful");
+  //   //   }
+  //   // } catch (error) {
+  //   //   console.error("Error processing payment:", error);
+  //   //   alert("Payment failed. Please try again later.");
+  //   // }
+  // };
+  function acceptInvite(inviteId) {
+    axios
+      .patch(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/invitation/${inviteId}/accept`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        setNotifications((prev) =>
+          prev.map((n) => {
+            const currentInviteId = n?.metadata?.inviteId?._id;
+            if (currentInviteId === inviteId) {
+              return {
+                ...n,
+                metadata: {
+                  ...n.metadata,
+                  inviteId: {
+                    ...n.metadata.inviteId,
+                    status: "accepted",
+                  },
+                },
+              };
+            }
+            return n;
+          })
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -66,16 +313,11 @@ function Alerts() {
         );
         // Combine API data with dummy bookings
         const apiNotifications = res.data || [];
-        const combinedNotifications = [
-          ...apiNotifications.filter((n) => n.type !== "booking"), // Exclude any real bookings from API
-          ...dummyBookings, // Add dummy bookings
-        ];
-        setNotifications(combinedNotifications);
-        console.log("Notifications fetched successfully:", combinedNotifications);
+
+        setNotifications(apiNotifications);
+        console.log("Notifications fetched successfully:", apiNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        // If API fails, still show dummy bookings
-        setNotifications(dummyBookings);
       }
     };
 
@@ -86,16 +328,31 @@ function Alerts() {
 
   const handleCancelBooking = (bookingId) => {
     setSelectedBookingId(bookingId);
+    console.log("Selected Booking ID:", bookingId);
     setShowCancelPopup(true);
   };
 
   const confirmCancelBooking = () => {
     // Simulate cancelling by removing the booking from the list
-    setNotifications((prev) =>
-      prev.filter((notif) => notif._id !== selectedBookingId)
-    );
-    setShowCancelPopup(false);
-    setSelectedBookingId(null);
+    axios
+      .post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedBookingId}/cancel-booking`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Booking cancelled successfully:", response.data);
+        setShowCancelPopup(false);
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.error("Error cancelling booking:", error);
+        alert("Failed to cancel booking. Please try again later.");
+      });
   };
 
   const renderNotificationCard = (notif) => {
@@ -122,12 +379,12 @@ function Alerts() {
                 {notif?.metadata?.applicationMessage || "No message provided."}
               </p>
               <div className="mt-3 md:mt-0">
-                <a
-                  href={`/application/${notif?.data?.applicationId}`}
+                <Link
+                  to={`/dashboard/manage-jobs/${notif?.metadata?.jobId?._id}/view`}
                   className="text-[#E61E4D] font-medium no-underline hover:underline"
                 >
                   View Application
-                </a>
+                </Link>
               </div>
             </div>
             {notif?.createdAt && (
@@ -145,35 +402,48 @@ function Alerts() {
           <div className="bg-white text-base font-medium font-['Inter'] leading-snug text-[#292929] rounded-2xl">
             {/* Top: Profile & Rate */}
             <div className="flex items-start justify-between">
-              <div className="flex gap-2">
-                <img
-                  src={notif?.user?.profileImage}
-                  alt={notif?.user?.name || "User Profile"}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div>
-                  <h2 className="font-semibold text-base">
-                    {notif?.user?.name}
-                  </h2>
-                  <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
-                    <i className="ri-map-pin-line mr-1 text-lg" />
-                    {notif?.user?.city},
-                    {notif?.user?.country || "Location not specified"}
+              {(() => {
+                const actor =
+                  notif?.sender?._id === user?._id
+                    ? notif?.user
+                    : notif?.sender;
+                return (
+                  <div className="flex gap-2">
+                    <img
+                      src={actor?.profileImage}
+                      alt={actor?.name || "User Profile"}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h2 className="font-semibold text-base">{actor?.name}</h2>
+                      <div className="flex  items-center text-[#3D3D3D] text-sm -mt-2 ">
+                        <i className="ri-map-pin-line mr-1 text-lg" />
+                        {actor?.city},
+                        {actor?.country || "Location not specified"}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
               <div className="text-right font-semibold">
-                ${notif?.metadata?.jobId?.rateOffered || 12}/hr
+                {notif?.metadata?.jobId?.currency} -{" "}
+                {notif?.metadata?.jobId?.rateOffered || 12}/hr
               </div>
             </div>
 
             {/* Event Info */}
             <div className="mt-4">
-              <p className="text-[#3D3D3D] text-sm mb-2">
+              {/* <p className="text-[#3D3D3D] text-sm mb-2">
                 Invitation Sent for{" "}
                 <span className="font-medium">
                   {notif?.metadata?.jobId?.eventName}
                 </span>
+              </p> */}
+              <p className="text-[#3D3D3D] text-sm mb-2">
+                <span
+                  className="font-medium"
+                  dangerouslySetInnerHTML={{ __html: notif?.message }}
+                ></span>
               </p>
               <div className="flex items-center text-sm text-gray-500">
                 <i className="ri-calendar-event-line mr-1 text-lg" />
@@ -203,21 +473,86 @@ function Alerts() {
             <div className="mt-2 flex justify-end gap-4 items-center">
               {notif?.metadata?.inviteId?.status === "pending" ? (
                 <>
-                  <button className="text-sm text-gray-500 hover:text-black">
-                    Withdraw Invite
-                  </button>
-                  <button className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1">
-                    Send Reminder
-                  </button>
+                  {notif?.user?._id === user?.user ? (
+                    <>
+                      <button
+                        onClick={() =>
+                          handleCancelBooking(notif.metadata?.jobId?._id)
+                        }
+                        className="text-sm text-gray-500 hover:text-black"
+                      >
+                        Reject Invite
+                      </button>
+                      <button
+                        onClick={() =>
+                          acceptInvite(notif?.metadata?.inviteId._id)
+                        }
+                        className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1"
+                      >
+                        Accept Invite
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="text-sm text-gray-500 hover:text-black">
+                        Withdraw Invite
+                      </button>
+                      <button className="text-sm text-[#E61E4D] font-semibold border-2 border-[#E61E4D] px-4 py-2  rounded-md hover:bg-[#E61E4D] hover:text-white ease-in duration-100 flex items-center gap-1">
+                        Send Reminder
+                      </button>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
-                  <button className="text-sm text-gray-600 hover:text-black">
-                    Cancel
-                  </button>
-                  <button className="text-sm text-[#E61E4D] border border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50">
-                    Complete Booking
-                  </button>
+                  {notif?.user?._id === user?.user ? (
+                    notif?.metadata?.inviteId?.isPaid ? (
+                      <button className="text-sm text-green-600 hover:text-black">
+                        Booking Confirmed
+                      </button>
+                    ) : (
+                      <button className="text-sm text-gray-600 hover:text-black">
+                        Waiting for Payment
+                      </button>
+                    )
+                  ) : notif?.metadata?.inviteId?.isPaid ? (
+                    <button className="text-sm text-green-600 hover:text-black">
+                      Booking Completed
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() =>
+                          handleCancelBooking(notif.metadata?.jobId._id)
+                        }
+                        className="text-sm text-gray-600 hover:text-black"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleProceedToPayment(
+                            notif,
+                            notif?.metadata?.jobId._id,
+                            notif?.metadata?.inviteId._id,
+                            notif?.metadata?.jobId?.rateOffered,
+                            notif?.metadata?.jobId?.currency,
+                            notif?.metadata?.jobId?.duration,
+
+                            notif?.metadata?.jobId?.paymentType
+                          );
+                          // setSelectedApplication({
+                          //   inviteId: notif?.metadata?.inviteId._id,
+                          //   jobId: notif?.metadata?.jobId._id,
+                          // });
+                          // setShowPaymentModal(true);
+                        }}
+                        className="text-sm text-[#E61E4D] border border-2 border-pink-500 px-4 py-1.5 rounded-md hover:bg-pink-50"
+                      >
+                        Complete Booking
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -231,7 +566,10 @@ function Alerts() {
             <div className="flex items-start justify-between">
               <div className="flex gap-2">
                 <img
-                  src={notif?.user?.profileImage || "https://via.placeholder.com/48"}
+                  src={
+                    notif?.user?.profileImage ||
+                    "https://via.placeholder.com/48"
+                  }
                   alt={notif?.user?.name || "User Profile"}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -284,15 +622,17 @@ function Alerts() {
                 <i className="ri-heart-fill  text-red-500 mr-1" />
               </div>
               <button
-                onClick={() => handleCancelBooking(notif._id)}
+                onClick={() => handleCancelBooking(notif.metadata?.jobId._id)}
                 className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
               >
                 {/* <i className="ri-close-line text-lg" /> */}
                 Cancel Booking
               </button>
-              <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
-                Message Hostess
-              </button>
+              {notif?.user?._id !== user?.user ? (
+                <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
+                  Message Hostess
+                </button>
+              ) : null}
             </div>
           </div>
         );
@@ -361,13 +701,16 @@ function Alerts() {
       {showCancelPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-[395px] ">
-            <i onClick={() => setShowCancelPopup(false)} className="ri-close-line text-2xl  float-right"></i>
-            
+            <i
+              onClick={() => setShowCancelPopup(false)}
+              className="ri-close-line text-2xl  float-right"
+            ></i>
+
             <p className=" text-gray-600">
-            Booking fees and deposits are non refundable. 
+              Booking fees and deposits are non refundable.
             </p>
             <p className="text-sm text-gray-600 mt-2">
-            Please contact site admin to move this booking to another hostess.
+              Please contact site admin to move this booking to another hostess.
             </p>
             <div className="flex justify-center gap-4 mt-6">
               <button
@@ -380,9 +723,27 @@ function Alerts() {
                 onClick={confirmCancelBooking}
                 className="px-4 py-2 text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 rounded-md hover:bg-red-600"
               >
-                 Cancel Booking
+                Cancel Booking
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPaymentModal && selectedApplication && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute top-2 right-2 text-gray-600 text-lg"
+            >
+              ✕
+            </button>
+            <StripeWrapper
+              jobId={selectedApplication.jobId}
+              inviteId={selectedApplication.invideId}
+              onClose={() => setShowPaymentModal(false)}
+            />
           </div>
         </div>
       )}
