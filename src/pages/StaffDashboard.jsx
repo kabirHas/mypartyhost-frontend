@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../asset/css/OrganizerDashboard.css";
 import Calendar from "../components/Calendar";
@@ -36,11 +36,22 @@ const StaffDashboard = () => {
   const [activeTab, setActiveTab] = useState("invitesReceived");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const [userDataError, setUserDataError] = useState("");
   const [profileViewsError, setProfileViewsError] = useState("");
   const [profileViews, setProfileViews] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [boostProfile, setBoostProfile] = useState(false);
+  const [boostPlans, setBoostPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [currency, setCurrency] = useState("USD");
+  const { user, setUser } = ChatState();
+  const [tokenUser,setTokenUser] = useState(()=>{
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return userInfo.user._id
+  });
+
+
 
   const [isPublic, setIsPublic] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -53,7 +64,7 @@ const StaffDashboard = () => {
 
   const [userId, setUserId] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    console.log("User ID from localStorage:", userInfo._id); // Log the userId
+    console.log("User ID from localStorage:", userInfo._id);
     return userInfo._id || "";
   });
 
@@ -62,7 +73,6 @@ const StaffDashboard = () => {
     return userInfo.additionalRates || [];
   });
 
-  // const [additionalRates, setAdditionalRates] = useState([]);
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
   const serviceOptions = [
@@ -76,7 +86,7 @@ const StaffDashboard = () => {
 
   const [baseRate, setBaseRate] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    return userInfo.baseRate;
+    return userInfo.baseRate || 150;
   });
 
   const [initialBaseRate, setInitialBaseRate] = useState(baseRate);
@@ -85,35 +95,33 @@ const StaffDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [eventsError, setEventsError] = useState("");
 
-  const [boostPlans, setBoostPlans] = useState([]);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [amount, setAmount] = useState(0);
-  const [currency, setCurrency] = useState("USD");
-  const { user, setUser } = ChatState();
-  console.log("User from ChatState:", user);
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [eventDate, setEventDate] = useState(new Date(2024, 0, 1));
+
+  console.log("Context User",user)
 
   const handleProceedToPayment = async () => {
-    if (!selectedPlan || !user || !currency) return;
-
+    if (!selectedPlan || !user?.user || !currency) {
+      alert("Please select a plan and ensure you're logged in.");
+      return;
+    }
     try {
-      // Fetch exchange rate again
       const rateRes = await axios.get(
         "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD"
       );
       const rate = rateRes.data.conversion_rates[currency] || 1;
       const convertedAmount = selectedPlan.price * rate;
 
-      // Call backend to create Stripe session
       const res = await axios.post(
         `${BASE_URLS.BACKEND_BASEURL}boost/payment/create-session`,
         {
           planId: selectedPlan._id,
-          userId: user.user,
-          amountUSD: selectedPlan.price, // Assuming this is the amount in USD
+          userId: tokenUser,
+          amountUSD: selectedPlan.price,
           currency,
-          actualCurrency: "USD", // Assuming backend expects USD as the base currency
+          actualCurrency: "USD",
           amount: convertedAmount.toFixed(2),
-          actualAmount: selectedPlan.price.toFixed(2), // Store original amount for reference
+          actualAmount: selectedPlan.price.toFixed(2),
         },
         {
           headers: {
@@ -121,80 +129,70 @@ const StaffDashboard = () => {
           },
         }
       );
-
-      window.location.href = res.data.url; // Redirect to Stripe Checkout
+      console.log("Payment Session Response:", res.data);
+      setUser({ ...user, boostStatus: "pending" });
+      window.location.href = res.data.url;
     } catch (err) {
-      console.error("Payment error:", err);
-      alert("Failed to create payment session.");
+      console.error("Payment error:", err.response?.data || err.message);
+      alert("Failed to create payment session. Please try again.");
     }
   };
 
   useEffect(() => {
-    // Step 1: Get user's currency
     axios
       .get("https://ipapi.co/json/")
       .then((res) => {
         const userCurrency = res.data.currency;
         setCurrency(userCurrency);
-
-        // Step 2: Now fetch exchange rate AFTER currency is known
-        // return axios.get(
-        //   "https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD"
-        // );
       })
-      // .then((res) => {
-      //   // Step 3: Access the conversion rate using updated currency
-      //   const rate = res.data.conversion_rates[currency];
-      //   if (rate) {
-      //     setAmount(amount * rate);
-      //     console.log("Converted Amount:", amount * rate, "Rate:", rate);
-      //   } else {
-      //     console.error("Currency not found in rates:", currency);
-      //   }
-      // })
-      .catch((err) => console.error(err));
-  }, [currency]);
+      .catch((err) => console.error("Error fetching currency:", err));
+  }, []);
 
   useEffect(() => {
     if (boostProfile) {
       axios
-        .get(`${BASE_URLS.BACKEND_BASEURL}boost`) // your API endpoint
-        .then((res) => setBoostPlans(res.data))
-        .catch((err) => console.error("Failed to fetch plans", err));
+        .get(`${BASE_URLS.BACKEND_BASEURL}boost`)
+        .then((res) => {
+          console.log("Boost Plans Response:", res.data);
+          setBoostPlans(res.data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch plans:", err);
+          alert("Unable to fetch boost plans. Please try again.");
+        });
     }
   }, [boostProfile]);
 
   useEffect(() => {
     const fetchProfileViews = async () => {
-      if (!userId) {
-        setProfileViewsError("Invalid user ID. Please log in again.");
+      const token = localStorage.getItem("token");
+      if (!userId || !token) {
+        setProfileViewsError("Invalid user ID or token. Please log in again.");
+        navigate("/login");
         return;
       }
       setIsLoading(true);
       try {
         const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         console.log("API Response:", response.data);
         const user = response.data.data.find((u) => u._id === userId);
         if (!user) throw new Error("User not found in staff list");
         console.log("Profile User Data:", user);
 
-        // Step 1: Sahi field se views data lo
-        const views = user.user.views || [];
-
-        // Step 2: Days of week ke liye array banao aur counts initialize karo
+        const views = Array.isArray(user.user?.views) ? user.user.views : [];
         const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const viewCounts = daysOfWeek.map(() => 0);
 
-        // Step 3: Har view ka day of week nikalo aur count increment karo
         views.forEach((view) => {
           const date = new Date(view.viewedAt);
-          const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-          viewCounts[dayIndex]++;
+          if (!isNaN(date.getTime())) {
+            const dayIndex = date.getDay();
+            viewCounts[dayIndex]++;
+          }
         });
 
-        // Step 4: Chart ke liye data format karo
         const profileViewsData = daysOfWeek.map((day, index) => ({
           day,
           views: viewCounts[index],
@@ -204,26 +202,28 @@ const StaffDashboard = () => {
         setProfileViews(profileViewsData);
         setProfileViewsError("");
       } catch (error) {
-        setProfileViewsError(
-          "Failed to fetch profile views. Please try again."
-        );
+        const errorMessage = error.response?.data?.message || error.message;
+        setProfileViewsError(`Failed to fetch profile views: ${errorMessage}`);
         console.error("Error fetching profile views:", error);
+        if (error.response?.status === 401) {
+          navigate("/login");
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchProfileViews();
-  }, [userId]);
+  }, [userId, navigate]);
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
       if (!userId) {
         setEventsError("Invalid user ID. Please log in again.");
-        console.log("Debug: No userId found in localStorage"); // Debug log
+        console.log("Debug: No userId found in localStorage");
         return;
       }
       setIsLoading(true);
-      console.log("Debug: Fetching events for userId:", userId); // Debug log
+      console.log("Debug: Fetching events for userId:", userId);
       try {
         const response = await axios.get(
           `${BASE_URLS.BACKEND_BASEURL}staff/upcoming-events`,
@@ -234,14 +234,13 @@ const StaffDashboard = () => {
           }
         );
         console.log("Upcoming Events API Response:", response.data);
-        let filteredEvents = response.data || []; // No .filter()
+        let filteredEvents = response.data || [];
 
-        // Sort events in descending order by jobDate (newest first)
         filteredEvents = filteredEvents.sort((a, b) => {
           return new Date(b.jobDate) - new Date(a.jobDate);
         });
 
-        console.log("Debug: Sorted Filtered Events:", filteredEvents); // Updated debug log
+        console.log("Debug: Sorted Filtered Events:", filteredEvents);
         setUpcomingEvents(filteredEvents);
         setEventsError("");
       } catch (error) {
@@ -263,8 +262,8 @@ const StaffDashboard = () => {
     let hour = parseInt(hours);
     const ampm = hour >= 12 ? "PM" : "AM";
     hour = hour % 12 || 12;
-    const formattedHour = hour.toString().padStart(2, "0"); // Pad with zero for single digits, e.g., 09:00 AM
-    const formattedMinutes = minutes.padStart(2, "0"); // Ensure minutes are two digits
+    const formattedHour = hour.toString().padStart(2, "0");
+    const formattedMinutes = minutes.padStart(2, "0");
     return `${formattedHour}:${formattedMinutes} ${ampm}`;
   };
 
@@ -289,24 +288,32 @@ const StaffDashboard = () => {
     fetchNotifications();
   }, []);
 
-  const handleToggle = async (field) => {
-    if (!userId) {
-      setProfileViewsError("Failed to fetch profile views. Please try again.");
+  const handleToggle = useCallback(async (field) => {
+    const token = localStorage.getItem("token");
+    if (!userId || !token) {
+      alert("Invalid user ID or token. Please log in again.");
+      navigate("/login");
       return;
     }
-    setIsLoading(true);
-    setProfileViewsError("Failed to fetch profile views. Please try again.");
     const updatedValue = field === "isPublic" ? !isPublic : !instantBook;
+    setIsToggling(true);
+    const timeout = setTimeout(() => {
+      setIsToggling(false);
+      alert("Update timed out. Please try again.");
+    }, 5000);
     try {
       const response = await axios.patch(
         `${BASE_URLS.BACKEND_BASEURL}staff/`,
         { [field]: updatedValue },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (field === "isPublic") setIsPublic(updatedValue);
-      else setInstantBook(updatedValue);
+      if (field === "isPublic") {
+        setIsPublic(updatedValue);
+      } else {
+        setInstantBook(updatedValue);
+      }
       const updatedUserInfo = {
         ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
         [field]: updatedValue,
@@ -317,15 +324,13 @@ const StaffDashboard = () => {
         console.log("Updated token:", response.data.token);
       }
     } catch (error) {
-      setUserDataError("Invalid user ID. Please log in again.");
-      console.error(
-        `Error updating ${field}:`,
-        error.response?.data || error.message
-      );
+      console.error(`Error updating ${field}:`, error.response?.data || error.message);
+      alert(`Failed to update ${field}. Please try again.`);
     } finally {
-      setIsLoading(false);
+      clearTimeout(timeout);
+      setIsToggling(false);
     }
-  };
+  }, [userId, isPublic, instantBook, navigate]);
 
   const handleModalToggle = () => {
     setIsModalOpen((prev) => !prev);
@@ -339,7 +344,7 @@ const StaffDashboard = () => {
   };
 
   const handleSaveRate = async () => {
-    const currentRates = additionalRates || []; // fallback
+    const currentRates = additionalRates || [];
     if (isNaN(baseRate) || baseRate <= 0) {
       setUserDataError("Please enter a valid base rate.");
       return;
@@ -380,9 +385,6 @@ const StaffDashboard = () => {
         additionalRates: updatedData.additionalRates,
       };
       localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-      }
       setNewService("");
       setNewRate("");
       setIsAddingNew(false);
@@ -425,9 +427,6 @@ const StaffDashboard = () => {
     }
   };
 
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [eventDate, setEventDate] = useState(new Date(2024, 0, 1));
-
   const handleAvailabilityModalToggle = () => {
     setIsAvailabilityModalOpen((prev) => !prev);
   };
@@ -451,11 +450,6 @@ const StaffDashboard = () => {
       return updatedDates;
     });
   };
-
-  // const handleSaveAvailability = () => {
-  //   console.log("Selected Dates:", selectedDates);
-  //   setIsAvailabilityModalOpen(false);
-  // };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -489,6 +483,8 @@ const StaffDashboard = () => {
               )
             : []
         );
+        setUser({ ...user, user: user._id });
+        localStorage.setItem("userInfo", JSON.stringify(user));
         setUserDataError("");
       } catch (error) {
         setUserDataError("Failed to fetch user data. Please try again.");
@@ -504,7 +500,7 @@ const StaffDashboard = () => {
       }
     };
     fetchUserData();
-  }, [userId]);
+  }, [userId, setUser]);
 
   const handleSaveAvailability = async () => {
     try {
@@ -522,7 +518,6 @@ const StaffDashboard = () => {
       );
 
       console.log("Availability updated:", response.data);
-      // Optionally update localStorage if needed
       const updatedUserInfo = {
         ...JSON.parse(localStorage.getItem("userInfo") || "{}"),
         availableDates: formattedDates,
@@ -550,6 +545,71 @@ const StaffDashboard = () => {
 
   return (
     <div className="dashboard">
+      <style>
+        {`
+          .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #E61E4D;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 0.8s linear infinite;
+            margin-left: 6px;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      {boostProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="p-6 bg-white rounded-2xl flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Select a Boost Plan</h2>
+              <button
+                onClick={() => setBoostProfile(false)}
+                className="p-2 rounded-lg outline outline-1 outline-[#ECECEC]"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
+            {boostPlans.length > 0 ? (
+              boostPlans.map((plan) => (
+                <div
+                  key={plan._id}
+                  className={`p-2 rounded-lg cursor-pointer ${
+                    selectedPlan?._id === plan._id ? "bg-[#FFF1F2]" : ""
+                  }`}
+                  onClick={() => setSelectedPlan(plan)}
+                >
+                  <div className="text-base font-medium">{plan.name}</div>
+                  <div className="text-sm text-[#3D3D3D]">
+                    ${plan.price} {currency}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-[#3D3D3D]">Loading plans...</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleProceedToPayment}
+                className="px-4 py-2 bg-[#E61E4D] text-white rounded-lg"
+                disabled={!selectedPlan}
+              >
+                Proceed to Payment
+              </button>
+              <button
+                onClick={() => setBoostProfile(false)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="self-stretch inline-flex justify-start items-center gap-4">
         <div className="flex-1 self-stretch p-6 bg-white rounded-2xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -558,27 +618,25 @@ const StaffDashboard = () => {
                 <div className="self-stretch flex flex-col justify-start items-start gap-4">
                   <div className="self-stretch inline-flex justify-between items-center">
                     <div className="justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
-                      {upcomingEvents[0]?.eventName}
+                      {upcomingEvents[upcomingEvents.length - 1]?.eventName}
                     </div>
                     <div
-                      // data-property-1={upcomingEvents[0]?.status}
                       data-property-1="Confirmed"
                       className="w-20 px-4 py-2 bg-lime-100 rounded-full flex justify-center items-center gap-2.5"
                     >
                       <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
-                        {/* {upcomingEvents[0]?.status.charAt(0).toUpperCase() + upcomingEvents[0]?.status.slice(1)} */}
                         Confirmed
                       </div>
                     </div>
                   </div>
-                  <div className="self-stretch inline-flex justify-between items-center">
-                    <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Role: {upcomingEvents[0]?.jobTitle}
+                  <div className="self-stretch inline-flex gap-2 justify-between items-center">
+                    <div className="justify-start text-[#3D3D3D] text-sm text-base font-normal font-['Inter'] leading-snug">
+                      Role: {upcomingEvents[upcomingEvents.length - 1]?.jobTitle}
                     </div>
-                    <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      Rate: {upcomingEvents[0]?.currency}{" "}
-                      {upcomingEvents[0]?.rateOffered}/
-                      {upcomingEvents[0]?.paymentType === "hourly"
+                    <div className="justify-start text-right text-[#3D3D3D] text-sm text-base font-normal font-['Inter'] leading-snug">
+                      Rate: {upcomingEvents[upcomingEvents.length - 1]?.currency}{" "}
+                      {upcomingEvents[upcomingEvents.length - 1]?.rateOffered}/
+                      {upcomingEvents[upcomingEvents.length - 1]?.paymentType === "hourly"
                         ? "hr"
                         : "fixed"}
                     </div>
@@ -588,16 +646,16 @@ const StaffDashboard = () => {
                   <div className="flex justify-start items-center gap-2">
                     <i className="ri-map-pin-2-fill"></i>
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      {upcomingEvents[0]?.suburb}, {upcomingEvents[0]?.city},{" "}
-                      {upcomingEvents[0]?.country}
+                      {upcomingEvents[upcomingEvents.length - 1]?.suburb}, {upcomingEvents[upcomingEvents.length - 1]?.city},{" "}
+                      {upcomingEvents[upcomingEvents.length - 1]?.country}
                     </div>
                   </div>
                   <div className="flex justify-start items-center gap-2">
                     <i className="ri-calendar-check-line"></i>
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      {upcomingEvents[0]
+                      {upcomingEvents[upcomingEvents.length - 1]
                         ? new Date(
-                            upcomingEvents[0].jobDate
+                            upcomingEvents[upcomingEvents.length - 1].jobDate
                           ).toLocaleDateString("en-US", {
                             day: "numeric",
                             month: "long",
@@ -609,10 +667,10 @@ const StaffDashboard = () => {
                   <div className="flex justify-start items-center gap-2">
                     <i className="ri-time-fill"></i>
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      {upcomingEvents[0]
+                      {upcomingEvents[upcomingEvents.length - 1]
                         ? `${formatTime(
-                            upcomingEvents[0].startTime
-                          )} – ${formatTime(upcomingEvents[0].endTime)}`
+                            upcomingEvents[upcomingEvents.length - 1].startTime
+                          )} – ${formatTime(upcomingEvents[upcomingEvents.length - 1].endTime)}`
                         : []}
                     </div>
                   </div>
@@ -643,7 +701,7 @@ const StaffDashboard = () => {
             </div>
           )}
         </div>
-        <div className="flex-1 self-stretch p-6 bg-white rounded-3xl inline-flex flex-col justify-start items-start gap-4">
+        <div className="flex-1 h-fit self-stretch p-6 bg-white rounded-3xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex-1 flex flex-col justify-start items-center gap-4">
             <div className="self-stretch inline-flex justify-start items-center gap-2">
               <div className="justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
@@ -653,10 +711,10 @@ const StaffDashboard = () => {
                 {notifications.length}
               </div>
             </div>
-            {notifications.map((notif, idx) => (
+            {notifications.slice(0, 4).map((notif, idx) => (
               <div
                 key={idx}
-                className="self-stretch justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight"
+                className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-tight"
               >
                 {notif.sender.name} wants to book you for{" "}
                 {notif.metadata.jobTitle}
@@ -680,7 +738,7 @@ const StaffDashboard = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 self-stretch p-6 bg-gradient-to-b from-[#fff] to-[#fff1f2] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#656565] inline-flex flex-col justify-start items-start gap-2">
+        <div className="flex-1 h-fit self-stretch p-6 bg-gradient-to-b from-[#fff] to-[#fff1f2] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#656565] inline-flex flex-col justify-start items-start gap-2">
           <div className="self-stretch inline-flex justify-start items-center gap-2">
             <div className="flex-1 flex justify-start items-center gap-2">
               <div className="flex-1 inline-flex flex-col justify-center items-start gap-2">
@@ -724,17 +782,22 @@ const StaffDashboard = () => {
                   className="sr-only"
                   checked={!isPublic}
                   onChange={() => handleToggle("isPublic")}
+                  disabled={isToggling}
                 />
                 <div
-                  className={`w-11 h-6 rounded-full 
-                    ${!isPublic ? "bg-[#E61E4D]" : "bg-gray-400"}
-                    flex items-center px-1 transition-colors`}
+                  className={`w-11 h-6 rounded-full ${
+                    !isPublic ? "bg-[#E61E4D]" : "bg-gray-400"
+                  } flex items-center px-1 transition-all duration-300 ease-in-out ${
+                    isToggling ? "opacity-50" : "opacity-100"
+                  }`}
                 >
                   <div
-                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform 
-                      ${!isPublic ? "translate-x-5" : ""}`}
+                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                      !isPublic ? "translate-x-5" : ""
+                    }`}
                   ></div>
                 </div>
+                {isToggling && <div className="spinner"></div>}
               </label>
             </div>
           </div>
@@ -756,18 +819,22 @@ const StaffDashboard = () => {
                   className="sr-only"
                   checked={instantBook}
                   onChange={() => handleToggle("instantBook")}
+                  disabled={isToggling}
                 />
                 <div
-                  className={`w-11 h-6 rounded-full 
-                    ${instantBook ? "bg-[#E61E4D]" : "bg-gray-400"}
-                    flex items-center px-1 transition-colors`}
+                  className={`w-11 h-6 rounded-full ${
+                    instantBook ? "bg-[#E61E4D]" : "bg-gray-400"
+                  } flex items-center px-1 transition-all duration-300 ease-in-out ${
+                    isToggling ? "opacity-50" : "opacity-100"
+                  }`}
                 >
                   <div
-                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
+                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
                       instantBook ? "translate-x-5" : ""
                     }`}
                   ></div>
                 </div>
+                {isToggling && <div className="spinner"></div>}
               </label>
             </div>
           </div>
@@ -843,11 +910,6 @@ const StaffDashboard = () => {
                       onChange={handleBaseRateChange}
                       className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"
                     />
-                    {/* <input
-                          type="number"
-                          value={baseRate}
-                          onChange={handleBaseRateChange} className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"/>
-                         </div> */}
                   </div>
                 </div>
               </div>
@@ -857,21 +919,6 @@ const StaffDashboard = () => {
                   <div className="self-stretch justify-start text-[#656565] text-base font-bold font-['Inter'] leading-snug">
                     Rate By Services
                   </div>
-                  {/* <div className="self-stretch inline-flex justify-start items-center gap-4">
-                    <div className="flex-1 justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
-                      Bikini Waitress
-                    </div>
-                    <div className="flex justify-start items-center gap-2">
-                      <div className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center">
-                        <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                          $200
-                        </div>
-                      </div>
-                      <div className="py-0.2 px-1 bg-zinc-600 rounded-sm text-white flex justify-start items-center gap-2.5">
-                        <i className="ri-subtract-line"></i>
-                      </div>
-                    </div>
-                  </div> */}
                   {additionalRates.map((rate, index) => (
                     <div
                       key={rate._id || index}
@@ -879,7 +926,6 @@ const StaffDashboard = () => {
                     >
                       <div className="flex-1 justify-start text-black text-sm font-bold font-['Inter'] leading-tight">
                         {rate.label}
-                        {/* <i className="ri-arrow-down-s-line"></i> */}
                       </div>
                       <div className="flex justify-start items-center gap-2">
                         <div className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center">
@@ -922,7 +968,6 @@ const StaffDashboard = () => {
                 )}
                 <div
                   className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden cursor-pointer"
-                  // onChange={isAddingNew ? handleSaveRate : handleAddNewToggle}
                   onClick={
                     isBaseRateModified || isAddingNew
                       ? handleSaveRate
@@ -930,7 +975,6 @@ const StaffDashboard = () => {
                   }
                 >
                   <div className="justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight">
-                    {/* {isAddingNew ? "Save" : "Add New"} */}
                     {isAddingNew || isBaseRateModified ? "Save" : "Add New"}
                   </div>
                 </div>
@@ -962,7 +1006,6 @@ const StaffDashboard = () => {
                 </div>
               </div>
               <div className="w-full p-4 bg-white rounded-lg border border-[#ECECEC] flex flex-col gap-3">
-                {/* Navigation */}
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() =>
@@ -991,8 +1034,6 @@ const StaffDashboard = () => {
                     <i className="ri-arrow-right-s-line"></i>
                   </button>
                 </div>
-
-                {/* Days of the Week */}
                 <div className="grid grid-cols-7 gap-1 text-center text-[#656565] text-sm font-medium font-['Inter']">
                   {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
                     (day) => (
@@ -1002,8 +1043,6 @@ const StaffDashboard = () => {
                     )
                   )}
                 </div>
-
-                {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-1">
                   {(() => {
                     const firstDay = new Date(
@@ -1021,10 +1060,9 @@ const StaffDashboard = () => {
                       date.getMonth(),
                       0
                     ).getDate();
-                    const totalCells = 42; // 6 rows * 7 columns
+                    const totalCells = 42;
                     const cells = [];
 
-                    // Previous month days
                     for (let i = firstDay - 1; i >= 0; i--) {
                       const prevDate = new Date(
                         date.getFullYear(),
@@ -1041,7 +1079,6 @@ const StaffDashboard = () => {
                       );
                     }
 
-                    // Current month days
                     for (let day = 1; day <= daysInMonth; day++) {
                       const currentDate = new Date(
                         date.getFullYear(),
@@ -1059,24 +1096,14 @@ const StaffDashboard = () => {
                             isSelected
                               ? "bg-[#E61E4D] text-white"
                               : "text-[#292929] hover:bg-gray-100"
-                          }`} // Change-1: Added hover:bg-gray-100 for non-selected dates, Change-2: Simplified highlighting logic for selected dates
+                          }`}
                           onClick={() => handleDateSelect(currentDate)}
                         >
                           {day}
                         </div>
-                        // <div
-                        //   key={day}
-                        //   className={`h-8 flex items-center justify-center cursor-pointer rounded ${
-                        //     isSelected ? "bg-[#E61E4D] text-white" : "text-[#292929] hover:bg-gray-100"
-                        //   }`}
-                        //   onClick={() => handleDateSelect(currentDate)}
-                        // >
-                        //   {day}
-                        // </div>
                       );
                     }
 
-                    // Next month days
                     const remainingCells = totalCells - cells.length;
                     for (let i = 1; i <= remainingCells; i++) {
                       cells.push(
@@ -1091,7 +1118,6 @@ const StaffDashboard = () => {
                     return cells;
                   })()}
                 </div>
-
                 <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
                 <div className="self-stretch inline-flex justify-end items-center gap-3">
                   <div
@@ -1134,7 +1160,6 @@ const StaffDashboard = () => {
                   </div>
                 </div>
               </div>
-
               <div
                 onClick={handleSaveAvailability}
                 className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
@@ -1154,7 +1179,6 @@ const StaffDashboard = () => {
             <h3 style={{ fontSize: "20px", fontWeight: "bold" }}>
               Profile Views
             </h3>
-
             {isLoading ? (
               <div className="justify-center text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                 Loading profile views...
@@ -1223,9 +1247,12 @@ const StaffDashboard = () => {
             </div>
           </div>
           <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
-          <div className={`px-4 py-2  bg-gradient-to-l ${user?.boostStatus === "approved" ? "from-green-400 to-green-600" : "from-pink-600 to-rose-600"} rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden`}>
+          <div className={`px-4 py-2 bg-gradient-to-l ${user?.boostStatus === "approved" ? "from-green-400 to-green-600" : "from-pink-600 to-rose-600"} rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden`}>
             <button
-              onClick={() => setBoostProfile(true)}
+              onClick={() => {
+                console.log("Boost button clicked, setting boostProfile to true");
+                setBoostProfile(true);
+              }}
               disabled={
                 user?.boostStatus === "pending" ||
                 user?.boostStatus === "approved"
@@ -1273,7 +1300,6 @@ const StaffDashboard = () => {
                       "Debug: Rendering upcomingEvents:",
                       upcomingEvents
                     )}
-
                     <div className="inline-flex justify-start items-start gap-4">
                       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
                         <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
@@ -1295,7 +1321,6 @@ const StaffDashboard = () => {
                         })}
                       </div>
                       <div className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                        {/* {event.time} */}
                         {`${formatTime(event.startTime)} - ${formatTime(
                           event.endTime
                         )}`}

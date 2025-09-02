@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import BASE_URLS from "../config";
 import JobDetailCard from "../components/JobDetailCard";
 import StripeWrapper from "../components/StripeWrapper";
@@ -18,6 +18,7 @@ function ViewJobDetails() {
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const { user } = ChatState();
+  const navigate = useNavigate();
 
   // useEffect(() => {
   //   // Step 1: Get user's currency
@@ -257,7 +258,8 @@ function ViewJobDetails() {
       .then((res) => {
         console.log("Decline Response:", res.data);
         // alert("Declined job successfully.");
-        window.location.reload();
+        // window.location.reload();
+        navigate('/dashboard');
       })
       .catch((err) => {
         console.error("Decline Error:", err);
@@ -406,6 +408,8 @@ function ViewJobDetails() {
       {/* Content */}
       {activeTab === "details" ? (
         <JobDetailCard
+          jobId={id}
+          job={jobDetail}
           jobDate={jobDate}
           jobDescription={jobDescription}
           endTime={endTime}
@@ -417,13 +421,13 @@ function ViewJobDetails() {
           city={city}
         />
       ) : (
-        <div className="bg-white rounded-lg">
+        <div className="flex flex-col gap-4">
           {applicants?.length > 0 ? (
-            <div className="text-sm p-6">
+            <div className="flex flex-col gap-4">
               {applicants
                 .filter((a) => a.status === "pending")
                 .map((a, i) => (
-                  <div key={i} className="border-b last:border-b-0">
+                  <div key={i} className="text-sm p-6 bg-white rounded-lg ">
                     <div className="flex items-center gap-4 py-3 justify-between">
                       <div>
                         <h6 className="self-stretch justify-start text-[#292929] capitalize text-xl font-bold font-['Inter'] leading-normal">

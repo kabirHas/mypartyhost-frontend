@@ -11,13 +11,68 @@ function Alerts() {
   const [notifications, setNotifications] = useState([]);
   const [showCancelPopup, setShowCancelPopup] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const { user } = ChatState();
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const navigate = useNavigate();
+  const [savedProfiles, setSavedProfiles] = useState([]);
   // console.log("User from context:", user);
+
+  // Fetch saved profiles
+  useEffect(() => {
+    const source = axios.CancelToken.source();
+    // Fetch saved profiles
+    axios
+      .get(`${BASE_URLS.BACKEND_BASEURL}save-profile`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        cancelToken: source.token,
+      })
+      .then((res) => {
+        console.log("Saved Profiles Response:", res.data);
+        // Extract _id from full user objects
+        const profileIds = (res.data || []).map((profile) => profile._id);
+        setSavedProfiles(profileIds);
+      })
+      .catch((err) => {
+        if (!axios.isCancel(err)) {
+          console.error("Error fetching saved profiles:", err.message);
+        }
+      });
+
+    return () => source.cancel("Request canceled");
+  }, []);
+
+  // Handle like/unlike profile
+  const handleLike = (staffId) => {
+    const isSaved = savedProfiles.includes(staffId);
+    const url = `${BASE_URLS.BACKEND_BASEURL}save-profile/${staffId}`;
+    const method = isSaved ? "put" : "post";
+
+    axios({
+      method,
+      url,
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    })
+      .then((res) => {
+        console.log(
+          `${isSaved ? "Unsaved" : "Saved"} Profile Response:`,
+          res.data
+        );
+        // Update savedProfiles state
+        setSavedProfiles((prev) =>
+          isSaved ? prev.filter((id) => id !== staffId) : [...prev, staffId]
+        );
+      })
+      .catch((err) => {
+        console.error(
+          `Error ${isSaved ? "unsaving" : "saving"} profile:`,
+          err.response?.data || err.message
+        );
+      });
+  };
 
   // helpers
   const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
@@ -124,7 +179,9 @@ function Alerts() {
       const res = await axios.post(
         `${BASE_URLS.BACKEND_BASEURL}jobs/pay-for-invite/${inviteId}`,
         payload,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       if (res.data.stripeRequired) {
         window.location.href = res.data.url;
@@ -326,9 +383,10 @@ function Alerts() {
 
   const filtered = notifications.filter((n) => n.type === activeTab);
 
-  const handleCancelBooking = (bookingId) => {
+  const handleCancelBooking = (bookingId, userId) => {
     setSelectedBookingId(bookingId);
-    console.log("Selected Booking ID:", bookingId);
+    setSelectedUserId(userId);
+    console.log("Selected Booking ID:", bookingId, userId);
     setShowCancelPopup(true);
   };
 
@@ -336,7 +394,7 @@ function Alerts() {
     // Simulate cancelling by removing the booking from the list
     axios
       .post(
-        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedBookingId}/cancel-booking`,
+        `http://localhost:4000/api/jobs/${selectedBookingId}/cancel-booking/${selectedUserId}`,
         {},
         {
           headers: {
@@ -347,7 +405,7 @@ function Alerts() {
       .then((response) => {
         console.log("Booking cancelled successfully:", response.data);
         setShowCancelPopup(false);
-        navigate("/dashboard");
+        // navigate("/dashboard");
       })
       .catch((error) => {
         console.error("Error cancelling booking:", error);
@@ -375,7 +433,7 @@ function Alerts() {
                 <span className="text-gray-600">Offer Rate:</span> $
                 {notif?.metadata?.offerRate || "N/A"}/hr
               </p>
-              <p className="mt-1 self-stretch h-10 justify-start text-[#3D3D3D] text-sm font-normal  text-sm">
+              <p className="mt-1 self-stretch h-14 justify-start text-[#3D3D3D] text-sm font-normal  text-sm">
                 {notif?.metadata?.applicationMessage || "No message provided."}
               </p>
               <div className="mt-3 md:mt-0">
@@ -388,7 +446,7 @@ function Alerts() {
               </div>
             </div>
             {notif?.createdAt && (
-              <p className="text-xs w-16 text-gray-500 mt-2">
+              <p className="text-xs w-full md:w-fit text-gray-500 mt-2">
                 {formatDistanceToNow(new Date(notif.createdAt), {
                   addSuffix: true,
                 })}
@@ -609,8 +667,8 @@ function Alerts() {
 
             {/* Status */}
             <div className="mt-4">
-              <span className="text-xs font-normal font-['Inter'] leading-none bg-[#D8F1BF] capitalize text-[#3D3D3D] px-4 py-2 rounded-full inline-block">
-                {notif?.metadata?.bookingStatus || "Confirmed"}
+              <span className={`text-xs font-normal font-['Inter'] leading-none ${notif.metadata?.jobId?.hiredStaff.includes(notif?.user?._id) ? 'bg-[#D8F1BF]' : 'bg-[#F2F2F2]'} bg-[#D8F1BF] capitalize text-[#3D3D3D] px-4 py-2 rounded-full inline-block`}>
+                {notif.metadata?.jobId?.hiredStaff.includes(notif?.user?._id) && notif?.metadata?.inviteId?.status || "Booking Cancelled"}
               </span>
             </div>
 
@@ -618,18 +676,83 @@ function Alerts() {
 
             {/* Buttons */}
             <div className="mt-2 flex justify-end gap-4 items-center">
-              <div className="px-1.5 py-1 flex place-items-center rounded-full border border-zinc-700">
-                <i className="ri-heart-fill  text-red-500 mr-1" />
+              <div className="flex place-items-center gap-3">
+                <button
+                  onClick={() => handleLike(notif?.user?._id)}
+                  className="border py-1 px-2 rounded-full border-zinc-400"
+                  title={
+                    savedProfiles.includes(notif?.user?._id)
+                      ? "Unsave Profile"
+                      : "Save Profile"
+                  }
+                >
+                  <i
+                    className={`text-2xl ${
+                      savedProfiles.includes(notif?.user?._id)
+                        ? "ri-heart-fill text-red-500"
+                        : "ri-heart-line text-[#E61E4D]"
+                    }`}
+                  ></i>
+                </button>
               </div>
-              <button
-                onClick={() => handleCancelBooking(notif.metadata?.jobId._id)}
+              {user.role !== "staff" ? (
+                notif?.metadata?.jobId?.hiredStaff.includes(
+                  notif?.user?._id
+                ) ? (
+                  <button
+                    onClick={() =>
+                      handleCancelBooking(
+                        notif.metadata?.jobId._id,
+                        notif?.user?._id
+                      )
+                    }
+                    className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
+                  >
+                    {/* <i className="ri-close-line text-lg" /> */}
+                    Cancel Booking
+                  </button>
+                ) : (
+                  <div className="text-sm text-[#E61E4D]  font-semibold  px-4 py-2 rounded-lg">
+                    Booking cancelled
+                  </div>
+                )
+              ) : notif?.metadata?.jobId?.hiredStaff.includes(user?.user) ? (
+                <button
+                  onClick={() =>
+                    handleCancelBooking(
+                      notif.metadata?.jobId._id,
+                      notif?.user?._id
+                    )
+                  }
+                  className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
+                >
+                  {/* <i className="ri-close-line text-lg" /> */}
+                  Cancel Booking
+                </button>
+              ) : (
+                <div className="text-sm text-[#E61E4D] font-semibold  px-4 py-2 rounded-lg">
+                  Booking cancelled
+                </div>
+              )}
+              {/* <button
+                onClick={() =>
+                  handleCancelBooking(
+                    notif.metadata?.jobId._id,
+                    notif?.user?._id
+                  )
+                }
                 className="text-sm text-[#E61E4D] font-semibold border-1 border-[#E61E4D] px-4 py-2 rounded-lg  hover:text-white hover:bg-[#E61E4D] ease-in duration-100  flex items-center gap-1"
               >
-                {/* <i className="ri-close-line text-lg" /> */}
+              
                 Cancel Booking
-              </button>
+              </button> */}
+
               {notif?.user?._id !== user?.user ? (
-                <button className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
+                <button onClick={()=>{
+                  navigate(`/dashboard/messages`, {
+                    state: { userId: notif?.user?._id },
+                  })
+                }} className="text-sm text-white bg-gradient-to-l from-pink-600 to-rose-600 border-1 border-pink-500 px-4 py-2 rounded-md hover:bg-pink-50">
                   Message Hostess
                 </button>
               ) : null}
@@ -707,10 +830,14 @@ function Alerts() {
             ></i>
 
             <p className=" text-gray-600">
-              Booking fees and deposits are non refundable.
+              {user?.role === "staff"
+                ? "Canceling this booking might result in violation of the terms and conditions."
+                : " Booking fees and deposits are non refundable."}
             </p>
             <p className="text-sm text-gray-600 mt-2">
-              Please contact site admin to move this booking to another hostess.
+              {user?.role === "staff"
+                ? "Are you sure you want to cancel this booking?"
+                : "Please contact site admin to move this booking to another hostess."}
             </p>
             <div className="flex justify-center gap-4 mt-6">
               <button

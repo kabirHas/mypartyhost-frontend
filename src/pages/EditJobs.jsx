@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BASE_URLS from "../config";
 import axios from "axios";
 
 function CreateJobs() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEdit = location.state?.isEdit;
+  const editJob = location.state?.job;
+  const editJobId = location.state?.jobId;
 
   // State to manage form data
   const [formData, setFormData] = useState({
@@ -31,6 +35,81 @@ function CreateJobs() {
   // State for error messages
   const [error, setError] = useState("");
 
+  // Country/Currency helpers (like CreateEventMultiStepForm)
+  const [countries, setCountries] = useState([]);
+  const [currencyMap, setCurrencyMap] = useState({});
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
+  const [countryError, setCountryError] = useState("");
+
+  // Fetch countries and currency map
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setIsLoadingCountries(true);
+      try {
+        const response = await axios.get(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,currencies"
+        );
+        const sortedCountries = response.data
+          .map((country) => ({
+            name: country.name.common,
+            code: country.cca2,
+            currency: Object.keys(country.currencies || {})[0] || "USD",
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCountries(sortedCountries);
+        const mapping = sortedCountries.reduce((acc, c) => {
+          acc[c.name] = c.currency;
+          return acc;
+        }, {});
+        setCurrencyMap(mapping);
+
+        // If not editing, set default; if editing, ensure currency aligns
+        setFormData((prev) => {
+          const selectedCountry = isEdit && editJob?.country ? editJob.country : (prev.country || "Australia");
+          const derivedCurrency = mapping[selectedCountry] || prev.currency || "USD";
+          return {
+            ...prev,
+            country: selectedCountry,
+            currency: isEdit && editJob?.currency ? editJob.currency : derivedCurrency,
+          };
+        });
+        setCountryError("");
+      } catch (err) {
+        console.error("Error fetching countries:", err);
+        setCountryError("Failed to load countries. Please try again later.");
+        setCountries([]);
+        setCurrencyMap({});
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+    fetchCountries();
+  }, [isEdit, editJob]);
+
+  // Prefill when editing
+  useEffect(() => {
+    if (isEdit && editJob) {
+      setFormData({
+        eventName: editJob.eventName || "",
+        jobTitle: editJob.jobTitle || "",
+        jobDescription: editJob.jobDescription || "",
+        country: editJob.country || "",
+        currency: editJob.currency || "AUD",
+        staffCategory: editJob.staffCategory || "",
+        numberOfPositions: editJob.numberOfPositions?.toString() || "",
+        jobDate: editJob.jobDate ? editJob.jobDate.split("T")[0] : "",
+        startTime: editJob.startTime || "",
+        duration: editJob.duration?.toString() || "",
+        city: editJob.city || "",
+        suburb: editJob.suburb || "",
+        lookingFor: editJob.lookingFor || "female",
+        paymentType: editJob.paymentType || "fixed",
+        rateOffered: editJob.rateOffered?.toString() || "",
+        travelAllowance: editJob.travelAllowance || "none",
+      });
+    }
+  }, [isEdit, editJob]);
+
   // Calculate endTime whenever startTime or duration changes
   useEffect(() => {
     if (formData.startTime && formData.duration) {
@@ -52,10 +131,15 @@ function CreateJobs() {
   // Handle input changes
   const handleInputChange = (e) => {
     const { id, name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id || name]: value,
-    }));
+    const key = id || name;
+    // If country changes, auto-update currency using currencyMap
+    if (key === "country") {
+      const nextCurrency = currencyMap[value] || formData.currency;
+      setFormData((prev) => ({ ...prev, country: value, currency: nextCurrency }));
+      setError("");
+      return;
+    }
+    setFormData((prev) => ({ ...prev, [key]: value }));
     setError(""); // Clear error on input change
   };
 
@@ -117,37 +201,52 @@ function CreateJobs() {
     };
     console.log("Job Data:", jobData);
 
-    axios
-      .post(`${BASE_URLS.BACKEND_BASEURL}jobs`, jobData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        if (res.data && res.data.job) {
-          console.log("Job created successfully:", res.data.job);
-          navigate(`/jobs/${res.data.job._id}`);
-        } else {
-          setError(res.data.message || "Error creating job.");
-        }
-      })
-      .catch((err) => {
-        const errorMessage =
-          err.response?.data?.message || "An error occurred. Please try again.";
-        setError(errorMessage);
-        console.error("Error creating job:", err);
-      });
+    const config = {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    };
+    if (isEdit && editJobId) {
+      axios
+        .put(`${BASE_URLS.BACKEND_BASEURL}jobs/${editJobId}`, jobData, config)
+        .then((res) => {
+          const updated = res.data?.job || res.data;
+          console.log("Updated Job:", updated);
+          if (updated?._id) {
+            navigate(-1);
+          } else {
+            navigate(`/dashboard/manage-jobs`);
+          }
+        })
+        .catch((err) => {
+          const errorMessage = err.response?.data?.message || "Failed to update job.";
+          setError(errorMessage);
+        });
+    } else {
+      axios
+        .post(`${BASE_URLS.BACKEND_BASEURL}jobs`, jobData, config)
+        .then((res) => {
+          if (res.data && res.data.job) {
+            navigate(`/jobs/${res.data.job._id}`);
+          } else {
+            setError(res.data.message || "Error creating job.");
+          }
+        })
+        .catch((err) => {
+          const errorMessage =
+            err.response?.data?.message || "An error occurred. Please try again.";
+          setError(errorMessage);
+        });
+    }
   };
 
   return (
     <div className="bg-[#f9f9f9] w-full">
       <div className="max-w-[1200px] p-4 py-12 min-h-screen mx-auto">
-        <Link
+        <div
           className="px-3 py-2 rounded-full border border-zinc-300 text-sm text-zinc-900 flex place-content-center gap-2 w-fit no-underline bg-white"
-          to="/dashboard"
+          onClick={() => navigate(-1)}
         >
           <i className="ri-arrow-left-line"></i>Back
-        </Link>
+        </div>
         <h1 className="text-2xl font-semibold mt-8">1. Event and Job Details</h1>
         {error && <div className="text-red-600 mb-4">{error}</div>}
         <form className="w-full mt-8" onSubmit={handleSubmit}>
@@ -163,14 +262,14 @@ function CreateJobs() {
               className="w-full mt-2 p-3 border border-zinc-300 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-700"
               required
             >
-              <option value="">Select a country</option>
-              <option value="Australia">Australia</option>
-              <option value="AF">Afghanistan</option>
-              <option value="AX">Åland Islands</option>
-              <option value="AL">Albania</option>
-              <option value="DZ">Algeria</option>
-              <option value="AS">American Samoa</option>
+              <option value="">{isLoadingCountries ? "Loading..." : "Select a country"}</option>
+              {countries.map((c) => (
+                <option key={c.code + c.name} value={c.name}>{c.name}</option>
+              ))}
             </select>
+            {countryError && (
+              <div className="text-red-600 text-sm mt-1">{countryError}</div>
+            )}
             <span className="absolute -right-3 top-[55%] bg-white -translate-x-1/2 border border-zinc-300 rounded-full p-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -550,7 +649,7 @@ function CreateJobs() {
               type="submit"
               className="px-6 py-3 bg-pink-600 font-semibold text-white rounded-lg hover:bg-pink-700 transition-colors duration-200"
             >
-              Create Job
+              {isEdit ? "Update Job" : "Create Job"}
             </button>
           </div>
         </form>
