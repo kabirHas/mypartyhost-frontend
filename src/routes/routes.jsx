@@ -16,7 +16,7 @@ import ProfileUpdate from "../pages/ProfileUpdate";
 import ManagePages from "../components/ManagePages";
 import MessagePage from "../pages/MessagePage";
 import PaymentPage from "../pages/PaymentPage";
-import CreateJobs from "../pages/CreateJobs";
+import CreateJobs from "../pages/EditJobs";
 import ManageJobs from "../pages/ManageJobs";
 import ViewJobDetails from "../pages/ViewJobDetails";
 import ManageJobsLayout from "../Layouts/ManageJobLayout";
@@ -513,7 +513,7 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       key="manage-bookings"
     />,
     <Route
-      path="/create-job"
+      path="/edit-job"
       element={isLoggedIn ? <CreateJobs /> : <Navigate to="/login" />}
       key="event"
     />,

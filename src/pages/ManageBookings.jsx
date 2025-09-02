@@ -44,7 +44,7 @@ function ManageBookings() {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`,
+          `http://localhost:4000/api/jobs/manage-bookings`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

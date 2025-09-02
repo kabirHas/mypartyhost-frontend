@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function JobDetailCard({
   jobDate,
@@ -13,7 +13,10 @@ function JobDetailCard({
   startTime,
   suburb,
   city,
+  jobId,
+  job,
 }) {
+  const navigate = useNavigate();
   return (
     <div className="bg-white mt-4 p-6 rounded-xl  space-y-4 text-sm">
       <div>
@@ -69,10 +72,14 @@ function JobDetailCard({
           ))}
       </div>
       <button
+        onClick={() =>
+          navigate("/edit-job", {
+            state: { isEdit: true, jobId, job },
+          })
+        }
         className="px-4 py-2 text-[#E61E4D] font-medium  rounded-lg outline outline-2 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
-        to={"/"}
       >
-        Edit Post <i class="ri-pencil-line"></i>
+        Edit Post <i className="ri-pencil-line"></i>
       </button>
     </div>
   );
