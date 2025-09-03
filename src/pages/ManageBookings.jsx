@@ -39,6 +39,7 @@ function ManageBookings() {
     }
   }, [location]);
 
+  
   useEffect(() => {
     const fetchBookings = async () => {
       setIsLoading(true);

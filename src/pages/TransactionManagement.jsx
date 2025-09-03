@@ -55,7 +55,7 @@ const TransactionManagement = () => {
         });
 
         return {
-          id: trx.stripeSessionId || trx.stripePaymentIntentId || trx._id,
+          id: trx.stripeTransactionId || trx.stripePaymentIntentId || trx._id,
           user: userName,
           type: trx.transactionType,
           amount: amount,
