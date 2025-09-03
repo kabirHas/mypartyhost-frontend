@@ -50,6 +50,7 @@ const StaffDashboard = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return userInfo.user._id
   });
+  console.log("User ID from localStorage:", tokenUser)
 
 
 
@@ -116,7 +117,7 @@ const StaffDashboard = () => {
         `${BASE_URLS.BACKEND_BASEURL}boost/payment/create-session`,
         {
           planId: selectedPlan._id,
-          userId: tokenUser,
+          userId: JSON.parse(localStorage.getItem("userInfo"))?.user?._id,
           amountUSD: selectedPlan.price,
           currency,
           actualCurrency: "USD",
@@ -143,6 +144,7 @@ const StaffDashboard = () => {
       .get("https://ipapi.co/json/")
       .then((res) => {
         const userCurrency = res.data.currency;
+        console.log("User Currency:", userCurrency);
         setCurrency(userCurrency);
       })
       .catch((err) => console.error("Error fetching currency:", err));
