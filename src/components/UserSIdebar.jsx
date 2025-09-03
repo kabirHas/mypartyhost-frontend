@@ -4,6 +4,7 @@ import BASE_URLS from "../config";
 import { RiArrowLeftLine } from "react-icons/ri";
 import Select from "react-select";
 import Notify from "../utils/notify";
+import { useNavigate } from "react-router-dom";
 
 const UserSidebar = ({ userId, onClose, isCreate = false }) => {
   const [data, setData] = useState(false);
@@ -28,6 +29,7 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
   const [showAll, setShowAll] = useState(false);
   const safeLogs = Array.isArray(logs) ? logs : [];
   const visibleLogs = showAll ? safeLogs : safeLogs.slice(0, 4);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("https://restcountries.com/v3.1/all?fields=name,flags")
@@ -436,7 +438,14 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                     <span>View as User</span>{" "}
                     <i className="ri-eye-line text-lg"></i>
                   </button>
-                  <button className="px-4 py-2 bg-gradient-to-l justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
+                  <button
+                    className="px-4 py-2 bg-gradient-to-l justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden"
+                    onClick={() =>
+                      navigate("/dashboard/messages", {
+                        state: { userId: user._id },
+                      })
+                    }
+                  >
                     Send Message
                   </button>
                 </div>
