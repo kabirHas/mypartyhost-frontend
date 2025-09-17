@@ -87,7 +87,7 @@ useEffect(() => {
     <div className="p-4 w-full bg-white rounded-3xl outline outline-1 outline-gray-200 flex flex-col gap-4 text-[10px] font-['Inter']">
       {/* Header */}
       {/* <h1>hsdghjfsjdfhsd</h1> */}
-      <div className="flex justify-between items-center w-full">
+      <div className="flex justify-between gap-4 flex-col md:flex-row items-start md:items-center w-full">
         <div className="flex items-center gap-4">
           <button
             onClick={() => changeMonth(-1)}
@@ -129,9 +129,9 @@ useEffect(() => {
       {/* Calendar Grid */}
       <div className="flex-1 w-full flex flex-col gap-px bg-gray-200 rounded-lg overflow-hidden outline outline-1 outline-offset-[-1px] outline-[#ECECEC]">
         {/* Weekdays */}
-        <div className="grid grid-cols-7 bg-gray-800 text-white text-xs font-medium text-center">
+        <div className="grid grid-cols-7  bg-gray-800 text-white text-xs font-medium text-center">
           {daysOfWeek.map((day, i) => (
-            <div key={i} className="py-2">
+            <div key={i} className="py-2 text-[8px] md:text-xs">
               {day}
             </div>
           ))}

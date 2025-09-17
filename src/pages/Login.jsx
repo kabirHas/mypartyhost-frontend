@@ -82,11 +82,12 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(`${BASE_URLS.API}/auth/login`, {
+      const res = await axios.post(`${BASE_URLS.BACKEND_BASEURL}auth/login`, {
         email,
         password,
       });
 
+      console.log('Login successful:', res.data);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.user.role);
       localStorage.setItem('userInfo', JSON.stringify(res.data.user))
@@ -95,7 +96,7 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Login failed:', err);
-      Notify.error('Invalid email or password');
+      Notify.error(err.response.data.message);
     }
   };
 

@@ -149,13 +149,11 @@ const AdminDashboard = () => {
 
   async function getNotification() {
     try {
-      const res = await axios.get(
-        `${BASE_URLS.BACKEND_BASEURL}notifications`,{
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.get(`${BASE_URLS.BACKEND_BASEURL}notifications`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setNotification(res.data);
       console.log("Notification API Response:", res.data); // Debug API response
     } catch (error) {
@@ -174,6 +172,7 @@ const AdminDashboard = () => {
           },
         }
       );
+
       console.log("User Growth API Response:", res.data); // Debug API response
       const { newUsers = [], returningUsers = [] } = res.data;
 
@@ -313,6 +312,13 @@ const AdminDashboard = () => {
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching user growth data:", err);
+      if (err.status === 401) {
+        localStorage.clear(); // Clear only the token
+        navigate("/login");
+        setError("Session expired. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
       setError("Failed to fetch user growth data");
       setIsLoading(false);
     }
@@ -399,13 +405,33 @@ const AdminDashboard = () => {
     setIsLoading(true);
   };
 
+  const handleApprove = async (user, notification) => {
+    try {
+      const res = await axios.put(
+        `${BASE_URLS.BACKEND_BASEURL}auth/approve`,
+        {
+          userId: user,
+          notificationId: notification,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(res.data);
+      getNotification();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-    getData()
-  },[]);
+    getData();
+  }, []);
 
   // Fetch data on mount and when timePeriod changes
   useEffect(() => {
-    
     getUserGrowthData();
     fetchRevenueData();
     getNotification();
@@ -414,7 +440,7 @@ const AdminDashboard = () => {
     const interval = setInterval(() => {
       getUserGrowthData();
       fetchRevenueData();
-    }, 60000);
+    }, 60000 * 5);
 
     return () => clearInterval(interval);
   }, [timePeriod]);
@@ -482,10 +508,14 @@ const AdminDashboard = () => {
           Your control center for managing our platform quickly and efficiently.
         </p>
 
-        <div className="kaab-stats">
+        <div className="kaab-stats flex flex-col md:flex-row">
           <div className="kaab-card">
             <p className="first-child">
-              Total Users <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line cursor-pointer"></i>
+              Total Users{" "}
+              <i
+                onClick={() => navigate("/dashboard/all-profiles")}
+                className="ri-arrow-right-up-line cursor-pointer"
+              ></i>
             </p>
             <h3>
               {growthData.totalUsers}{" "}
@@ -503,7 +533,15 @@ const AdminDashboard = () => {
           </div>
           <div className="kaab-card">
             <p className="first-child">
-              Active Event Staff <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line"></i>
+              Active Event Staff{" "}
+              <i
+                onClick={() =>
+                  navigate("/dashboard/all-profiles", {
+                    state: { role: "staff" },
+                  })
+                }
+                className="ri-arrow-right-up-line cursor-pointer"
+              ></i>
             </p>
             <h3>
               {growthData.staffCount}{" "}
@@ -521,7 +559,15 @@ const AdminDashboard = () => {
           </div>
           <div className="kaab-card">
             <p className="first-child">
-              Active Event Organizers <i onClick={() => navigate("/dashboard/all-profiles")} className="ri-arrow-right-up-line"></i>
+              Active Event Organizers{" "}
+              <i
+                onClick={() =>
+                  navigate("/dashboard/all-profiles", {
+                    state: { role: "organiser" },
+                  })
+                }
+                className="ri-arrow-right-up-line cursor-pointer"
+              ></i>
             </p>
             <h3>
               {growthData.organiserCount}{" "}
@@ -530,7 +576,11 @@ const AdminDashboard = () => {
           </div>
           <div className="kaab-card">
             <p className="first-child">
-              Monthly Revenue <i onClick={() => navigate("/dashboard/transactions")} className="ri-arrow-right-up-line"></i>
+              Monthly Revenue{" "}
+              <i
+                onClick={() => navigate("/dashboard/transactions")}
+                className="ri-arrow-right-up-line cursor-pointer"
+              ></i>
             </p>
             <h3>
               ${growthData.currentMonthEarnings}{" "}
@@ -548,20 +598,56 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="kaab-main">
-          <div className="kaab-notifications">
+        <div className="kaab-main  md:flex-row">
+          <div className="kaab-notifications w-[100%] md:w-[57%]">
             <h3>Recent Notifications</h3>
             {notification && notification.length > 0 ? (
               notification.map((n, i) => (
                 <div key={i} className="kaab-notification">
-                  <strong>
-                    {n.type === "job_applied" ? "New Job Application" : n.type === 'ticket_submission' ? 'New Ticket Raised' : n.type}
+                  <strong className="capitalize">
+                    {n.type === "job_applied"
+                      ? "New Job Application"
+                      : n.type === "ticket_submission"
+                      ? "New Ticket Raised"
+                      : n.type}
                   </strong>{" "}
                   <span>{getRelativeTime(n.createdAt)}</span>
                   <p dangerouslySetInnerHTML={{ __html: n.message }} />
                   <div className="">
-                    {n.type === "ticket_submission" && (
-                      <button onClick={()=> navigate('/dashboard/support/ticket')} className="px-4 py-2 bg-gradient-to-l text-sm font-medium from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 text-white">View Ticket</button>
+                    {n.type === "ticket_submission" ? (
+                      <button
+                        onClick={() => navigate("/dashboard/support/ticket")}
+                        className="px-4 py-2 bg-gradient-to-l text-sm font-medium from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 text-white"
+                      >
+                        View Ticket
+                      </button>
+                    ) : n.type === "registration" ? (
+                      <div className="flex gap-4 items-center">
+                        <button
+                          onClick={() =>
+                            navigate("/dashboard/all-profiles", {
+                              state: { user: n.sender._id, notification: n._id },
+                            })
+                          }
+                          className="text-sm font-medium text-rose-600"
+                        >
+                          Review Profile
+                        </button>
+                        <button
+                          onClick={() => handleApprove(n.sender._id, n._id)}
+                          className={`px-4 py-2 border-1 border-rose-600 ${
+                            n.read
+                              ? "text-rose-600 text-xs"
+                              : "bg-gradient-to-l px-4 py-2 from-pink-600 to-rose-600 text-white"
+                          }  text-sm font-medium  rounded-lg flex justify-center items-center gap-2 `}
+                        >
+                          {n.read
+                            ?  "Registration Approved"
+                            : "Approve Registraion"}
+                        </button>
+                      </div>
+                    ) : (
+                      ""
                     )}
                   </div>
                 </div>

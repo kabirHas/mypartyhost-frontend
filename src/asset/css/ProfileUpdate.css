@@ -310,3 +310,13 @@ p.events-org {
     border: none;
     padding: 0 !important;
 }
+
+@media (max-width: 768px) {
+    .profile-update-container{
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .left-panel, .right-panel{
+        width: 100%;
+    }
+}

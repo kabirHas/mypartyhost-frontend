@@ -6,7 +6,8 @@ import Select from "react-select";
 import Notify from "../utils/notify";
 import { useNavigate } from "react-router-dom";
 
-const UserSidebar = ({ userId, onClose, isCreate = false }) => {
+const UserSidebar = ({ userId, onClose, isCreate = false, notificationId }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState(false);
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -52,6 +53,7 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
         .get(`${BASE_URLS.BACKEND_BASEURL}user/${userId}`)
         .then((res) => {
           setUser(res.data);
+          console.log("API ", res.data);
         })
         .catch((err) => console.error(err));
     }
@@ -149,6 +151,28 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
       onClose();
     } catch (error) {
       Notify.error("Failed to delete Yser. Please try again.");
+    }
+  };
+
+  const handleApprove = async (user, notification) => {
+    try {
+      const res = await axios.put(
+        `${BASE_URLS.BACKEND_BASEURL}auth/approve`,
+        {
+          userId: userId,
+          notificationId: notificationId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(res.data);
+      Notify.success("User approved successfully!");
+      onClose();
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -386,6 +410,11 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                 </div>
                 <hr className="border-gray-300 w-full border-1" />
                 <div className="flex justify-end w-full gap-2 items-center">
+                  {!user.isApproved && (
+                    <button className="px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg leading-tight text-[#FFFFFF]  text-sm font-medium">
+                      Approve Registration
+                    </button>
+                  )}
                   <button
                     onClick={handleSuspendUser}
                     className="px-4 justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden"
@@ -434,6 +463,18 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                 </span>
                 <hr className="border-gray-300 border-1 w-full" />
                 <div className="flex justify-end gap-3 w-full items-center">
+                  {user.role === "staff" && user.isApproved && (
+                    <button onClick={()=>navigate(`/staff-profile/${user.user || user._id}`)} className="justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight flex items-center gap-2">
+                      <span>View as User</span>{" "}
+                      <i className="ri-eye-line text-lg"></i>
+                    </button>
+                  )}
+
+                  <button onClick={() =>
+                      navigate("/dashboard/messages", {
+                        state: { userId: user._id },
+                      })
+                    } className="px-4 py-2 bg-gradient-to-l justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight from-pink-600 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden">
                   <button className="justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight flex items-center gap-2">
                     <span>View as User</span>{" "}
                     <i className="ri-eye-line text-lg"></i>
@@ -532,7 +573,7 @@ const UserSidebar = ({ userId, onClose, isCreate = false }) => {
                   </div>
                 </div>
               </div>
-              <div className="self-stretch p-4 bg-[#F9F9F9] rounded-2xl inline-flex flex-col justify-start items-start gap-4">
+              <div className="self-stretch p-4 w-full bg-[#F9F9F9] rounded-2xl inline-flex flex-col justify-start items-start gap-4">
                 <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
                   Activity Log
                 </div>

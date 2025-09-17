@@ -16,6 +16,18 @@ let socket;
 
 const MessagePage = () => {
   // const user = JSON.parse(localStorage.getItem("userInfo"));
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768); // 768px se niche mobile
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const selectedChatCompare = useRef();
   const chatBodyRef = useRef(null); // Reference for chat body div
   const {
@@ -227,7 +239,7 @@ const MessagePage = () => {
         // Only select the first chat by default if no explicit userId is provided via navigation state
         const userIdFromState = location?.state?.userId;
         if (!userIdFromState) {
-          setSelectedChat(res.data[0]);
+          setSelectedChat(null);
         }
       })
       .catch((err) => console.error(err));
@@ -621,84 +633,85 @@ const MessagePage = () => {
 
   return (
     <div className="kaab-message-page relative">
-      <div className="kaab-sidebar relative">
-        {/* Search Functionality */}
-        {user.role === "superadmin" && (
-          <div className="w-full flex gap-3 mb-3">
-            <select
-              className="px-3 py-2 border rounded-full focus:outline-none w-full"
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="organiser">Organiser</option>
-              <option value="staff">Staff</option>
-            </select>
-            <select
-              className="px-3 py-2 border rounded-full focus:outline-none w-full"
-              // value={userType}
-              // onChange={(e) => setUserType(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="user">Sent</option>
-              <option value="admin">Archive</option>
-            </select>
-          </div>
-        )}
-        <div className="kaab-search relative">
-          <input
-            onChange={(e) => setSearch(e.target.value)}
-            type="text"
-            placeholder="Search name"
-          />
-          <button>
-            <FaSearch />
-          </button>
-          <div
-            className={`${
-              searchResult.length > 0 ? "block" : "hidden"
-            } absolute top-12 z-10 left-0 w-full bg-white shadow-lg rounded-lg p-4`}
-          >
-            {searchResult.map((users) => {
-              if (users._id === user._id) return null;
-              return (
-                <div
-                  onClick={() => accessChat(users._id)}
-                  className="flex cursor-pointer items-center mt-2"
-                  key={users._id}
-                >
-                  <img
-                    src={
-                      users.profileImage ||
-                      "https://imgs.search.brave.com/sHfS5WDNtJlI9C_CT2YL2723HttEALNRtpekulPAD9Q/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA2LzMzLzU0Lzc4/LzM2MF9GXzYzMzU0/Nzg0Ml9BdWdZemV4/VHBNSjl6MVljcFRL/VUJvcUJGMENVQ2sx/MC5qcGc"
-                    }
-                    className="h-10 w-10 rounded-full"
-                    alt={users.name}
-                  />
-                  <div className="ml-4">
-                    <div className="font-medium capitalize">{users.name}</div>
-                    {/* <div className="text-gray-700">{users.email}</div> */}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="kaab-messages-title">
-          <p>Messages</p>
-          {user && user.role == "superadmin" && (
-            <button
-              onClick={togglePopup}
-              className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full z-[99]"
-            >
-              <i className="ri-add-line text-xl"></i>
-            </button>
+      {(!isMobileView || !selectedChat) && (
+        <div className="kaab-sidebar relative">
+          {/* Search Functionality */}
+          {user.role === "superadmin" && (
+            <div className="w-full flex gap-3 mb-3">
+              <select
+                className="px-3 py-2 border rounded-full focus:outline-none w-full"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="organiser">Organiser</option>
+                <option value="staff">Staff</option>
+              </select>
+              <select
+                className="px-3 py-2 border rounded-full focus:outline-none w-full"
+                // value={userType}
+                // onChange={(e) => setUserType(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="user">Sent</option>
+                <option value="admin">Archive</option>
+              </select>
+            </div>
           )}
-        </div>
-        {/* <div className="kaab-message-list">
+          <div className="kaab-search relative">
+            <input
+              onChange={(e) => setSearch(e.target.value)}
+              type="text"
+              placeholder="Search name"
+            />
+            <button>
+              <FaSearch />
+            </button>
+            <div
+              className={`${
+                searchResult.length > 0 ? "block" : "hidden"
+              } absolute top-12 z-10 left-0 w-full bg-white shadow-lg rounded-lg p-4`}
+            >
+              {searchResult.map((users) => {
+                if (users._id === user._id) return null;
+                return (
+                  <div
+                    onClick={() => accessChat(users._id)}
+                    className="flex cursor-pointer items-center mt-2"
+                    key={users._id}
+                  >
+                    <img
+                      src={
+                        users.profileImage ||
+                        "https://imgs.search.brave.com/sHfS5WDNtJlI9C_CT2YL2723HttEALNRtpekulPAD9Q/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA2LzMzLzU0Lzc4/LzM2MF9GXzYzMzU0/Nzg0Ml9BdWdZemV4/VHBNSjl6MVljcFRL/VUJvcUJGMENVQ2sx/MC5qcGc"
+                      }
+                      className="h-10 w-10 rounded-full"
+                      alt={users.name}
+                    />
+                    <div className="ml-4">
+                      <div className="font-medium capitalize">{users.name}</div>
+                      {/* <div className="text-gray-700">{users.email}</div> */}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="kaab-messages-title">
+            <p>Messages</p>
+            {user && user.role == "superadmin" && (
+              <button
+                onClick={togglePopup}
+                className="text-sm absolute bg-[#e61e4d] text-white bottom-12 right-4 text-[#3D3D3D] font-bold bg-[#ECECEC] px-3.5 py-2.5 rounded-full z-[99]"
+              >
+                <i className="ri-add-line text-xl"></i>
+              </button>
+            )}
+          </div>
+          {/* <div className="kaab-message-list">
           {filteredChats && filteredChats.length > 0 ? (
             filteredChats.map((chat) => (
               <div
@@ -769,246 +782,263 @@ const MessagePage = () => {
             </div>
           )}
         </div> */}
-        <div className="kaab-message-list">
-          {filteredChats && filteredChats.length > 0 ? (
-            filteredChats.map((chat) => {
-              // yaha pe fix
-              const currentUserId =
-                user.role === "staff" ? user.user : user._id;
-              const otherUser = chat.users.find((u) => u._id !== currentUserId);
+          <div className="kaab-message-list">
+            {filteredChats && filteredChats.length > 0 ? (
+              filteredChats.map((chat) => {
+                // yaha pe fix
+                const currentUserId =
+                  user.role === "staff" ? user.user : user._id;
+                const otherUser = chat.users.find(
+                  (u) => u._id !== currentUserId
+                );
 
-              return (
-                <div
-                  key={chat._id}
-                  onClick={() => setSelectedChat(chat)}
-                  className={`kaab-message-item ${
-                    selectedChat && selectedChat._id === chat._id
-                      ? "active"
-                      : ""
-                  }`}
-                >
-                  <img
-                    src={
-                      chat.isGroupChat
-                        ? "https://imgs.search.brave.com/IlEhT8Dcgu3T4mm7t9xhl6UsFEooWIWZ3wDtgeDtZsc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMDAv/NTUwLzUzNS9zbWFs/bC91c2VyX2ljb25f/MDA3LmpwZw"
-                        : otherUser?.profileImage
-                    }
-                    alt={chat.isGroupChat ? chat.chatName : otherUser?.name}
-                  />
-                  <div className="kaab-message-info">
-                    <div className="kaab-message-name-time">
-                      <span>
-                        {chat.isGroupChat ? chat.chatName : otherUser?.name}
-                      </span>
-                      <span>
-                        {chat.updatedAt
-                          ? new Date(chat.updatedAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "Time not available"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="kaab-message-preview">
-                        {chat.latestMessage?.content?.length > 18
-                          ? `${chat.latestMessage?.content.slice(0, 18)}...`
-                          : chat.latestMessage?.content}
-                      </div>
-                      <div className="kaab-message-status">
-                        {chat.latestMessage?.read ? (
-                          <i className="ri-check-double-line text-red-400"></i>
-                        ) : (
-                          <i className="ri-check-line text-red-400"></i>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {notifications.find((n) => n.chat?._id === chat._id) && (
-                    <span className="kaab-unread-count">
-                      {
-                        notifications.filter((n) => n.chat?._id === chat._id)
-                          .length
+                return (
+                  <div
+                    key={chat._id}
+                    onClick={() => setSelectedChat(chat)}
+                    className={`kaab-message-item ${
+                      selectedChat && selectedChat._id === chat._id
+                        ? "active"
+                        : ""
+                    }`}
+                  >
+                    <img
+                      src={
+                        chat.isGroupChat
+                          ? "https://imgs.search.brave.com/IlEhT8Dcgu3T4mm7t9xhl6UsFEooWIWZ3wDtgeDtZsc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMDAv/NTUwLzUzNS9zbWFs/bC91c2VyX2ljb25f/MDA3LmpwZw"
+                          : otherUser?.profileImage
                       }
-                    </span>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className="kaab-no-messages">
-              <img src="/images/no-messages.png" alt="No Messages" />
-              <p>No messages found</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="kaab-chat-panel z-1">
-        <div className="kaab-chat-header  flex justify-between items-center">
-          <div>
-            <div className="kaab-chat-title capitalize">{getChatName()}</div>
-            <div className="kaab-chat-subtitle">
-              {selectedChat?.isGroupChat
-                ? "Group Chat"
-                : "Exclusive Beach Party – Energetic Hostess Required"}
-            </div>
-          </div>
-          {selectedChat?.isGroupChat && (
-            <div className="relative">
-              <i
-                onClick={() => setShowMenu(!showMenu)}
-                className="ri-information-line text-3xl text-[#343330] absolute top-1/2 transform -translate-y-1/2  right-4 cursor-pointer"
-              ></i>
-              {showMenu && (
-                <div className="w-80 absolute top-12 right-0 p-6 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2.5 overflow-hidden">
-                  <div className="flex-1 inline-flex flex-col justify-start items-center gap-4">
-                    <div className="self-stretch inline-flex justify-between items-center">
-                      <div className="w-60 justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
-                        {selectedChat?.chatName}
+                      alt={chat.isGroupChat ? chat.chatName : otherUser?.name}
+                    />
+                    <div className="kaab-message-info">
+                      <div className="kaab-message-name-time">
+                        <span>
+                          {chat.isGroupChat ? chat.chatName : otherUser?.name}
+                        </span>
+                        <span>
+                          {chat.updatedAt
+                            ? new Date(chat.updatedAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Time not available"}
+                        </span>
                       </div>
-                      <i
-                        onClick={() => setShowMenu(false)}
-                        className="ri-close-circle-line text-3xl cursor-pointer text-[#656565]"
-                      ></i>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="kaab-message-preview">
+                          {chat.latestMessage?.content?.length > 18
+                            ? `${chat.latestMessage?.content.slice(0, 18)}...`
+                            : chat.latestMessage?.content}
+                        </div>
+                        <div className="kaab-message-status">
+                          {chat.latestMessage?.read ? (
+                            <i className="ri-check-double-line text-red-400"></i>
+                          ) : (
+                            <i className="ri-check-line text-red-400"></i>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="self-stretch flex flex-col justify-start items-start gap-2">
-                      <div className="self-stretch justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
-                        Members
+                    {notifications.find((n) => n.chat?._id === chat._id) && (
+                      <span className="kaab-unread-count">
+                        {
+                          notifications.filter((n) => n.chat?._id === chat._id)
+                            .length
+                        }
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="kaab-no-messages">
+                <img src="/images/no-messages.png" alt="No Messages" />
+                <p>No messages found</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {(!isMobileView || selectedChat) && (
+        <div className="kaab-chat-panel z-1">
+          {isMobileView && selectedChat && (
+            <button
+              onClick={() => setSelectedChat(null)}
+              className="py-2 px-4  w-fit text-sm bg-gray-200 rounded-full mb-2"
+            >
+              ← Back
+            </button>
+          )}
+          <div className="kaab-chat-header  flex justify-between items-center">
+            <div>
+              <div className="kaab-chat-title capitalize">{getChatName()}</div>
+              <div className="kaab-chat-subtitle">
+                {selectedChat?.isGroupChat
+                  ? "Group Chat"
+                  : "Exclusive Beach Party – Energetic Hostess Required"}
+              </div>
+            </div>
+            {selectedChat?.isGroupChat && (
+              <div className="relative">
+                <i
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="ri-information-line text-3xl text-[#343330] absolute top-1/2 transform -translate-y-1/2  right-4 cursor-pointer"
+                ></i>
+                {showMenu && (
+                  <div className="w-80 absolute top-12 right-0 p-6 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2.5 overflow-hidden">
+                    <div className="flex-1 inline-flex flex-col justify-start items-center gap-4">
+                      <div className="self-stretch inline-flex justify-between items-center">
+                        <div className="w-60 justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
+                          {selectedChat?.chatName}
+                        </div>
+                        <i
+                          onClick={() => setShowMenu(false)}
+                          className="ri-close-circle-line text-3xl cursor-pointer text-[#656565]"
+                        ></i>
                       </div>
-                      <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                        {selectedChat?.users
-                          .filter((m) => m._id !== user._id)
-                          .map((m) => (
-                            <div
-                              key={m._id}
-                              className="self-stretch inline-flex justify-end items-center gap-3"
-                            >
-                              <div className="flex-1 flex justify-start items-center gap-3.5">
+                      <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                        <div className="self-stretch justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
+                          Members
+                        </div>
+                        <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                          {selectedChat?.users
+                            .filter((m) => m._id !== user._id)
+                            .map((m) => (
+                              <div
+                                key={m._id}
+                                className="self-stretch inline-flex justify-end items-center gap-3"
+                              >
+                                <div className="flex-1 flex justify-start items-center gap-3.5">
+                                  <img
+                                    className="w-8 h-8 rounded-full"
+                                    src={
+                                      m.profileImage ||
+                                      "https://placehold.co/32x32"
+                                    }
+                                  />
+                                  <div className="flex-1 justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
+                                    {m.name}
+                                  </div>
+                                </div>
+                                <div
+                                  onClick={() =>
+                                    removeGroupMember(selectedChat._id, m._id)
+                                  }
+                                  className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight cursor-pointer"
+                                >
+                                  Remove
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                      <div
+                        onClick={() =>
+                          setShowAddMemberInput(!showAddMemberInput)
+                        }
+                        className="self-stretch justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight cursor-pointer"
+                      >
+                        {showAddMemberInput ? "Close" : "Add Member"}
+                      </div>
+                      {showAddMemberInput && (
+                        <div className="self-stretch flex flex-col justify-start items-start gap-3 mt-4">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search users"
+                            className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
+                          />
+                          <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                            {searchResults.map((user) => (
+                              <div
+                                key={user._id}
+                                onClick={() =>
+                                  addGroupMember(selectedChat._id, user._id)
+                                }
+                                className="self-stretch inline-flex justify-end items-center gap-3 cursor-pointer"
+                              >
                                 <img
                                   className="w-8 h-8 rounded-full"
                                   src={
-                                    m.profileImage ||
+                                    user.profileImage ||
                                     "https://placehold.co/32x32"
                                   }
                                 />
                                 <div className="flex-1 justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
-                                  {m.name}
+                                  {user.name}
                                 </div>
                               </div>
-                              <div
-                                onClick={() =>
-                                  removeGroupMember(selectedChat._id, m._id)
-                                }
-                                className="justify-start text-[#656565] text-sm font-normal font-['Inter'] leading-tight cursor-pointer"
-                              >
-                                Remove
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                    <div
-                      onClick={() => setShowAddMemberInput(!showAddMemberInput)}
-                      className="self-stretch justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight cursor-pointer"
-                    >
-                      {showAddMemberInput ? "Close" : "Add Member"}
-                    </div>
-                    {showAddMemberInput && (
-                      <div className="self-stretch flex flex-col justify-start items-start gap-3 mt-4">
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Search users"
-                          className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
-                        />
-                        <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                          {searchResults.map((user) => (
-                            <div
-                              key={user._id}
-                              onClick={() =>
-                                addGroupMember(selectedChat._id, user._id)
-                              }
-                              className="self-stretch inline-flex justify-end items-center gap-3 cursor-pointer"
-                            >
-                              <img
-                                className="w-8 h-8 rounded-full"
-                                src={
-                                  user.profileImage ||
-                                  "https://placehold.co/32x32"
-                                }
-                              />
-                              <div className="flex-1 justify-start text-[#3D3D3D] text-base font-medium font-['Inter'] leading-snug">
-                                {user.name}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="kaab-chat-body" ref={chatBodyRef}>
-          {loading ? (
-            <div className="text-center text-gray-500">Loading messages...</div>
-          ) : messages.length > 0 ? (
-            messages.map((message) => (
-              <div
-                key={message._id}
-                className={`kaab-chat-message ${
-                  message.sender._id === user?._id ? "sender" : "receiver"
-                }`}
-              >
-                <img
-                  src={
-                    message.sender.profileImage || "/images/default-user.png"
-                  }
-                  alt={message.sender.name || "User"}
-                  className="h-10 w-10 rounded-full"
-                />
-                <div>
-                  <div className="kaab-chat-name-time">
-                    {message.sender.name || "Unknown User"}
-                    <span>
-                      {message.createdAt
-                        ? new Date(message.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="kaab-chat-text">{message.content || ""}</div>
-                </div>
+                )}
               </div>
-            ))
-          ) : (
-            <div className="text-center text-gray-500">
-              No messages in this chat
+            )}
+          </div>
+          <div className="kaab-chat-body" ref={chatBodyRef}>
+            {loading ? (
+              <div className="text-center text-gray-500">
+                Loading messages...
+              </div>
+            ) : messages.length > 0 ? (
+              messages.map((message) => (
+                <div
+                  key={message._id}
+                  className={`kaab-chat-message ${
+                    message.sender._id === user?._id ? "sender" : "receiver"
+                  }`}
+                >
+                  <img
+                    src={
+                      message.sender.profileImage || "/images/default-user.png"
+                    }
+                    alt={message.sender.name || "User"}
+                    className="h-10 w-10 rounded-full"
+                  />
+                  <div>
+                    <div className="kaab-chat-name-time">
+                      {message.sender.name || "Unknown User"}
+                      <span>
+                        {message.createdAt
+                          ? new Date(message.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="kaab-chat-text">
+                      {message.content || ""}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500">
+                No messages in this chat
+              </div>
+            )}
+          </div>
+          {selectedChat && (
+            <div className="kaab-chat-input">
+              <input
+                type="text"
+                placeholder="Type your message"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              />
+              <button onClick={handleSendMessage}>
+                <img src="/images/Send.png" alt="send" />
+              </button>
             </div>
           )}
         </div>
-        {selectedChat && (
-          <div className="kaab-chat-input">
-            <input
-              type="text"
-              placeholder="Type your message"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <button onClick={handleSendMessage}>
-              <img src="/images/Send.png" alt="send" />
-            </button>
-          </div>
-        )}
-      </div>
-
+      )}
       {/* Popup for Creating Group */}
       {showPopup && (
         <div className="absolute top-0 left-0 w-full h-full bg-opacity-10 flex items-center justify-center z-[100]">

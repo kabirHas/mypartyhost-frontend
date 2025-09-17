@@ -48,7 +48,12 @@ const StaffDashboard = () => {
   const { user, setUser } = ChatState();
   const [tokenUser,setTokenUser] = useState(()=>{
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    return userInfo.user._id
+    // return userInfo?.user?._id
+    if(userInfo?.user?._id){
+      return userInfo?.user?._id
+    }else{
+      return userInfo?._id
+    }
   });
   console.log("User ID from localStorage:", tokenUser)
 
@@ -205,7 +210,7 @@ const StaffDashboard = () => {
         setProfileViewsError("");
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.message;
-        setProfileViewsError(`Failed to fetch profile views: ${errorMessage}`);
+        setProfileViewsError(`Failed to fetch profile views: ${errorMessage} or Complete your profile Setup`);
         console.error("Error fetching profile views:", error);
         if (error.response?.status === 401) {
           navigate("/login");
@@ -612,7 +617,7 @@ const StaffDashboard = () => {
           </div>
         </div>
       )}
-      <div className="self-stretch inline-flex justify-start items-center gap-4">
+      <div className="self-stretch flex-col md:flex-row inline-flex justify-start items-center gap-4">
         <div className="flex-1 self-stretch p-6 bg-white rounded-2xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
             {upcomingEvents && upcomingEvents.length > 0 ? (
@@ -690,9 +695,7 @@ const StaffDashboard = () => {
               <button
                 onClick={() => {
                   setActiveTab("confirmedBookings");
-                  navigate("/dashboard/manage-bookings", {
-                    state: { activeTab: "Confirmed Bookings" },
-                  });
+                  navigate(`/bookings/${upcomingEvents[upcomingEvents.length - 1]?._id}`);
                 }}
                 className="py-1 rounded-lg flex justify-center items-center gap-2 overflow-hidden"
               >
@@ -733,7 +736,7 @@ const StaffDashboard = () => {
                     state: { activeTab: "Invites Received" },
                   });
                 }}
-                className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
+                className="justify-start cursor-pointer text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight text-white"
               >
                 View Booking Request
               </div>
@@ -1164,7 +1167,7 @@ const StaffDashboard = () => {
               </div>
               <div
                 onClick={handleSaveAvailability}
-                className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
+                className="px-6 py-3 cursor-pointer rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
               >
                 <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
                   Update Availability
@@ -1175,8 +1178,8 @@ const StaffDashboard = () => {
         </div>
       )}
 
-      <div className="self-stretch inline-flex justify-start items-end gap-4 mt-4">
-        <div className="flex-1 self-stretch min-w-80 min-h-48 p-6 bg-[#fff] rounded-2xl inline-flex flex-col justify-start items-start gap-2 overflow-hidden">
+      <div className="self-stretch flex-col w-full md:flex-row inline-flex justify-start items-end gap-4 mt-4">
+        <div className="flex-1 self-stretch w-full md:min-w-80 min-h-48 p-6 bg-[#fff] rounded-2xl inline-flex flex-col justify-start items-start gap-2 overflow-hidden">
           <div style={{ width: "100%", height: 250 }}>
             <h3 style={{ fontSize: "20px", fontWeight: "bold" }}>
               Profile Views
@@ -1218,9 +1221,9 @@ const StaffDashboard = () => {
             )}
           </div>
         </div>
-        <div className="flex-1 p-6 bg-gradient-to-b from-[#fff] to-[#FFE4E6] rounded-3xl inline-flex flex-col justify-start items-start gap-4">
+        <div className="flex-1 p-6 w-full bg-gradient-to-b from-[#fff] to-[#FFE4E6] rounded-3xl inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
-            <div className="w-96 flex flex-col justify-start items-start gap-2">
+            <div className="md:w-96 flex flex-col justify-start items-start gap-2">
               <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
                 Boost Your Profile & Get Noticed!
               </div>
@@ -1271,7 +1274,7 @@ const StaffDashboard = () => {
         </div>
       </div>
 
-      <div className="self-stretch inline-flex justify-start items-start gap-4 mt-8">
+      <div className="self-stretch inline-flex flex-col md:flex-row justify-start items-start gap-4 mt-8">
         <Calendar setIsAvailabilityModalOpen={setIsAvailabilityModalOpen} />
         <div className="inline-flex flex-col justify-start items-start gap-4">
           <div className="self-stretch flex-1 p-4 bg-gradient-to-b from-rose-50 to-[#FFFFFF] rounded-2xl shadow-[0px_3px_17.5px_-1px_rgba(125,125,125,0.10)] outline outline-1 outline-offset-[-1px] outline-[#F9F9F9] flex flex-col justify-start items-start gap-4 overflow-hidden">
@@ -1304,7 +1307,7 @@ const StaffDashboard = () => {
                     )}
                     <div className="inline-flex justify-start items-start gap-4">
                       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                        <div className="self-stretch justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+                        <div onClick={()=> navigate(`/bookings/${event?._id}`)} className="self-stretch cursor-pointer justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
                           {event.eventName}
                         </div>
                         <div className="self-stretch justify-start text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">

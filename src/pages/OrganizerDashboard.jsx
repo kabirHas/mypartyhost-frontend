@@ -8,6 +8,7 @@ import BASE_URLS from "../config";
 import Slider from "react-slick";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { ChatState } from "../Context/ChatProvider";
 
 // const notifications = [
 //   {
@@ -187,7 +188,7 @@ const OrganizerDashboard = () => {
       },
     ],
   };
-
+  const { user } = ChatState();
   return (
     <div className="dashboard">
       <div className="top">
@@ -220,7 +221,9 @@ const OrganizerDashboard = () => {
             >
               Post a Job
             </button>
-            <button className="browse-btn">Browse</button>
+            <button onClick={() => navigate("/")} className="browse-btn">
+              Browse
+            </button>
           </div>
         </div>
 
@@ -243,7 +246,9 @@ const OrganizerDashboard = () => {
 
             <h2>{applications && applications.length}</h2>
             <p>Applications Received</p>
-            <button>View Application</button>
+            <button onClick={() => navigate(`/dashboard/manage-jobs`)}>
+              View Applications
+            </button>
           </div>
           <div className="stat-card">
             <div className="icons">
@@ -266,14 +271,78 @@ const OrganizerDashboard = () => {
             <div className="notification" key={idx}>
               <img src="/images/Update Avatar.png" className="flame-icon" />
               <div>
-                <strong>{item.sender.name}</strong>{" "}
-                {item.type === "job_invite"
-                  ? "invited you to"
-                  : "wants to join"}{" "}
-                <b>{item.metadata?.jobTitle}</b> - Let's Start the Party!{" "}
-                <span className="link">
-                  {item.type === "job_invite" ? "View Job" : "View Application"}
-                </span>
+                {item.type === "job_invite" &&
+                item.sender?._id === user?._id ? (
+                  <span>
+                    You invited{" "}
+                    <Link
+                      className="text-zinc-900 font-bold text-decoration-none capitalize"
+                      to={`/staff-profile/${item?.user?._id}`}
+                    >
+                      {item?.user?.name}
+                    </Link>{" "}
+                    for <b>{item.metadata?.jobTitle}</b> - Let's Start the
+                    Party!{" "}
+                    <span className="link">
+                      {" "}
+                      <Link
+                        className="text-[#E61E4D]  text-decoration-none capitalize"
+                        to={`/dashboard/manage-jobs/${item.metadata?.jobId?._id}/view`}
+                      >
+                        View Job
+                      </Link>
+                    </span>
+                  </span>
+                ) : (
+                  <span>
+                    <Link
+                      to={`/staff-profile/${item.type == 'job_applied' ? item?.sender?._id : item?.user?._id}`}
+                      className="text-zinc-900 font-bold text-decoration-none capitalize"
+                    >
+                      {item.type == "cancelledBooking"
+                        ? ""
+                        : item.type == "job_applied"
+                        ? item?.sender?.name
+                        : item?.user?.name}
+                    </Link>{" "}
+                    {item.type === "job_invite"
+                      ? "invited you to"
+                      : item.type === "booking"
+                      ? "confirmed booking for"
+                      : item.type === "cancelledBooking"
+                      ? "Booking cancelled for"
+                      : "wants to join"}{" "}
+                    <b>{item.metadata?.jobTitle}</b> -{item.type}{" "}
+                    {item.type === "job_invite" && " Let's Start the Party!"}
+                    <span
+                      onClick={() =>
+                        item.type === "job_invite"
+                          ? navigate(
+                              `/dashboard/manage-jobs/${item.metadata?.jobId?._id}/view`
+                            )
+                          : navigate(
+                              `/dashboard/manage-jobs/${item.metadata?.jobId?._id}/view`,
+                              {
+                                state: {
+                                  applicationId: item._id,
+                                  tab: "applications",
+                                },
+                              }
+                            )
+                      }
+                      // to={
+                      //   item.type === "job_invite"
+                      //     ? `/dashboard/manage-jobs/${item.metadata?.jobId?._id}/view`
+                      //     : ""
+                      // }
+                      className="link text-decoration-none"
+                    >
+                      {item.type === "job_invite"
+                        ? "View Job"
+                        : "View Application"}
+                    </span>
+                  </span>
+                )}
               </div>
             </div>
           ))}

@@ -4,32 +4,105 @@ import { useNavigate } from "react-router-dom";
 import BASE_URLS from "../config";
 
 function SavedJobs() {
-    const [activeTab, setActiveTab] = useState("saved");
+  const [activeTab, setActiveTab] = useState("saved");
   const [savedJobs, setSavedJobs] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [isRemoving, setIsRemoving] = useState(false);
   const navigate = useNavigate();
 
-  
-
   useEffect(() => {
     const fetchSavedJobs = async () => {
       try {
-        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/saved`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const response = await axios.get(
+          `${BASE_URLS.BACKEND_BASEURL}jobs/saved`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         const data = response.data.savedJobs || response.data; // Handle different response structures
         const savedJobsArray = Array.isArray(data) ? data : [];
-        const formattedJobs = savedJobsArray.map(job => ({
+        const formattedJobs = savedJobsArray.map((job) => ({
           id: job._id,
           title: job.jobTitle,
           category: job.staffCategory,
           location: `${job.suburb}, ${job.city}, ${job.country}`,
-          dateTime: `${new Date(job.jobDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} | ${new Date(`1970-01-01T${job.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} – ${new Date(`1970-01-01T${job.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`,
-          pay: `${job.currency}${job.rateOffered}/${job.paymentType === 'hourly' ? 'h' : 'fixed'}`,
+          dateTime: `${new Date(job.jobDate).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })} | ${new Date(`1970-01-01T${job.startTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )} – ${new Date(`1970-01-01T${job.endTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )}`,
+          pay: `${job.currency}${job.rateOffered}/${
+            job.paymentType === "hourly" ? "h" : "fixed"
+          }`,
           description: job.jobDescription,
         }));
-        setSavedJobs(formattedJobs);
+        const formatJob = savedJobsArray.map((job) => ({
+          id: job._id,
+          title: job.jobTitle,
+          category: job.staffCategory,
+          location: `${job.suburb || ""}, ${job.city || ""}, ${
+            job.country || ""
+          }`,
+          dateTime: `${new Date(job.jobDate).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })} | ${new Date(`1970-01-01T${job.startTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )} – ${new Date(`1970-01-01T${job.endTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )}`,
+          datetime: `${new Date(job.jobDate).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })} | ${new Date(`1970-01-01T${job.startTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )} – ${new Date(`1970-01-01T${job.endTime}`).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit", hour12: true }
+          )}`,
+          rate: `${job.currency} ${job.rateOffered}/${
+            job.paymentType === "hourly" ? "h" : "fixed"
+          }`,
+          pay: `${job.currency}${job.rateOffered}/${
+            job.paymentType === "hourly" ? "h" : "fixed"
+          }`,
+          gender: job.lookingFor,
+          organiser: {
+            name: job.organiser?.name || "Unknown Organizer",
+            email: job.organiser?.email || "Not provided",
+            phone: job.organiser?.phone || "Not provided",
+            city: job.organiser?.city || "Unknown",
+            country: job.organiser.country || "Unknown",
+            profileImage:
+              job.organiser?.profileImage || "https://placehold.co/48x48",
+            reviews: job.organiser.reviews || [],
+            rating: job.organiser.rating || "0",
+          },
+          description: job.jobDescription,
+          currency: job.currency,
+          paymentType: job.paymentType,
+          jobDate: job.jobDate,
+          suburb: job.suburb,
+          city: job.city,
+          country: job.country,
+        }));
+        setSavedJobs(formatJob);
       } catch (error) {
         console.error("Error fetching saved jobs:", error);
         if (error.response?.status === 401) {
@@ -50,196 +123,241 @@ function SavedJobs() {
       // alert("Please log in to view saved jobs.");
       navigate("/login");
     }
-  
 
     const fetchAppliedJobs = async () => {
-  try {
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/applied-jobs`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    console.log("Applied jobs response:", response.data);
-    const data = response.data.appliedJobs || response.data;
-    const appliedJobsArray = Array.isArray(data) ? data : [];
-    const formattedJobs = appliedJobsArray.map(item => ({
-      id: item.job?._id || "N/A",
-      applicationId: item._id || "N/A", // Store application ID
-      title: item.job?.jobTitle || "Untitled Job",
-      category: item.job?.staffCategory || "Unknown Category",
-      location: `${item.job?.suburb || "Unknown"}, ${item.job?.city || "Unknown"}, ${item.job?.country || "Unknown"}`,
-      dateTime: `${
-        item.job?.jobDate
-          ? new Date(item.job.jobDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-          : "Unknown Date"
-      } | ${
-        item.job?.startTime && item.job?.endTime
-          ? `${new Date(`1970-01-01T${item.job.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} – ${new Date(`1970-01-01T${item.job.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
-          : "Unknown Time"
-      }`,
-      pay: `${item.job?.currency || "AUD"}${item.job?.rateOffered || 0}/${item.job?.paymentType === 'hourly' ? 'h' : 'fixed'}`,
-      description: item.job?.jobDescription || "No description available",
-      status: item.status, // Add status field
-    }));
-    console.log("Formatted applied jobs:", formattedJobs);
-    setAppliedJobs(formattedJobs);
-  } catch (error) {
-    console.error("Error fetching applied jobs:", error);
-    console.error("Error details:", error.response?.data);
-    if (error.response?.status === 401) {
-      alert("Session expired. Please log in again.");
+      try {
+        const response = await axios.get(
+          `${BASE_URLS.BACKEND_BASEURL}jobs/applied-jobs`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        console.log("Applied jobs response:", response.data);
+        const data = response.data.appliedJobs || response.data;
+        const appliedJobsArray = Array.isArray(data) ? data : [];
+        const formattedJobs = appliedJobsArray.map((item) => ({
+          id: item.job?._id || "N/A",
+          applicationId: item._id || "N/A", // Store application ID
+          title: item.job?.jobTitle || "Untitled Job",
+          category: item.job?.staffCategory || "Unknown Category",
+          location: `${item.job?.suburb || "Unknown"}, ${
+            item.job?.city || "Unknown"
+          }, ${item.job?.country || "Unknown"}`,
+          dateTime: `${
+            item.job?.jobDate
+              ? new Date(item.job.jobDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "Unknown Date"
+          } | ${
+            item.job?.startTime && item.job?.endTime
+              ? `${new Date(
+                  `1970-01-01T${item.job.startTime}`
+                ).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })} – ${new Date(
+                  `1970-01-01T${item.job.endTime}`
+                ).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })}`
+              : "Unknown Time"
+          }`,
+          pay: `${item.job?.currency || "AUD"}${item.job?.rateOffered || 0}/${
+            item.job?.paymentType === "hourly" ? "h" : "fixed"
+          }`,
+          description: item.job?.jobDescription || "No description available",
+          status: item.status, // Add status field
+        }));
+        console.log("Formatted applied jobs:", formattedJobs);
+        setAppliedJobs(formattedJobs);
+      } catch (error) {
+        console.error("Error fetching applied jobs:", error);
+        console.error("Error details:", error.response?.data);
+        if (error.response?.status === 401) {
+          alert("Session expired. Please log in again.");
+          navigate("/login");
+        }
+        setAppliedJobs([]);
+      }
+    };
+
+    if (localStorage.getItem("token")) {
+      if (activeTab === "saved") {
+        fetchSavedJobs();
+      } else if (activeTab === "applied") {
+        fetchAppliedJobs();
+      }
+    } else {
+      alert("Please log in to view jobs.");
       navigate("/login");
     }
-    setAppliedJobs([]);
-  }
-};
-
-  if (localStorage.getItem("token")) {
-    if (activeTab === "saved") {
-      fetchSavedJobs();
-    } else if (activeTab === "applied") {
-      fetchAppliedJobs();
-    }
-  } else {
-    alert("Please log in to view jobs.");
-    navigate("/login");
-  }
-}, [navigate, activeTab]);
-
-
+  }, [navigate, activeTab]);
 
   const handleRemoveJob = async (jobId) => {
-  if (isRemoving) return; // Prevent multiple clicks
-  setIsRemoving(true);
-  try {
-    const response = await axios.delete(`${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/saved`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    if (response.status === 200 || response.status === 204) {
-      setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
-      // alert("Job removed from saved list.");
-    } else {
-      alert("Failed to remove job. Please try again.");
-    }
-  } catch (error) {
-    console.error("Error removing job:", error);
-    if (error.response?.status === 401) {
-      alert("Session expired. Please log in again.");
-      navigate("/login");
-    } else if (error.response?.status === 404) {
-      alert("Job not found or endpoint incorrect. Please verify the job ID or API endpoint.");
-    } else {
-      alert("Error removing job. Please try again.");
-    }
-  } finally {
-    setIsRemoving(false); // Reset after request
-  }
-};
-
-  
-
-
-
-const handleApplyJob = async (jobId) => {
-  try {
-    const token = localStorage.getItem("token");
-    console.log("Token (first 10 chars):", token?.substring(0, 10) || "No token");
-    // Decode token to get staff ID
-    let staffId;
+    if (isRemoving) return; // Prevent multiple clicks
+    setIsRemoving(true);
     try {
-      const base64Payload = token.split(".")[1];
-      const decodedPayload = atob(base64Payload);
-      const payloadObj = JSON.parse(decodedPayload);
-      staffId = payloadObj._id;
-      console.log("Decoded staffId:", staffId);
-    } catch (err) {
-      console.error("Error decoding token:", err);
-      alert("Invalid token. Please log in again.");
-      navigate("/login");
-      return;
-    }
-
-    // Find the job to get its data
-    const job = savedJobs.find(job => job.id === jobId);
-    if (!job) {
-      console.error("Job not found in saved jobs:", jobId);
-      alert("Job not found in saved jobs.");
-      return;
-    }
-
-    // Extract currency and duration from job.pay (e.g., "AUD30/fixed")
-    const currency = job.pay.split(/[0-9]/)[0] || "AUD";
-    const duration = job.pay.includes("/h") ? "Per Hour" : "Per Day";
-    const offer = parseFloat(job.pay.match(/\d+(\.\d+)?/)?.[0]) || 50; // Default to 50 if parsing fails
-    const message = "I am interested in this job."; // Default message
-
-    const payload = { job: jobId, staff: staffId, offer, message, duration, currency };
-    console.log("Applying for job, full payload:", JSON.stringify(payload, null, 2));
-    console.log("Job details from savedJobs:", JSON.stringify(job, null, 2));
-
-    const response = await axios.post(
-      `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/apply`,
-      payload,
-      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-    );
-
-    if (response.status === 200 || response.status === 201) {
-      alert("Job applied successfully!");
-      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
-      setAppliedJobs(prev => [... prev, { ...job, applicationId: response.data.applicationId || "N/A" }]);
-    } else {
-      console.error("Failed to apply for job. Status:", response.status);
-      alert("Failed to apply for job. Please try again.");
-    }
-  } catch (error) {
-    console.error("Error applying for job:", error);
-    console.error("Error details:", error.response?.data, "Status:", error.response?.status);
-    console.error("Full error response:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      headers: error.response?.headers,
-      request: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers,
-        data: error.config?.data,
-      },
-    });
-    if (error.response?.status === 401) {
-      alert("Session expired. Please log in again.");
-      navigate("/login");
-    } else if (error.response?.status === 404) {
-      alert("Job not found. Please verify the job ID.");
-    } else {
-      alert("Error applying for job. Please try again or contact support.");
-    }
-  }
-};
-
-
-
-
-
-const handleWithdrawApplication = async (jobId, applicationId) => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.post(
-      `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/withdraw/${applicationId}`,
-      {}, // <- empty body
-      {
-        headers: { Authorization: `Bearer ${token}` }, // <- correct headers
+      const response = await axios.delete(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/saved`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      if (response.status === 200 || response.status === 204) {
+        setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
+        // alert("Job removed from saved list.");
+      } else {
+        alert("Failed to remove job. Please try again.");
       }
-    );
+    } catch (error) {
+      console.error("Error removing job:", error);
+      if (error.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+        navigate("/login");
+      } else if (error.response?.status === 404) {
+        alert(
+          "Job not found or endpoint incorrect. Please verify the job ID or API endpoint."
+        );
+      } else {
+        alert("Error removing job. Please try again.");
+      }
+    } finally {
+      setIsRemoving(false); // Reset after request
+    }
+  };
 
-    // Remove the job from appliedJobs list
-    setAppliedJobs(prev => prev.filter(job => job.applicationId !== applicationId));
-    alert("Application withdrawn successfully.");
-  } catch (error) {
-    console.error("Error withdrawing application:", error);
-    alert("Failed to withdraw application. Please try again.");
-  }
-};
+  const handleApplyJob = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log(
+        "Token (first 10 chars):",
+        token?.substring(0, 10) || "No token"
+      );
+      // Decode token to get staff ID
+      let staffId;
+      try {
+        const base64Payload = token.split(".")[1];
+        const decodedPayload = atob(base64Payload);
+        const payloadObj = JSON.parse(decodedPayload);
+        staffId = payloadObj._id;
+        console.log("Decoded staffId:", staffId);
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        alert("Invalid token. Please log in again.");
+        navigate("/login");
+        return;
+      }
 
+      // Find the job to get its data
+      const job = savedJobs.find((job) => job.id === jobId);
+      if (!job) {
+        console.error("Job not found in saved jobs:", jobId);
+        alert("Job not found in saved jobs.");
+        return;
+      }
 
+      // Extract currency and duration from job.pay (e.g., "AUD30/fixed")
+      const currency = job.pay.split(/[0-9]/)[0] || "AUD";
+      const duration = job.pay.includes("/h") ? "Per Hour" : "Per Day";
+      const offer = parseFloat(job.pay.match(/\d+(\.\d+)?/)?.[0]) || 50; // Default to 50 if parsing fails
+      const message = "I am interested in this job."; // Default message
 
+      const payload = {
+        job: jobId,
+        staff: staffId,
+        offer,
+        message,
+        duration,
+        currency,
+      };
+      console.log(
+        "Applying for job, full payload:",
+        JSON.stringify(payload, null, 2)
+      );
+      console.log("Job details from savedJobs:", JSON.stringify(job, null, 2));
+
+      const response = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/apply`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        alert("Job applied successfully!");
+        setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
+        setAppliedJobs((prev) => [
+          ...prev,
+          { ...job, applicationId: response.data.applicationId || "N/A" },
+        ]);
+      } else {
+        console.error("Failed to apply for job. Status:", response.status);
+        alert("Failed to apply for job. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error applying for job:", error);
+      console.error(
+        "Error details:",
+        error.response?.data,
+        "Status:",
+        error.response?.status
+      );
+      console.error("Full error response:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        request: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers,
+          data: error.config?.data,
+        },
+      });
+      if (error.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+        navigate("/login");
+      } else if (error.response?.status === 404) {
+        alert("Job not found. Please verify the job ID.");
+      } else {
+        alert("Error applying for job. Please try again or contact support.");
+      }
+    }
+  };
+
+  const handleWithdrawApplication = async (jobId, applicationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${jobId}/withdraw/${applicationId}`,
+        {}, // <- empty body
+        {
+          headers: { Authorization: `Bearer ${token}` }, // <- correct headers
+        }
+      );
+
+      // Remove the job from appliedJobs list
+      setAppliedJobs((prev) =>
+        prev.filter((job) => job.applicationId !== applicationId)
+      );
+      alert("Application withdrawn successfully.");
+    } catch (error) {
+      console.error("Error withdrawing application:", error);
+      alert("Failed to withdraw application. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -252,12 +370,12 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
             <div className="border-b border-[#656565] inline-flex justify-start items-center">
               <div
                 onClick={() => setActiveTab("saved")}
-                className={`px-4 py-2 border-b-2 flex justify-center items-center gap-2.5 ${
+                className={`px-4 py-2 border-b-2 cursor-pointer flex justify-center items-center gap-2.5 ${
                   activeTab === "saved" ? "border-[#E61E4D]" : ""
                 }`}
               >
                 <div
-                  className={`justify-start text-sm font-medium font-['Inter'] leading-tight ${
+                  className={`justify-start  text-sm font-medium font-['Inter'] leading-tight ${
                     activeTab === "saved" ? "text-[#E61E4D]" : "text-[#656565]"
                   }`}
                 >
@@ -266,13 +384,15 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
               </div>
               <div
                 onClick={() => setActiveTab("applied")}
-                className={`px-4 py-2 border-b-2 flex justify-center items-center gap-2.5 ${
+                className={`px-4 py-2 border-b-2 cursor-pointer flex justify-center items-center gap-2.5 ${
                   activeTab === "applied" ? "border-[#E61E4D]" : ""
                 }`}
               >
                 <div
                   className={`justify-start text-sm font-medium font-['Inter'] leading-tight ${
-                    activeTab === "applied" ? "text-[#E61E4D]" : "text-[#656565]"
+                    activeTab === "applied"
+                      ? "text-[#E61E4D]"
+                      : "text-[#656565]"
                   }`}
                 >
                   Applied
@@ -288,7 +408,10 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                   </p>
                 ) : (
                   savedJobs.map((job) => (
-                    <div className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
+                    <div
+                      className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6"
+                      key={job.applicationId}
+                    >
                       <div
                         data-property-1="Favorite"
                         className="flex-1 h-[420px] p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
@@ -348,7 +471,7 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                             </div>
                           </button>
                           <button
-                            onClick={() => handleApplyJob(job.id)}
+                            onClick={() => navigate('/apply-job', { state: { job: job } })}
                             className="px-6 py-3 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 overflow-hidden text-white text-base font-medium leading-snug font-['Inter']"
                           >
                             Apply Now
@@ -367,7 +490,10 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                   </p>
                 ) : (
                   appliedJobs.map((job) => (
-                    <div className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6" key={job.applicationId}>
+                    <div
+                      className="w-full md:w-[48%] self-stretch inline-flex justify-start items-center gap-6"
+                      key={job.applicationId}
+                    >
                       <div
                         data-property-1="applied"
                         className="flex-1 p-6 bg-[#FFFFFF] rounded-2xl inline-flex flex-col justify-start items-end gap-2"
@@ -418,9 +544,23 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
                               </div>
                             </div>
                           </div>
-                          <button disabled={job.status === 'hired'} onClick={() => handleWithdrawApplication(job.id, job.applicationId)} className="px-6 py-3 rounded-lg outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden">
+                          <button
+                            onClick={() =>
+                              job.status === "hired"
+                                ? navigate("/dashboard/manage-bookings")
+                                : handleWithdrawApplication(
+                                    job.id,
+                                    job.applicationId
+                                  )
+                            }
+                            className="px-6 py-3 rounded-lg outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden"
+                          >
                             <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
-                              {job.status === 'hired' ? 'Congratulations! You are hired🎉' : job.status  === 'rejected' ? 'Your application has been Rejected' :'Withdraw Application'}
+                              {job.status === "hired"
+                                ? "Booking Confirmed"
+                                : job.status === "rejected"
+                                ? "Your application has been Rejected"
+                                : "Withdraw Application"}
                             </div>
                           </button>
                         </div>
@@ -438,6 +578,3 @@ const handleWithdrawApplication = async (jobId, applicationId) => {
 }
 
 export default SavedJobs;
-
-
-

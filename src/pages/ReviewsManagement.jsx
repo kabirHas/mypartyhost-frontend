@@ -98,7 +98,7 @@ const ReviewsManagement = () => {
         </div>
         <button
           onClick={() => setShowSidebar(true)}
-          className="px-6 py-3 rounded-lg inline-flex justify-center items-center gap-2 text-white text-base font-medium font-['Inter'] leading-snug overflow-hidden"
+          className="px-6 py-3 w-full md:w-fit rounded-lg inline-flex justify-center items-center gap-2 text-white text-base font-medium font-['Inter'] leading-snug overflow-hidden"
           style={{
             background:
               "linear-gradient(272deg, #E31F87 1.58%, #E61E4D 98.73%)",
