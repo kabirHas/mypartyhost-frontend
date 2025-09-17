@@ -5,42 +5,42 @@
 }
 
 .kaab-support-container .search-box-c.d-flex {
-    margin: 48px auto 24px;
-    max-width: 486px;
+  margin: 48px auto 24px;
+  max-width: 486px;
 }
 
 .kaab-view-tickets-btn {
-    background: none;
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 500;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    color: #E61E4D;
-    padding: 12px 24px;
-    border: 1px solid #E61E4D;
-    border-radius: 8px;
+  background: none;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  color: #E61E4D;
+  padding: 12px 24px;
+  border: 1px solid #E61E4D;
+  border-radius: 8px;
 }
 
 .kaab-support-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 32px;
 }
 
 .kaab-tag-btn {
-    background-color: #fff;
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 400;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: 1px solid #fff;
-    color: #3D3D3D;
+  background-color: #fff;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #fff;
+  color: #3D3D3D;
 }
 
 .kaab-tag-btn.active {
@@ -51,12 +51,12 @@
 }
 
 .kaab-common-title {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 28.80px;
-    word-wrap: break-word;
-    color: #292929;
-    margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28.80px;
+  word-wrap: break-word;
+  color: #292929;
+  margin-bottom: 24px;
 }
 
 .kaab-common-section {
@@ -133,76 +133,76 @@
 }
 
 .kaab-submit-ticket h4 {
-    margin-bottom: 8px;
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 36.80px;
-    letter-spacing: 0.03px;
-    word-wrap: break-word;
-    color: #292929;
+  margin-bottom: 8px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 36.80px;
+  letter-spacing: 0.03px;
+  word-wrap: break-word;
+  color: #292929;
 }
 
 .kaab-submit-ticket p {
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 500;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    color: #3d3d3d;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  color: #3d3d3d;
 }
 
 .kaab-contact-btn {
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    margin-top: 12px;
-    background: linear-gradient(287deg, #E31F87 0%, #E61E4D 100%);
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 500;
-    line-height: 21.60px;
-    word-wrap: break-word;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin-top: 12px;
+  background: linear-gradient(287deg, #E31F87 0%, #E61E4D 100%);
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21.60px;
+  word-wrap: break-word;
 }
 
 .kaab-quick-updates h5 {
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    color: #292929;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  color: #292929;
 }
 
 .kaab-accordion-wrapper {
-    width: calc(50% - 12px);
+  width: calc(50% - 12px);
 }
 
 .kaab-accordion-item {
   background: white;
   border-radius: 8px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .kaab-accordion-question {
-    padding: 16px;
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 700;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    color: #292929;
+  padding: 16px;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 700;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  color: #292929;
 }
 
 .kaab-accordion-answer {
-    padding: 0 16px 16px;
-    color: #3d3d3d;
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 400;
-    line-height: 21.60px;
-    word-wrap: break-word;
+  padding: 0 16px 16px;
+  color: #3d3d3d;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.60px;
+  word-wrap: break-word;
 }
 
 
@@ -216,28 +216,28 @@
 }
 
 .kaab-tags {
-    border-top: 1px solid #ECECED;
-    margin: 12px 0 0;
-    padding-top: 12px;
+  border-top: 1px solid #ECECED;
+  margin: 12px 0 0;
+  padding-top: 12px;
 }
 
 .kaab-tags span {
-    display: inline-block;
-    background-color: #FFF1F2;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 14px;
-    font-family: Inter;
-    font-weight: 400;
-    line-height: 18.90px;
-    word-wrap: break-word;
+  display: inline-block;
+  background-color: #FFF1F2;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 18.90px;
+  word-wrap: break-word;
 }
 
 .kaab-submit-ticket {
-    flex: 1 1;
-    padding: 24px;
-    border-radius: 16px;
-    background: linear-gradient(180deg, white 0%,#FFF1F2 100%);
+  flex: 1 1;
+  padding: 24px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, white 0%, #FFF1F2 100%);
 }
 
 
@@ -248,14 +248,21 @@
 }
 
 .kaab-quick-updates p {
-    font-size: 16px;
-    font-family: Inter;
-    font-weight: 400;
-    line-height: 21.60px;
-    word-wrap: break-word;
-    color: #292929;
+  font-size: 16px;
+  font-family: Inter;
+  font-weight: 400;
+  line-height: 21.60px;
+  word-wrap: break-word;
+  color: #292929;
 }
 
 button.kaab-view-tickets-btn.et {
-    margin-top: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .kaab-accordion-wrapper {
+    width: 100%;
+  }
+
 }

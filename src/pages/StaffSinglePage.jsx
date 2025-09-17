@@ -5,9 +5,13 @@ import { FaHourglass } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
 import axios from "axios";
 import BASE_URLS from "../config";
+import { ChatState } from "../Context/ChatProvider";
+import RemixIconPicker from "../components/RemixIconPicker";
+
 
 
 function StaffSinglePage() {
+  const {user,setUser} = ChatState();
   const navigate = useNavigate();
   // const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [isProfileVisible, setIsProfileVisible] = useState(() => {
@@ -20,7 +24,7 @@ function StaffSinglePage() {
   const [isDailyBooking, setIsDailyBooking] = useState(true);
   const [isInstantBook, setIsInstantBook] = useState(() => {
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      return userInfo.isInstantBook ?? true;
+      return userInfo.instantBook ?? true;
     });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAddRateOpen, setIsAddRateOpen] = useState(false);
@@ -175,7 +179,7 @@ const handleProfileImageUpload = async (event) => {
 
       const token = localStorage.getItem("token");
       const [staffResponse, bookingsResponse] = await Promise.all([
-        axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        axios.get(`${BASE_URLS.BACKEND_BASEURL}auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`, {
@@ -183,20 +187,22 @@ const handleProfileImageUpload = async (event) => {
         }),
       ]);
 
-      const staff = staffResponse.data.data.find(u => u._id === userId);
+      console.log("staffResponse:", staffResponse.data);
+
+      const staff = staffResponse.data;
 
       if (staff && staff.user) {
-        setProfileImage(staff.user.profileImage || profileImage);
+        setProfileImage(staff.profileImage || profileImage);
         setPhotos(staff.photos || []);
-        const staffReviews = staff.user.reviews || [];
+        const staffReviews = staff.reviews || [];
         setReviews(staffReviews);
         const totalRating = staffReviews.reduce((sum, review) => sum + (review.rating || 0), 0);
         const avg = staffReviews.length > 0 ? totalRating / staffReviews.length : 0;
         setAvgRating(avg.toFixed(1));
-        setLocation(`${staff.user.city}, ${staff.user.country}`); 
-        setFlagUrl(staff.user.flag || ""); 
-        setName(`${staff.user.name}` || "N/A");
-        setBio(staff.user.bio);
+        setLocation(`${staff.city}, ${staff.country}`); 
+        setFlagUrl(staff.flag || ""); 
+        setName(`${staff.name}` || "N/A");
+        setBio(staff.bio);
         setSkills(staff.skills || []);
         setAvailableDates(staff.availableDates.map(date => date.split('T')[0]) || []);
         setAvailableFor(staff.availableFor || []);
@@ -222,7 +228,7 @@ const handleProfileImageUpload = async (event) => {
 
         setStaffdailyRate(staff.dailyRate || []);
         setIsProfileVisible(staff.isPublic ?? true); 
-        setIsInstantBook(staff.isInstantBook ?? true);
+        setIsInstantBook(staff.instantBook ?? true);
         // setServiceOptions(staff.skills || []);
 
 
@@ -410,7 +416,7 @@ const handleSaveBio = async () => {
     }
 
     // Fetch staff data to get the correct staff._id
-    const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const staff = response.data.data.find(u => u._id === userId);
@@ -421,7 +427,7 @@ const handleSaveBio = async () => {
     }
 
     await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff/${staff._id}`,
+      `${BASE_URLS.BACKEND_BASEURL}staff/`,
       { bio: editedBio },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -488,6 +494,7 @@ const renderSkillModal = () => {
               className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
             />
           </div>
+          {/* <RemixIconPicker/> */}
           <div className="self-stretch flex flex-col gap-2">
             <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
               Price Per Hour ($)
@@ -547,7 +554,7 @@ const handleSaveSkill = async () => {
       };
 
       // Fetch staff data for the specific user
-      const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("API response:", response.data);
@@ -563,7 +570,7 @@ const handleSaveSkill = async () => {
       // Update skills array with new skill
       const updatedSkills = [...currentSkills, newSkill];
       await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff`, // Changed endpoint
+        `${BASE_URLS.BACKEND_BASEURL}staff`, // Changed endpoint
         { staffId: staff._id, skills: updatedSkills }, // Include staffId in payload
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -638,7 +645,7 @@ const toggleProfileVisibility = async () => {
 
     try {
       const response = await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff`,
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
         { staffId: userId, isPublic: newVisibility },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -673,12 +680,12 @@ const toggleInstantBook = async () => {
 
     try {
       const response = await axios.patch(
-        `https://mypartyhost.onrender.com/api/staff`,
-        { staffId: userId, isInstantBook: newInstantBook },
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
+        { staffId: userId, instantBook: newInstantBook },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsInstantBook(newInstantBook);
-      localStorage.setItem("userInfo", JSON.stringify({ ...userInfo, isInstantBook: newInstantBook }));
+      localStorage.setItem("userInfo", JSON.stringify({ ...userInfo, instantBook: newInstantBook }));
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
       }
@@ -748,6 +755,39 @@ const toggleInstantBook = async () => {
     );
   };
 
+  const handleUpdateAvailability = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userId = userInfo._id;
+      const token = localStorage.getItem("token");
+      if (!userId || !token) {
+        console.error("User not authenticated.");
+        // alert("Please log in to update availability."); 
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
+      const response = await axios.patch(`${BASE_URLS.BACKEND_BASEURL}staff`,{
+        availableDates : availableDates,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Availability updated:", response.data);
+      // alert("Availability updated successfully!");
+      // Optionally update localStorage if needed
+
+      const updatedUserInfo = { ...userInfo, availableDates: availableDates };
+      localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+      setIsCalendarOpen(false);
+    } catch (error) {
+      console.error("Error updating availability:", error);
+      alert("Failed to update availability. Please try again.");
+    }
+  };
+
+      
+
+
 
 
   const handleBaseRateChange = (e) => {
@@ -772,7 +812,7 @@ const handleSaveRate = async () => {
       alert("Please log in to update rates.");
       return;
     }
-    const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const staff = response.data.data.find((u) => u._id === userId);
@@ -791,7 +831,7 @@ const handleSaveRate = async () => {
     };
     console.log("Data being sent to API:", updatedData);
     await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff`,
+      `${BASE_URLS.BACKEND_BASEURL}staff`,
       updatedData,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -842,7 +882,7 @@ const handleDeleteRate = async (index) => {
       alert("Please log in to update rates.");
       return;
     }
-    const response = await axios.get(`https://mypartyhost.onrender.com/api/staff`, {
+    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const staff = response.data.data.find(u => u._id === userId);
@@ -852,7 +892,7 @@ const handleDeleteRate = async (index) => {
       return;
     }
     await axios.patch(
-      `https://mypartyhost.onrender.com/api/staff`,
+      `${BASE_URLS.BACKEND_BASEURL}staff`,
       { additionalRates: updatedRates },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -904,7 +944,7 @@ const handleDeleteRate = async (index) => {
       }
 
     return (
-      <div className="w-[479px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-2.5">
+      <div className="md:w-[479px] w-full p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-2.5">
         <div className="flex flex-col gap-3">
           <div className="flex items-start gap-4">
             <div className="flex-1 flex flex-col gap-1">
@@ -924,7 +964,7 @@ const handleDeleteRate = async (index) => {
               <i className="ri-close-line text-xl text-[#656565]"></i>
             </button>
           </div>
-          <div className="min-w-80 p-4 bg-[#F9F9F9] rounded-lg outline outline-1 outline-[#ECECEC] flex flex-col gap-3">
+          <div className="md:min-w-80 p-4 bg-[#F9F9F9] rounded-lg outline outline-1 outline-[#ECECEC] flex flex-col gap-3">
             <div className="flex justify-between items-center">
               <button onClick={handlePrevMonth} className="relative">
                 <i className="ri-arrow-left-s-line text-xl text-[#3D3D3D]"></i>
@@ -944,7 +984,7 @@ const handleDeleteRate = async (index) => {
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
                 <div
                   key={day}
-                  className="flex-1 px-2 py-1 flex justify-center items-center"
+                  className="flex-1 px-1 md:px-2 py-1 flex justify-center items-center"
                 >
                   <div className="text-center text-[#656565] text-sm font-medium font-['Inter'] leading-tight">
                     {day}
@@ -966,7 +1006,7 @@ const handleDeleteRate = async (index) => {
                         onClick={() =>
                           day.isCurrentMonth && handleDateClick(day.date)
                         }
-                        className={`flex-1 h-8 p-3 rounded ${
+                        className={`flex-1 h-8 md:p-3 p-1  rounded ${
                           day.isCurrentMonth
                             ? isSelected
                               ? "bg-[#E61E4D] text-white outline outline-1 outline-[#B11235]"
@@ -997,10 +1037,19 @@ const handleDeleteRate = async (index) => {
                 </div>
                 <i className="ri-check-line text-[#3D3D3D]"></i>
               </button>
+              <button
+               onClick={() => setAvailableDates([])}
+                className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-[#3D3D3D] flex items-center gap-2"
+              >
+                <div className="text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
+                  Clear All
+                </div>
+                <i className="ri-close-line text-[#3D3D3D]"></i>
+              </button>
             </div>
           </div>
-          <button className="px-6 py-3 w-fit rounded-lg outline outline-1 outline-[#E61E4D] flex justify-center items-center gap-2">
-            <div className="text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
+          <button className="px-6 py-3 cursor-pointer w-fit rounded-lg outline outline-1 outline-[#E61E4D] flex justify-center items-center gap-2">
+            <div onClick={handleUpdateAvailability} className="text-[#E61E4D]  text-base font-medium font-['Inter'] leading-snug">
               Update Availability
             </div>
             <i className="ri-calendar-check-line text-[#E61E4D]"></i>
@@ -1012,7 +1061,7 @@ const handleDeleteRate = async (index) => {
 
   const renderAddRateModal = () => {
     return (
-      <div className="w-[517px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-4">
+      <div className="md:w-[517px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-4">
         <div className="flex items-start gap-4">
           <div className="flex-1 flex flex-col gap-1">
             <div className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
@@ -1098,9 +1147,9 @@ const handleDeleteRate = async (index) => {
   };
 
   return (
-    <div className="self-stretch bg-[#fafafa] w-full px-12 pt-20 pb-40 flex flex-col justify-center items-center gap-2.5">
+    <div className="self-stretch bg-[#fafafa] w-full px-4 md:px-12 pt-20 pb-40 flex flex-col justify-center items-center gap-2.5">
       {isCalendarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 p-4 bg-black bg-opacity-50 flex justify-center items-center z-50">
           {renderCalendar()}
         </div>
       )}
@@ -1122,10 +1171,10 @@ const handleDeleteRate = async (index) => {
           </button>
         </div>
         <div className="w-full max-w-[1200px] flex justify-start items-start gap-12">
-          <div className="flex w-full gap-6">
-            <div className="self-stretch flex w-1/2 flex-col gap-6">
+          <div className="flex w-full gap-6 flex-col md:flex-row">
+            <div className="self-stretch flex w-full md:w-1/2 flex-col gap-6">
               <div className="self-stretch flex flex-col justify-start items-start gap-1.5">
-                <div className="self-stretch h-[630px] relative rounded-lg overflow-hidden bg-gray-200">
+                <div className="self-stretch md:h-[630px] relative rounded-lg overflow-hidden bg-gray-200">
                   <img
                     className="w-full h-full object-fill"
                     src={profileImage}
@@ -1197,7 +1246,7 @@ const handleDeleteRate = async (index) => {
                   </div>
                 </button>
               </div>
-              <div className="self-stretch h-[596px] p-4 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#F9F9F9] flex flex-col justify-start items-start gap-6">
+              <div className="self-stretch md:h-fit p-4 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#F9F9F9] flex flex-col justify-start items-start gap-6">
                 <div className="inline-flex justify-start items-center gap-2">
                   <div className="flex justify-start items-center gap-2">
                     <div className="justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
@@ -1270,7 +1319,7 @@ const handleDeleteRate = async (index) => {
             <div className="flex-1 inline-flex flex-col justify-start items-start gap-8">
               <div className="self-stretch flex flex-col justify-start items-start gap-6">
                 <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                  <div className="flex justify-start items-center gap-4">
+                  <div className="flex justify-start flex-col md:flex-row items-center gap-4">
                     <div className="flex justify-start items-center gap-2">
                       <div className="flex justify-start items-center gap-1">
                         {[...Array(5)].map((_, i) => (
@@ -1303,11 +1352,11 @@ const handleDeleteRate = async (index) => {
                         ({reviews.length} Reviews)
                       </button>
                     </div>
-                    <div className="w-0 h-2 outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
+                    <div className="w-0 h-2 hidden md:block outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
                     <div className="flex justify-start items-center gap-2">
                       {/* <i className="ri-flag-2-fill text-[#3D3D3D]"></i> */}
                         {flagUrl && (
-                          <img src={flagUrl} alt="Flag" className="w-10 h-6" />
+                          <img src={flagUrl} alt="Flag" className="w-22 h-8 md:w-10 md:h-6" />
                         )}
                       <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                         {/* Sydney, NSW */}
@@ -1568,12 +1617,12 @@ const handleDeleteRate = async (index) => {
                   <button
                     onClick={toggleInstantBook}
                     className={`w-12 h-6 relative rounded-full ${
-                      !isInstantBook ? "bg-[#E61E4D]" : "bg-[#656565]"
+                      isInstantBook ? "bg-[#E61E4D]" : "bg-[#656565]"
                     }`}
                   >
                     <div
                       className={`w-3 h-3 absolute top-[6px] ${
-                        !isInstantBook ? "left-[27px]" : "left-[9px]"
+                        isInstantBook ? "left-[27px]" : "left-[9px]"
                       } bg-white rounded-full`}
                     />
                   </button>
@@ -1655,7 +1704,7 @@ const handleDeleteRate = async (index) => {
         </div>
       </div>
       {showInstantPopup && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 p-4 flex items-center justify-center z-50">
           <div className="p-6 bg-white rounded-2xl shadow-[0px_0px_231.1999969482422px_9px_rgba(0,0,0,0.20)] outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-center items-start gap-4 overflow-hidden">
             <div className="self-stretch inline-flex justify-end items-center gap-2.5">
               <div className="flex-1 justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
@@ -1668,7 +1717,7 @@ const handleDeleteRate = async (index) => {
                 <i className="ri-close-line text-xl text-[#656565]"></i>
               </button>
             </div>
-            <div className="w-[517px] flex flex-col justify-start items-start gap-4">
+            <div className="w-full md:w-[517px] flex flex-col justify-start items-start gap-4">
               <div className="self-stretch flex flex-col justify-start items-start gap-2">
                 <div className="self-stretch justify-start text-[#656565] text-base font-bold font-['Inter'] leading-snug">
                   Instant Booking Rate

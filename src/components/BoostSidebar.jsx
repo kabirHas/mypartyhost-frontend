@@ -45,7 +45,13 @@ function BoostSidebar({ onClose, user }) {
         status: user.status || false,
         totalClicks: user.totalClicks || 0,
       });
-      setSelectedOption(user.mostLovedSection ? "mostLoved" : user.topToSearch ? "topSearch" : "mostLoved");
+      setSelectedOption(
+        user.mostLovedSection
+          ? "mostLoved"
+          : user.topToSearch
+          ? "topSearch"
+          : "mostLoved"
+      );
       setSelectedDuration(calculateDurationFromExpireDate());
     }
   }, [user]);
@@ -87,11 +93,16 @@ function BoostSidebar({ onClose, user }) {
         }));
         console.log("Boost plan updated successfully:", response.data);
       } else {
-        throw new Error(response.data.message || "API response indicated failure");
+        throw new Error(
+          response.data.message || "API response indicated failure"
+        );
       }
     } catch (error) {
       console.error("Error updating boost plan:", error);
-      setError(error.response?.data?.message || "Failed to update boost settings. Please try again.");
+      setError(
+        error.response?.data?.message ||
+          "Failed to update boost settings. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -124,15 +135,22 @@ function BoostSidebar({ onClose, user }) {
         if (response.data.data?.expireDate) {
           const expireDate = new Date(response.data.data.expireDate);
           const today = new Date();
-          const daysDifference = Math.ceil((expireDate - today) / (1000 * 3600 * 24));
+          const daysDifference = Math.ceil(
+            (expireDate - today) / (1000 * 3600 * 24)
+          );
           setSelectedDuration(daysDifference);
         }
       } else {
-        throw new Error(response.data.message || "API response indicated failure");
+        throw new Error(
+          response.data.message || "API response indicated failure"
+        );
       }
     } catch (error) {
       console.error("Error updating boost plan:", error);
-      setError(error.response?.data?.message || "Failed to update boost plan. Please try again.");
+      setError(
+        error.response?.data?.message ||
+          "Failed to update boost plan. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +167,9 @@ function BoostSidebar({ onClose, user }) {
       const timeDifference = selectedDateObj.getTime() - today.getTime();
       const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
 
-      console.log(`Days between today and ${selectedDateValue}: ${daysDifference} days`);
+      console.log(
+        `Days between today and ${selectedDateValue}: ${daysDifference} days`
+      );
 
       try {
         setIsLoading(true);
@@ -177,11 +197,16 @@ function BoostSidebar({ onClose, user }) {
             setSelectedDuration(days);
           }
         } else {
-          throw new Error(response.data.message || "API response indicated failure");
+          throw new Error(
+            response.data.message || "API response indicated failure"
+          );
         }
       } catch (error) {
         console.error("Error updating boost plan:", error);
-        setError(error.response?.data?.message || "Failed to update boost plan. Please try again.");
+        setError(
+          error.response?.data?.message ||
+            "Failed to update boost plan. Please try again."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -192,15 +217,19 @@ function BoostSidebar({ onClose, user }) {
   const durations = [3, 7, 10, 15, 21, 30];
 
   return (
-    <div className="w-[600px] h-[1024px] right-0 top-0 fixed bg-[#FFFFFF] shadow-[-7px_2px_250px_32px_rgba(0,0,0,0.15)] border-l border-[#ECECEC] flex flex-col justify-start items-start">
-      <div className="self-stretch px-4 py-6 bg-[#FFFFFF] border-b border-[#ECECEC] flex justify-start items-center gap-6">
-        <i onClick={onClose} className="ri-arrow-left-line text-2xl cursor-pointer"></i>
+    <div className="w-full md:w-[600px] h-screen fixed right-0 top-0 bg-[#FFFFFF] shadow-[-7px_2px_250px_32px_rgba(0,0,0,0.15)] border-l border-[#ECECEC] flex flex-col">
+      {/* Header - Fixed */}
+      <div className="px-4 py-6 bg-[#FFFFFF] border-b border-[#ECECEC] flex justify-start items-center gap-6">
+        <i
+          onClick={onClose}
+          className="ri-arrow-left-line text-2xl cursor-pointer"
+        ></i>
         <div className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
           Boost Control Panel
         </div>
       </div>
-      <div className="self-stretch h-[944px] overflow-auto">
-        <div className="w-[600px] px-4 pt-4 pb-6 flex flex-col justify-start items-start gap-4">
+      <div className="self-stretch  overflow-auto scrollbar-hide">
+        <div className="w-full md:w-[600px] px-4 pt-4 pb-6 flex flex-col justify-start items-start gap-4">
           {/* User Details Section */}
           <div className="self-stretch p-4 bg-[#F9F9F9] rounded-2xl flex flex-col justify-start items-start gap-3">
             <div className="self-stretch text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
@@ -244,7 +273,9 @@ function BoostSidebar({ onClose, user }) {
                     </div>
                     <div
                       className="text-base font-medium font-['Inter'] leading-snug"
-                      style={{ color: boostData.status ? "#128807" : "#B00020" }}
+                      style={{
+                        color: boostData.status ? "#128807" : "#B00020",
+                      }}
                     >
                       {boostData.status ? "Active" : "Inactive"}
                     </div>
@@ -271,24 +302,25 @@ function BoostSidebar({ onClose, user }) {
               {/* Duration Section */}
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
                 <div className="self-stretch text-[#3D3D3D] text-base font-bold font-['Inter'] leading-snug">
-                  Duration 
+                  Duration
                 </div>
                 <span className="text-sm font-normal mx-2">
-                    Expires At :{" "}
-                    {user.boostExpiresAt
-                      ? new Intl.DateTimeFormat("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "2-digit",
-                          
-                        }).format(new Date(user.boostExpiresAt))
-                      : "N/A"}
-                  </span>
+                  Expires At :{" "}
+                  {user.boostExpiresAt
+                    ? new Intl.DateTimeFormat("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                      }).format(new Date(user.boostExpiresAt))
+                    : "N/A"}
+                </span>
                 <div className="self-stretch inline-flex justify-start items-start gap-2 flex-wrap">
                   {durations.map((day) => (
                     <div
                       key={day}
-                      onClick={isLoading ? undefined : () => handleBoostPlanChange(day)}
+                      onClick={
+                        isLoading ? undefined : () => handleBoostPlanChange(day)
+                      }
                       className={`px-3 py-2 rounded-lg outline outline-1 outline-offset-[-1px] cursor-pointer
                         ${
                           selectedDuration === day
@@ -310,7 +342,13 @@ function BoostSidebar({ onClose, user }) {
                     <input
                       type="date"
                       min={new Date().toISOString().split("T")[0]}
-                      value={user.boostExpiresAt ? new Date(user.boostExpiresAt).toISOString().split("T")[0] : ""}
+                      value={
+                        user.boostExpiresAt
+                          ? new Date(user.boostExpiresAt)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
                       onChange={handleDateChange}
                       className="rounded-lg outline outline-1 outline-offset-[-1px] outline-[#ECECEC] focus:outline-[#E61E4D]"
                       style={{ color: "#E61E4D" }}
@@ -329,7 +367,9 @@ function BoostSidebar({ onClose, user }) {
                   <div className="flex flex-col gap-2">
                     <label
                       className={`inline-flex items-center gap-2 ${
-                        isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                        isLoading
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
                       }`}
                     >
                       <input
@@ -350,13 +390,16 @@ function BoostSidebar({ onClose, user }) {
                       <div className="tooltip-wrapper">
                         <i className="ri-information-line"></i>
                         <span className="tooltip-text">
-                          Boost your profile to the Most Loved section for increased visibility
+                          Boost your profile to the Most Loved section for
+                          increased visibility
                         </span>
                       </div>
                     </label>
                     <label
                       className={`inline-flex items-center gap-2 ${
-                        isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                        isLoading
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
                       }`}
                     >
                       <input

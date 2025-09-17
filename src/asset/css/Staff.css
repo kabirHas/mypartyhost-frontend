@@ -27,7 +27,7 @@
     background-position: center;
     background-repeat: no-repeat;
     margin: 0 10px;
-    padding: 15px;
+    /* padding: 15px; */
 }
 
 .boost-staff {
@@ -148,12 +148,19 @@
 
 .name-stars {
     position: absolute;
-    bottom: 15px;
+    /* bottom: 15px; */
+    background: linear-gradient(to bottom, rgba(54, 54, 54, 0) 0%, rgb(41, 41, 41) 100%);
+    height: 100%;
+    width: 100%;
+    padding: 15px 0 15px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 .name-stars span {
     display: inline-block;
     font-weight: 400;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 

@@ -164,8 +164,8 @@ const renderCalendar = () => {
             </button>
           </div>
         </div>
-        <button className="px-6 py-3 w-fit rounded-lg outline outline-1 outline-[#E61E4D] flex justify-center items-center gap-2">
-          <div className="text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
+        <button className="px-6 py-3 cursor-pointer w-fit rounded-lg outline outline-1 outline-[#E61E4D] flex justify-center items-center gap-2">
+          <div className="text-[#E61E4D] cursor-pointer text-base font-medium font-['Inter'] leading-snug">
             Update Availability
           </div>
         </button>

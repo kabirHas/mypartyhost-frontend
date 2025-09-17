@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, Link } from "react-router-dom";
 import BASE_URLS from "../config";
 import { ChatState } from "../Context/ChatProvider";
 
@@ -7,6 +7,8 @@ export default function DashboardLayout() {
   const role = localStorage.getItem("role");
   const { notifications } = ChatState();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const {user} = ChatState();
+  console.log(user);
 
   const handleLogout = async () => {
     try {
@@ -167,7 +169,7 @@ export default function DashboardLayout() {
     <div className="flex min-h-screen bg-[#f9f9f9] flex-col md:flex-row">
       {/* Mobile Topbar */}
       <div className="md:hidden flex justify-between items-center p-4 bg-white shadow">
-        <div className="text-xl font-bold">MYPARTYHOSTESS</div>
+        <Link to={'/'}  className="text-xl text-zinc-900 text-decoration-none font-bold cursor-pointer">MYPARTYHOSTESS</Link>
         <button
           onClick={() => setSidebarOpen(!isSidebarOpen)}
           className="text-2xl text-pink-600"
@@ -183,9 +185,9 @@ export default function DashboardLayout() {
         } transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:block bg-white w-72 shadow-lg`}
       >
         <aside className="h-full">
-          <div className="p-6 text-2xl font-bold md:block hidden">
+          <Link to={'/'} className="p-6 cursor-pointer text-zinc-900 text-decoration-none text-2xl font-bold md:block hidden">
             MYPARTYHOSTESS
-          </div>
+          </Link>
           <div className="p-6 text-2xl font-bold md:hidden flex justify-between items-center">
             MYPARTYHOSTESS
             <button

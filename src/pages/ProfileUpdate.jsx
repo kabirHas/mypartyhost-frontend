@@ -6,6 +6,7 @@ import "../asset/css/ProfileUpdate.css";
 import Notify from "../utils/notify";
 import Switch from "@mui/material/Switch";
 import ReviewSection from "../components/ReviewSection";
+import BASE_URLS from "../config";
 
 const ProfileUpdate = () => {
   const [formData, setFormData] = useState({
@@ -71,7 +72,7 @@ const ProfileUpdate = () => {
 
   const fetchProfile = () => {
     axios
-      .get(`http://localhost:4000/api/auth/profile`, {
+      .get(`${BASE_URLS.BACKEND_BASEURL}auth/profile`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         withCredentials: true,
       })

@@ -31,7 +31,7 @@ function StaffPublicProfile() {
       setLoading(true);
       const response = await fetch(`${BASE_URLS.BACKEND_BASEURL}user/${id}`);
       const data = await response.json();
-      console.log(data);
+      console.log("user data", data);
       setUser(data);
     } catch (error) {
       console.error("Error fetching staff details:", error);
@@ -66,6 +66,12 @@ function StaffPublicProfile() {
     }
   }, [showModal, stateUser]);
 
+  useEffect(() => {
+    if (selectedEventType !== "Atmosphere Model" && isActive) {
+      setIsActive(false);
+    }
+  }, [selectedEventType, isActive]);
+
   const handleToggle = () => {
     setIsActive((prev) => !prev);
     // Reset dates when switching modes
@@ -87,27 +93,27 @@ function StaffPublicProfile() {
         {
           title: "RATES",
           content: `Base Rate: $${user.baseRate}/hour\nDaily Rate: $${
-            user.dailyRate
+            user?.dailyRate
           }/day\nInstant Booking Rate: $${
-            user.instantBookingRate
-          }/booking\nAdditional Rates:\n${user.additionalRates
-            .map((r) => `${r.label}: $${r.amount}`)
+            user?.instantBookingRate
+          }/booking\nAdditional Rates:\n${user?.additionalRates
+            ?.map((r) => `${r.label}: $${r.amount}`)
             .join("\n")}`,
         },
         {
           title: "AVAILABLE FOR",
-          content: `Skills:\n${user.skills
-            .map((s) => `${s.title} ($${s.pricePerHour}/hr)`)
+          content: `Skills:\n${user?.skills
+            ?.map((s) => `${s.title} ($${s.pricePerHour}/hr)`)
             .join("\n")}\n\nAvailable Dates: ${user.availableDates
-            .map((d) => new Date(d).toDateString())
+            ?.map((d) => new Date(d).toDateString())
             .join(", ")}`,
         },
         {
           title: "JOB HISTORY",
           content:
-            user.reviews.length === 0
+            user.reviews?.length === 0
               ? "No job history yet."
-              : user.reviews.map((r) => r.comment).join("\n"),
+              : user.reviews?.map((r) => r.comment).join("\n"),
         },
       ]
     : [];
@@ -126,7 +132,7 @@ function StaffPublicProfile() {
   const getRate = () => {
     if (!user) return 0;
     if (isActive) return user.dailyRate;
-    const skill = user.skills.find(
+    const skill = user.skills?.find(
       (s) => s.title.toLowerCase() === selectedEventType.toLowerCase()
     );
     return skill ? skill.pricePerHour : user.baseRate;
@@ -285,7 +291,7 @@ function StaffPublicProfile() {
           <div className="self-stretch flex flex-col justify-start items-start gap-2.5">
             <div
               onClick={() => navigate(-1)}
-              className="px-3 py-2 rounded-full outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2"
+              className="px-3 py-2 cursor-pointer rounded-full outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center gap-2"
             >
               <i className="ri-arrow-left-line w-6 h-6 text-[#656565]"></i>
               <div className="justify-start text-black text-sm font-normal font-['Inter'] leading-tight">
@@ -295,76 +301,74 @@ function StaffPublicProfile() {
           </div>
           <div className="w-full max-w-[1200px] inline-flex justify-start items-start gap-12">
             <div className="w-[588px] inline-flex flex-col justify-center items-center gap-6">
-              <div className="self-stretch flex flex-col justify-center items-center gap-6">
-                <div className="self-stretch flex flex-col justify-start items-start gap-1.5">
-                  <img
-                    className="self-stretch object-cover object-top h-[630px] relative rounded-lg"
-                    src={`https://mypartyhost.onrender.com${user.profileImage}`}
-                  />
-                  <div className="self-stretch inline-flex justify-start items-start gap-1.5">
-                    {user.photos.length > 0 && (
-                      <div className="flex-1 h-28 flex flex-wrap justify-start items-start gap-2">
-                        {user.photos.map((photo, i) => (
-                          <img
-                            key={i}
-                            className="w-[24%] h-44 object-cover object-top self-stretch rounded-lg"
-                            src={photo}
-                          />
-                        ))}
+              <div className="self-stretch flex flex-col justify-start items-start gap-1.5">
+                <img
+                  className="self-stretch object-cover object-top h-[630px] relative rounded-lg"
+                  src={`https://mypartyhost.onrender.com${user.profileImage}`}
+                />
+                <div className="self-stretch inline-flex justify-start items-start gap-1.5">
+                  {user.photos?.length > 0 && (
+                    <div className="flex-1 h-28 flex flex-wrap justify-start items-start gap-2">
+                      {user.photos.map((photo, i) => (
+                        <img
+                          key={i}
+                          className="w-[24%] h-44 object-cover object-top self-stretch rounded-lg"
+                          src={photo}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="self-stretch flex flex-col justify-start items-center gap-4 overflow-hidden">
+                <div className="self-stretch h-32 relative">
+                  <div className="left-0 top-0 absolute inline-flex justify-start items-center gap-2">
+                    {user.reviews.length === 0 ? (
+                      <div className="w-[480px] max-w-[480px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2">
+                        <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                          No reviews yet.
+                        </div>
                       </div>
+                    ) : (
+                      user.reviews.map((review, i) => (
+                        <div
+                          key={i}
+                          className="w-[480px] max-w-[480px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2"
+                        >
+                          <div className="self-stretch inline-flex justify-start items-start gap-3">
+                            <img
+                              className="w-12 h-12 rounded-full"
+                              src={
+                                review.image ||
+                                "https://images.unsplash.com/photo-1664763079262-056e908630e1?q=80&w=821&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                              }
+                            />
+                            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                              <div className="self-stretch capitalize justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
+                                {review.reviewer?.name || "Anonymous"}
+                              </div>
+                              <div className="inline-flex justify-start items-start gap-1.5">
+                                {[...Array(review.rating || 0)].map(
+                                  (_, j) => (
+                                    <i
+                                      key={j}
+                                      className="ri-star-fill w-4 h-4 text-[#292929]"
+                                    ></i>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                            {review.comment}
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
-                <div className="self-stretch flex flex-col justify-start items-center gap-4 overflow-hidden">
-                  <div className="self-stretch h-32 relative">
-                    <div className="left-0 top-0 absolute inline-flex justify-start items-center gap-2">
-                      {user.reviews.length === 0 ? (
-                        <div className="w-[480px] max-w-[480px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2">
-                          <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                            No reviews yet.
-                          </div>
-                        </div>
-                      ) : (
-                        user.reviews.map((review, i) => (
-                          <div
-                            key={i}
-                            className="w-[480px] max-w-[480px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2"
-                          >
-                            <div className="self-stretch inline-flex justify-start items-start gap-3">
-                              <img
-                                className="w-12 h-12 rounded-full"
-                                src={
-                                  review.image ||
-                                  "https://images.unsplash.com/photo-1664763079262-056e908630e1?q=80&w=821&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                                }
-                              />
-                              <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                                <div className="self-stretch capitalize justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                                  {review.reviewer?.name || "Anonymous"}
-                                </div>
-                                <div className="inline-flex justify-start items-start gap-1.5">
-                                  {[...Array(review.rating || 0)].map(
-                                    (_, j) => (
-                                      <i
-                                        key={j}
-                                        className="ri-star-fill w-4 h-4 text-[#292929]"
-                                      ></i>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                              {review.comment}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                  <div className="justify-start text-[#E61E4D] text-base font-normal font-['Inter'] underline leading-snug">
-                    SEE MORE
-                  </div>
+                <div className="justify-start text-[#E61E4D] text-base font-normal font-['Inter'] underline leading-snug">
+                  SEE MORE
                 </div>
               </div>
             </div>
@@ -415,7 +419,7 @@ function StaffPublicProfile() {
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-end gap-4 flex-wrap content-end">
-                  {user.skills.map((skill, i) => (
+                  {user.skills?.map((skill, i) => (
                     <div
                       key={i}
                       data-property-1="Variant2"
@@ -520,7 +524,7 @@ function StaffPublicProfile() {
             />
             <img
               alt="Partners"
-              src="https://res.cloudinary.com/dympqasl5/image/upload/v1749808567/mypartyhost/qqoikrb4mcyqvw Goddesscwrjet.png"
+              src="https://res.cloudinary.com/dympqasl5/image/upload/v1749808567/mypartyhost/qqoikrb4mcyqvwcwrjet.png"
             />
             <img
               alt="Partners"
@@ -680,37 +684,36 @@ function StaffPublicProfile() {
                           ))}
                         </div>
                       </div>
-                      <div className="self-stretch inline-flex justify-between items-center">
-                        <div className="justify-start text-Token-Text-Primary text-sm font-normal font-['Inter'] leading-tight">
-                          Book By Day
-                        </div>
-                        <div
-                          data-property-1="ToggleLeft"
-                          className="w-12 h-12 relative"
-                        >
-                          <div className="h-12 flex justify-start items-center gap-2">
-                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={isActive}
-                                onChange={handleToggle}
-                              />
-                              <div
-                                className={`w-11 h-6 rounded-full ${
-                                  isActive ? "bg-[#E61E4D]" : "bg-gray-400"
-                                } flex items-center px-1 transition-colors`}
-                              >
+                      {selectedEventType === "Atmosphere Model" && (
+                        <div className="self-stretch inline-flex justify-between items-center">
+                          <div className="justify-start text-Token-Text-Primary text-sm font-normal font-['Inter'] leading-tight">
+                            Book By Day
+                          </div>
+                          <div data-property-1="ToggleLeft" className="w-12 h-12 relative">
+                            <div className="h-12 flex flex-start items-center gap-2">
+                              <label className="inline-flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="sr-only"
+                                  checked={isActive}
+                                  onChange={handleToggle}
+                                />
                                 <div
-                                  className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                                    isActive ? "translate-x-5" : ""
-                                  }`}
-                                ></div>
-                              </div>
-                            </label>
+                                  className={`w-11 h-6 rounded-full ${
+                                    isActive ? "bg-[#E61E4D]" : "bg-gray-400"
+                                  } flex items-center px-1 transition-colors`}
+                                >
+                                  <div
+                                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
+                                      isActive ? "translate-x-5" : ""
+                                    }`}
+                                  ></div>
+                                </div>
+                              </label>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                       <div
                         className={`self-stretch flex flex-col justify-start items-start gap-6 ${
                           !isActive ? "hidden" : ""
@@ -1313,7 +1316,7 @@ function StaffPublicProfile() {
                             </div>
                           </div>
                         </div>
-                        <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ececec]"></div>
+                        <div className="self-stretch h-0 bg-Token-BG-Neutral-Light-2 outline outline-1 outline-offset-[-0.50px] outline-gray-200"></div>
                         <div className="self-stretch inline-flex justify-between items-center">
                           <div className="justify-start text-Token-Text-Primary text-base font-normal font-['Inter'] leading-snug">
                             Total Cost
@@ -1360,7 +1363,7 @@ function StaffPublicProfile() {
                     onClick={handleConfirmInvite}
                   >
                     <div className="justify-start text-[#fff] text-base font-medium font-['Inter'] leading-snug">
-                      {stateUser ? "Send Invite" : 'Login to send invite'}
+                      {stateUser ? "Send Invite" : "Login to send invite"}
                     </div>
                   </div>
                   {/* <div className="self-stretch inline-flex justify-start items-center gap-2">

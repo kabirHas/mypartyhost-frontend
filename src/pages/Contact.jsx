@@ -206,7 +206,7 @@ function Contact() {
       </button>
 
       {/* Heading */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col md:flex-row items-start justify-between md:items-center mb-4">
         <div className="self-stretch inline-flex flex-col justify-start items-start gap-1">
           <h1 className="text-4xl font-bold font-['Inter'] leading-10">
             Your Support Tickets
@@ -291,7 +291,7 @@ function Contact() {
               <th className="py-3 w-44 border border-zinc-200 text-sm font-medium font-['Inter'] leading-tight px-3 border-gray-200">
                 Status
               </th>
-              <th className="py-3 w-34 border px-3 border-zinc-200 text-sm font-medium font-['Inter'] leading-tight">
+              <th className="py-3 w-36 border px-3 border-zinc-200 text-sm font-medium font-['Inter'] leading-tight">
                 Actions
               </th>
             </tr>
@@ -374,7 +374,7 @@ function Contact() {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-1/3 overflow-y-auto scrollbar-hide bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full md:w-1/3 overflow-y-auto scrollbar-hide bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
         } z-50`}
       >

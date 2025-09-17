@@ -418,7 +418,7 @@ function ManageBookings() {
     }
 
     return (
-      <div className="flex-1   h-[500px] p-4 bg-[#FFFFFF] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
+      <div className="flex-1 w-full  h-[500px] p-4 bg-[#FFFFFF] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
         <div className="self-stretch inline-flex justify-between items-start">
           <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start gap-4">
             <div className="inline-flex justify-center items-center gap-4">
@@ -465,12 +465,12 @@ function ManageBookings() {
             </div>
           </div>
         </div>
-        <div className="self-stretch min-w-[484px] min-h-82 p-px bg-[#F9F9F9] rounded-lg inline-flex flex-col justify-start items-start gap-px overflow-hidden">
+        <div className="self-stretch md:min-w-[484px] min-h-82 p-px bg-[#F9F9F9] rounded-lg inline-flex flex-col justify-start items-start gap-px overflow-hidden">
           <div className="self-stretch inline-flex justify-start items-start gap-px">
             {["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div
                 key={day}
-                className="flex-1 min-w-16 px-2 py-0.5 bg-[#292929] flex justify-center items-center gap-2"
+                className="flex-1 md:min-w-16 px-2 py-0.5 bg-[#292929] flex justify-center items-center gap-2"
               >
                 <div className="flex-1 text-center justify-center text-[#FFFFFF] text-xs font-normal font-['Inter'] leading-none">
                   {day}
@@ -488,7 +488,7 @@ function ManageBookings() {
                 .map((day, index) => (
                   <div
                     key={index}
-                    className="flex-1 self-stretch min-w-16 min-h-16 p-1.5 bg-white inline-flex flex-col justify-start items-start gap-0.5"
+                    className="flex-1 self-stretch md:min-w-16 min-h-16 p-1.5 bg-white inline-flex flex-col justify-start items-start gap-0.5"
                   >
                     <div
                       className={`self-stretch justify-center text-[#3D3D3D] text-[10px] font-extrabold font-['Avenir'] ${
@@ -546,7 +546,7 @@ function ManageBookings() {
           {tab === "Cancelled Bookings" && "Review your cancelled bookings."}
         </div>
       </div>
-      <div className="self-stretch inline-flex justify-start items-start gap-8">
+      <div className="self-stretch inline-flex flex-col md:flex-row justify-start items-start gap-8">
         <div className="flex-1 inline-flex flex-col justify-end items-start gap-6">
           {bookingsData[tab]?.length > 0 ? (
             bookingsData[tab].map((booking, index) => (
@@ -574,7 +574,7 @@ function ManageBookings() {
           </div>
         </div>
         <div className="self-stretch flex flex-col justify-start items-start gap-8">
-          <div className="border-b border-[#656565] inline-flex justify-start items-center">
+          <div className="border-b overflow-x-auto w-[400px] md:w-full border-[#656565] inline-flex justify-start items-center scrollbar-hide">
             {[
               "Confirmed Bookings",
               "Invites Received",

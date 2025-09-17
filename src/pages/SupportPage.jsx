@@ -154,7 +154,7 @@ export default function SupportPage() {
           </p>
         </div>
         <button
-          className="kaab-view-tickets-btn"
+          className="kaab-view-tickets-btn w-full md:w-fit"
           onClick={() => navigate("/dashboard/support/ticket")}
         >
           {user.role === "superadmin"

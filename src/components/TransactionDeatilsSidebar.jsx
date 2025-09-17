@@ -110,9 +110,9 @@ const TransactionDetailSidebar = ({ onClose, transaction }) => {
                 </div>
               </div>
             </div>
-            <div className="w-[520px] h-0 outline outline-1 outline-offset-[-0.50px] outline-Token-Border-&-Divider-Neutral-Light-2"></div>
-            <div className="w-[536px] inline-flex justify-end items-center gap-4">
-              <div className="flex justify-start items-center">
+            <div className="w-full h-0 outline outline-1 outline-offset-[-0.50px] outline-Token-Border-&-Divider-Neutral-Light-2"></div>
+            <div className="w-full inline-flex justify-end items-start md:items-center gap-4">
+              <div className="flex md:flex-row flex-col-reverse gap-1 justify-start items-center">
                 <div className="justify-start text-Token-Text-Secondary text-xs font-normal font-['Inter'] leading-none">
                   (If applicable)
                 </div>

@@ -55,7 +55,7 @@ const TransactionManagement = () => {
         });
 
         return {
-          id: trx.stripeTransactionId || trx.stripePaymentIntentId || trx._id,
+          id: trx.stripeTransactionId || trx.stripePaymentIntentId || 'N/A',
           user: userName,
           type: trx.transactionType,
           amount: amount,
@@ -158,7 +158,7 @@ const TransactionManagement = () => {
       <div className="kaab-support-header">
         <div>
           <h1 className="kaab-payment-heading">Transaction Management</h1>
-          <p className="kaab-payment-subtext">
+          <p className="kaab-payment-subtext mt-2">
             Track, monitor, and manage all financial transactions across the platform.
           </p>
         </div>
@@ -251,105 +251,115 @@ const TransactionManagement = () => {
       </div>
 
       {/* Table */}
-      <div className="w-full h-full overflow-hidden rounded-2xl border border-[#ECECEC] flex flex-col zole-table mt-4">
-        {/* Table Header */}
-        <div className="flex w-full bg-white items-center table-heads">
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-[1.5]">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Transaction ID
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              User Name
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Transaction Type
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Amount
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Payment Method
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Date & Time
-            </span>
-          </div>
-          <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Status
-            </span>
-          </div>
-          <div className="p-3 flex justify-center items-center flex-1">
-            <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
-              Action
-            </span>
+      <div className="w-full h-full rounded-2xl border border-[#ECECEC] flex flex-col zole-table mt-4 overflow-x-auto">
+  {/* Table Wrapper with fixed min-width */}
+  <div className="min-w-[1000px]">
+    {/* Table Header */}
+    <div className="flex w-full bg-white items-center table-heads">
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-[1.5]">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Transaction ID
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          User Name
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Transaction Type
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Amount
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Payment Method
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Date & Time
+        </span>
+      </div>
+      <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Status
+        </span>
+      </div>
+      <div className="p-3 flex justify-center items-center flex-1">
+        <span className="text-[#3D3D3D] text-sm font-medium font-['Inter']">
+          Action
+        </span>
+      </div>
+    </div>
+
+    {/* Table Body */}
+    {currentTransactions.map((trx, index) => (
+      <div
+        key={index}
+        className="flex w-full border-b border-[#ECECEC] items-center table-bodies"
+      >
+        <div className="p-3 border-r border-[#ECECEC] flex justify-start items-center flex-[1.5] font-semibold text-sm text-[#292929]">
+          {trx.id}
+        </div>
+        <div className="p-3 border-r capitalize border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
+          {trx.user}
+        </div>
+        <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
+          {trx.type}
+        </div>
+        <div
+          className={`p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm font-medium ${
+            trx.status === "Pending"
+              ? "text-orange-400"
+              : trx.status === "Successful"
+              ? "text-green-600"
+              : trx.status === "Approved"
+              ? "text-green-600"
+              : "text-red-600"
+          }`}
+        >
+          {trx.amount}
+        </div>
+        <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
+          {trx.method}
+        </div>
+        <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
+          {trx.datetime}
+        </div>
+        <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
+          <div
+            className={`px-4 py-2 rounded-full text-xs font-medium ${
+              statusColors[trx.status]
+            }`}
+          >
+            {trx.status}
           </div>
         </div>
-
-        {/* Table Body */}
-        {currentTransactions.map((trx, index) => (
-          <div
-            key={index}
-            className="flex w-full border-b border-[#ECECEC] items-center table-bodies"
+        <div className="p-3 flex justify-center items-center flex-1">
+          <button
+            onClick={() => {
+              setSelectedTransaction(trx);
+              setShowSidebar(true);
+            }}
+            className="text-pink-600 border border-pink-600 px-3 py-1 rounded-full hover:underline text-xs"
           >
-            <div className="p-3 border-r border-[#ECECEC] flex justify-start items-center flex-[1.5] font-semibold text-sm text-[#292929]">
-              {trx.id}
-            </div>
-            <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
-              {trx.user}
-            </div>
-            <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
-              {trx.type}
-            </div>
-            <div
-              className={`p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm font-medium ${
-                trx.amount.includes("-") ? "text-red-500" : "text-green-600"
-              }`}
-            >
-              {trx.amount}
-            </div>
-            <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
-              {trx.method}
-            </div>
-            <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1 text-sm">
-              {trx.datetime}
-            </div>
-            <div className="p-3 border-r border-[#ECECEC] flex justify-center items-center flex-1">
-              <div
-                className={`px-4 py-2 rounded-full text-xs font-medium ${
-                  statusColors[trx.status]
-                }`}
-              >
-                {trx.status}
-              </div>
-            </div>
-            <div className="p-3 flex justify-center items-center flex-1">
-              <button
-                onClick={() => {
-                  setSelectedTransaction(trx);
-                  setShowSidebar(true);
-                }}
-                className="text-pink-600 border border-pink-600 px-3 py-1 rounded-full hover:underline text-xs"
-              >
-                Details
-              </button>
-            </div>
-          </div>
-        ))}
+            Details
+          </button>
+        </div>
       </div>
+    ))}
+  </div>
+</div>
+
 
       {/* Pagination */}
-      <div className="self-stretch inline-flex justify-between items-center mt-4 w-100">
+      <div className="self-stretch flex-col items-start gap-4 md:flex-row inline-flex justify-between md:items-center mt-4 w-100">
         {/* Showing Dropdown */}
         <div className="flex items-center gap-2.5">
           <span className="text-[#7A7A7A] text-sm font-medium">Showing</span>
@@ -377,7 +387,7 @@ const TransactionManagement = () => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className={`px-3 py-2 rounded-lg text-sm ${
+            className={`md:px-3 md:py-2 rounded-lg text-sm ${
               currentPage === 1 ? "opacity-50" : "hover:bg-gray-100"
             }`}
           >

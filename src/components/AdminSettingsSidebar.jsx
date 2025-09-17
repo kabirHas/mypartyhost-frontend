@@ -36,9 +36,9 @@ const AdminSettingsSidebar = ({
     canManageEvent: false,
     canApproveJobs: false,
     canOverrideBookingRules: false,
-    canManageTrasactions: false,
+    canManageTransactions: false,
     canEditPaymentSettings: false,
-    canViewFinancailReports: false,
+    canViewFinancialReports: false,
     canAcceptBookings: false,
     canMessage: false,
     canApply: false,
@@ -79,9 +79,9 @@ const AdminSettingsSidebar = ({
           canManageEvent: selectedAdmin.canManageEvent,
           canApproveJobs: selectedAdmin.canApproveJobs,
           canOverrideBookingRules: selectedAdmin.canOverrideBookingRules,
-          canManageTrasactions: selectedAdmin.canManageTrasactions,
+          canManageTransactions: selectedAdmin.canManageTransactions,
           canEditPaymentSettings: selectedAdmin.canEditPaymentSettings,
-          canViewFinancailReports: selectedAdmin.canViewFinancailReports,
+          canViewFinancialReports: selectedAdmin.canViewFinancialReports,
           canAcceptBookings: selectedAdmin.canAcceptBookings,
           canMessage: selectedAdmin.canMessage,
           canApply: selectedAdmin.canApply,
@@ -614,8 +614,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="canManageTrasactions"
-                          checked={permissions.canManageTrasactions}
+                          name="canManageTransactions"
+                          checked={permissions.canManageTransactions}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />
@@ -648,8 +648,8 @@ const AdminSettingsSidebar = ({
                       <label className="self-stretch inline-flex justify-start items-start gap-2">
                         <input
                           type="checkbox"
-                          name="canViewFinancailReports"
-                          checked={permissions.canViewFinancailReports}
+                          name="canViewFinancialReports"
+                          checked={permissions.canViewFinancialReports}
                           onChange={handlePermissionChange}
                           className="w-4 h-4 accent-[#E61E4D]"
                         />

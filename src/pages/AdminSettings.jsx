@@ -199,7 +199,7 @@ function AdminSettings() {
   return (
     <div className="self-stretch flex flex-col justify-start items-start gap-8">
       {/* Header */}
-      <div className="w-[802px] flex flex-col justify-start items-start gap-2">
+      <div className="w-full md:w-[802px] flex flex-col justify-start items-start gap-2">
         <div className="self-stretch justify-start text-[#292929] text-4xl font-bold font-['Inter'] leading-10">
           Admin Settings
         </div>
@@ -209,9 +209,9 @@ function AdminSettings() {
       </div>
 
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
-        <div className="self-stretch inline-flex justify-start items-center gap-4">
+        <div className="self-stretch inline-flex flex-col md:flex-row justify-start items-center gap-4">
           {/* Platform Details */}
-          <div className="w-1/2 p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
+          <div className="md:w-1/2 w-full p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
             <div className="self-stretch justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
               Platform Details
             </div>
@@ -314,7 +314,7 @@ function AdminSettings() {
           </div>
 
           {/* Notification Preferences */}
-          <div className="flex-1 p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
+          <div className="flex-1 w-full p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
             <div className="self-stretch justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
               Notification Preferences
             </div>
@@ -355,10 +355,10 @@ function AdminSettings() {
           </div>
         </div>
 
-        <div className="self-stretch inline-flex justify-start items-start gap-4">
+        <div className="self-stretch flex-col md:flex-row inline-flex justify-start items-start gap-4">
           {/* Admin Account Management */}
-          <div className="p-4 bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-center gap-4">
-            <div className="self-stretch inline-flex justify-start items-center gap-4">
+          <div className="p-4 w-full md:w-[55%] bg-[#FFFFFF] rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-center gap-4">
+            <div className="self-stretch w-full inline-flex justify-start items-center gap-4">
               <div className="flex-1 justify-start text-black text-xl font-bold font-['Inter'] leading-normal">
                 Admin Account Management
               </div>
@@ -372,7 +372,7 @@ function AdminSettings() {
               </button>
             </div>
             <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
-            <div className="self-stretch rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center overflow-hidden">
+            <div className="self-stretch overflow-x-auto rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-center overflow-hidden">
               {/* Admin Column */}
               <div className="inline-flex flex-col justify-start items-start">
                 <div className="self-stretch px-3 py-2 bg-[#F9F9F9] border-l border-b border-[#ECECEC] inline-flex justify-center items-center gap-2.5">
@@ -476,7 +476,7 @@ function AdminSettings() {
           </div>
 
           {/* User Permission Setting */}
-          <div className="flex-1 p-4 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
+          <div className="flex-1 w-full p-4 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex flex-col justify-start items-start gap-4">
             <div className="self-stretch justify-start text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
               User Permission Setting
             </div>
