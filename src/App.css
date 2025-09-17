@@ -297,4 +297,19 @@ h6 {
 .filter-div.d-flex {
     flex-direction: column;
 }
+.category-display-inner ul {
+    flex-direction: column;
+}
+.limit-dropdown {
+    margin: 20px 0;
+}
+.filter-bar {
+    width: 100%;
+}
+.filter-bar .toggle-container {
+    flex: 0 0 100%;
+}
+.filter-select {
+    display: none;
+}
 }

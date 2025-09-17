@@ -3,6 +3,7 @@ import { FaStar } from "react-icons/fa";
 import "../asset/css/Staff.css";
 import BASE_URLS from "../config";
 import { Link } from "react-router-dom";
+import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 
 const SearchStaff = () => {
   const [staff, setStaff] = useState([]);
@@ -10,6 +11,7 @@ const SearchStaff = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(6);
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleToggle = () => setAvailableNow(!availableNow);
 
@@ -33,6 +35,17 @@ const SearchStaff = () => {
       setPage(pageNum);
     }
   };
+
+  useEffect(() => {
+      const checkWidth = () => {
+        setIsMobile(window.innerWidth <= 500);
+      };
+  
+      checkWidth();
+      window.addEventListener("resize", checkWidth);
+  
+      return () => window.removeEventListener("resize", checkWidth);
+    }, []);
 
   const renderPageNumbers = () => {
     const pages = [];
@@ -157,7 +170,7 @@ const SearchStaff = () => {
       {/* Pagination Controls */}
       <div className="pagination">
         <button disabled={page === 1} onClick={() => goToPage(page - 1)}>
-          Previous
+          {!isMobile ? "Previous" : <FaAngleLeft />}  
         </button>
 
         {/* <button
@@ -170,7 +183,7 @@ const SearchStaff = () => {
         {renderPageNumbers()}
 
         <button disabled={page === totalPages} onClick={() => goToPage(page + 1)}>
-          Next
+          {!isMobile ? "Next" : <FaAngleRight />}  
         </button>
       </div>
 
