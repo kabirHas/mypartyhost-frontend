@@ -265,3 +265,15 @@
     font-size: 16px;
     font-weight: 500;
 }
+
+@media (max-width: 768px) {
+    .kaab-charts {
+        width: 100%;
+    }
+    .kaab-notifications{
+        width: 100%;
+    }
+    .kaab-main{
+        flex-direction: column-reverse;
+    }
+}

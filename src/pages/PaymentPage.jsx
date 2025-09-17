@@ -100,7 +100,7 @@ const PaymentPage = () => {
               month: "short",
               day: "numeric",
             }),
-            id: item.stripeTransactionId || item._id,
+            id: item.stripeTransactionId || "N/A",
             type,
             description: item.jobId.eventName || "N/A",
             jobTitle: item.jobId.jobTitle || "N/A",
@@ -423,78 +423,92 @@ const PaymentPage = () => {
           </div>
         </div>
 
-        <div className="w-full h-full overflow-hidden rounded-2xl border border-[#ECECEC] flex flex-col zole-table">
-          <div className="flex w-full bg-white items-center table-heads">
-            <div className="p-2 border-r border-[#ECECEC] flex items-center">
+        <div className="w-full h-full overflow-hidden rounded-2xl border border-[#ECECEC] flex flex-col">
+  {/* Scroll Wrapper */}
+  <div className="w-full overflow-x-auto">
+    <div className="min-w-[1000px] flex flex-col">
+      {/* Table Head */}
+      <div className="flex bg-white items-center border-b border-[#ECECEC]">
+        <div className="p-2 border-r border-[#ECECEC] flex items-center min-w-[50px]">
+          <div className="w-6 h-6 relative">
+            <div className="w-[16.5px] h-[16.5px] absolute left-[3.75px] top-[3.75px] border-2 border-[#656565]"></div>
+          </div>
+        </div>
+        <div className="min-w-[100px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Date</span>
+        </div>
+        <div className="min-w-[240px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Transaction ID</span>
+        </div>
+        <div className="flex-1 p-3 border-r border-[#ECECEC] flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Type</span>
+        </div>
+        <div className="flex-1 p-3 border-r border-[#ECECEC] flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Event / Description</span>
+        </div>
+        <div className="min-w-[140px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Status</span>
+        </div>
+        <div className="flex-1 p-3 flex justify-center items-center">
+          <span className="text-[#3D3D3D] text-sm font-medium">Actions</span>
+        </div>
+      </div>
+
+      {/* Table Body */}
+      {loadingTransactions ? (
+        <div className="w-full p-6 text-center text-gray-500 text-sm">
+          Loading transactions...
+        </div>
+      ) : paginatedTransactions.length > 0 ? (
+        paginatedTransactions.map((transaction, index) => (
+          <div
+            key={index}
+            className="flex border-b border-[#ECECEC] items-center"
+          >
+            <div className="p-2 border-r border-[#ECECEC] flex items-center min-w-[50px]">
               <div className="w-6 h-6 relative">
                 <div className="w-[16.5px] h-[16.5px] absolute left-[3.75px] top-[3.75px] border-2 border-[#656565]"></div>
               </div>
             </div>
-            <div className="w-[100px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Date</span>
+            <div className="min-w-[100px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
+              <span className="text-[#3D3D3D] text-sm">{transaction.date}</span>
             </div>
-            <div className="w-[140px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Transaction ID</span>
+            <div className="w-[240px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
+              <span className="text-[#3D3D3D]  text-sm">{transaction.id}</span>
             </div>
-            <div className="flex-1 p-3 border-r border-[#ECECEC] flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Type</span>
+            <div className="flex-1 py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
+              <span className="text-[#3D3D3D] text-sm">{transaction.type}</span>
             </div>
-            <div className="flex-1 p-3 border-r border-[#ECECEC] flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Event / Description</span>
+            <div className="flex-1 py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
+              <span className="text-[#E61E4D] text-sm underline">
+                {transaction.description}
+              </span>
             </div>
-            <div className="w-[140px] p-3 border-r border-[#ECECEC] flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Status</span>
+            <div className="min-w-[140px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
+              <div className={`${transaction.statusColor} px-4 py-2 rounded-full`}>
+                <span className="text-[#292929] text-xs">{transaction.status}</span>
+              </div>
             </div>
-            <div className="flex-1 p-3 flex justify-center items-center">
-              <span className="text-[#3D3D3D] text-sm font-medium">Actions</span>
+            <div className="flex-1 py-6 px-3 flex justify-center items-center gap-4">
+              <button
+                onClick={() => handleDownloadInvoice(transaction)}
+                className="flex items-center gap-2 px-3 py-2 bg-white border border-[#ECECEC] rounded-full hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <span className="text-[#3D3D3D] text-sm font-medium">Invoice</span>
+                <img src="/images/DownloadSimple.png" alt="download" />
+              </button>
             </div>
           </div>
-
-          {loadingTransactions ? (
-            <div className="w-full p-6 text-center text-gray-500 text-sm">Loading transactions...</div>
-          ) : paginatedTransactions.length > 0 ? (
-            paginatedTransactions.map((transaction, index) => (
-              <div
-                key={index}
-                className="flex w-full border-b border-[#656565] items-center table-bodies"
-              >
-                <div className="p-2 border-r border-[#ECECEC] flex items-center">
-                  <div className="w-6 h-6 relative">
-                    <div className="w-[16.5px] h-[16.5px] absolute left-[3.75px] top-[3.75px] border-2 border-[#656565]"></div>
-                  </div>
-                </div>
-                <div className="w-[100px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
-                  <span className="text-[#3D3D3D] text-sm">{transaction.date}</span>
-                </div>
-                <div className="w-[130px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
-                  <span className="text-[#3D3D3D] text-sm">{transaction.id}</span>
-                </div>
-                <div className="flex-1 py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
-                  <span className="text-[#3D3D3D] text-sm">{transaction.type}</span>
-                </div>
-                <div className="flex-1 py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
-                  <span className="text-[#E61E4D] text-sm underline">{transaction.description}</span>
-                </div>
-                <div className="w-[140px] py-6 px-3 border-r border-[#EAEAEA] flex justify-center items-center">
-                  <div className={`${transaction.statusColor} px-4 py-2 rounded-full`}>
-                    <span className="text-[#292929] text-xs">{transaction.status}</span>
-                  </div>
-                </div>
-                <div className="flex-1 py-6 px-3 flex justify-center items-center gap-4">
-                  <button 
-                    onClick={() => handleDownloadInvoice(transaction)}
-                    className="flex items-center gap-2 px-3 py-2 bg-white border border-[#ECECEC] rounded-full hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                    <span className="text-[#3D3D3D] text-sm font-medium">Invoice</span>
-                    <img src="/images/DownloadSimple.png" alt="download" />
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="w-full p-6 text-center text-gray-500 text-sm">No transactions found.</div>
-          )}
+        ))
+      ) : (
+        <div className="w-full p-6 text-center text-gray-500 text-sm">
+          No transactions found.
         </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
         {/* Pagination Placeholder */}
         <div className="flex items-center gap-2 pagnations mt-4">

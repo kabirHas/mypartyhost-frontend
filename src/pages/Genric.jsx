@@ -60,8 +60,10 @@ const Genric = ({ pages }) => {
                 <div className="featuring-imgs">
                   <img src={item.image} alt={item.title} width={100} />
                 </div>
+                <div className="text-sontent">
                 <h4>{item.title}</h4>
                 <p className="all-para">{item.description}</p>
+                </div>
               </div>
             ))}
             {page.party_data2.map((item) => (
@@ -69,8 +71,10 @@ const Genric = ({ pages }) => {
                 <div className="featuring-imgs">
                   <img src={item.image} alt={item.title} width={100} />
                 </div>
+                <div className="text-sontent">
                 <h4>{item.title}</h4>
                 <p className="all-para">{item.description}</p>
+              </div>
               </div>
             ))}
             {page.party_data3.map((item) => (
@@ -78,8 +82,10 @@ const Genric = ({ pages }) => {
                 <div className="featuring-imgs">
                   <img src={item.image} alt={item.title} width={100} />
                 </div>
+                <div className="text-sontent">
                 <h4>{item.title}</h4>
                 <p className="all-para">{item.description}</p>
+                </div>
               </div>
             ))}
           </div>

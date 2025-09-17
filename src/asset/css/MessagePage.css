@@ -322,3 +322,19 @@ img.kaab-read {
 .kaab-chat-message.sender >div {
     position: relative;
 }
+
+@media (max-width: 768px) {
+  .kaab-message-page {
+    flex-direction: column; /* Sidebar and chat panel stacked */
+  }
+
+  .kaab-sidebar {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .kaab-chat-panel {
+    width: 100%;
+    border: none;
+  }
+}

@@ -190,7 +190,7 @@ function ManageJobs() {
                         to={"/dashboard/manage-jobs/" + job._id + "/view"}
                         className="text-[#e61e4c] hover:underline font-medium"
                       >
-                        {job.applicants.filter((applicant) => applicant.status === "pending").length} applications
+                        {job.applicants.length} applications
                       </Link>
                     </td>
                     <td className="px-6 border-r border-zinc-200 py-4">

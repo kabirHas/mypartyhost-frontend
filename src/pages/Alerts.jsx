@@ -394,7 +394,7 @@ function Alerts() {
     // Simulate cancelling by removing the booking from the list
     axios
       .post(
-        `http://localhost:4000/api/jobs/${selectedBookingId}/cancel-booking/${selectedUserId}`,
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedBookingId}/cancel-booking/${selectedUserId}`,
         {},
         {
           headers: {
@@ -433,16 +433,16 @@ function Alerts() {
                 <span className="text-gray-600">Offer Rate:</span> $
                 {notif?.metadata?.offerRate || "N/A"}/hr
               </p>
-              <p className="mt-1 self-stretch h-14 justify-start text-[#3D3D3D] text-sm font-normal  text-sm">
+              <p className="mt-1 self-stretch min-h-14 justify-start text-[#3D3D3D] text-sm font-normal  text-sm">
                 {notif?.metadata?.applicationMessage || "No message provided."}
               </p>
-              <div className="mt-3 md:mt-0">
-                <Link
-                  to={`/dashboard/manage-jobs/${notif?.metadata?.jobId?._id}/view`}
+              <div className="mt-3 cursor-pointer md:mt-0">
+                <span
+                  onClick={()=> navigate(`/dashboard/manage-jobs/${notif?.metadata?.jobId?._id}/view`, {state: {tab: "applications"}})}
                   className="text-[#E61E4D] font-medium no-underline hover:underline"
                 >
                   View Application
-                </Link>
+                </span>
               </div>
             </div>
             {notif?.createdAt && (
@@ -573,11 +573,11 @@ function Alerts() {
                         Waiting for Payment
                       </button>
                     )
-                  ) : notif?.metadata?.inviteId?.isPaid ? (
+                  ) :  notif?.metadata?.inviteId?.isPaid ? (
                     <button className="text-sm text-green-600 hover:text-black">
                       Booking Completed
                     </button>
-                  ) : (
+                  ) : notif?.metadata?.jobId?.organiser == user?._id && (
                     <>
                       <button
                         onClick={() =>
@@ -779,7 +779,7 @@ function Alerts() {
       </p>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-300 mb-4">
+      <div className="flex scrollbar-hide overflow-x-auto border-b border-gray-300 mb-4">
         {[
           { type: "job_applied", label: "Applications Received" },
           { type: "job_invite", label: "Job Invites" },
@@ -788,7 +788,7 @@ function Alerts() {
           <button
             key={type}
             onClick={() => setActiveTab(type)}
-            className={`px-4 py-2 font-medium capitalize ${
+            className={`px-4 min-w-[150px] py-2 font-medium capitalize ${
               activeTab === type
                 ? "border-b-2 border-[#E61E4D] text-[#E61E4D]"
                 : "text-gray-500"

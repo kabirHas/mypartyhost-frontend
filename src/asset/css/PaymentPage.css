@@ -152,3 +152,25 @@
     border: none;
     outline: none;
 }
+
+
+@media (max-width: 768px) {
+    .kaab-support-header{
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .kaab-search-filter-bar{
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+    .search-box-c.d-flex{
+       width: 100%;
+    }
+        
+    
+}

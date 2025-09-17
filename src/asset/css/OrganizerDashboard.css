@@ -357,3 +357,14 @@ main {
   cursor: pointer;
   font-weight: bold;
 }
+
+@media (max-width: 768px) {
+  .left-card{
+    width: 100%;
+  }
+  .stats{
+    flex : 1;
+    flex-direction: column;
+  }
+  
+}

@@ -252,7 +252,7 @@ function ContentManagement() {
 
   return (
     <div className="self-stretch flex flex-col justify-start items-start gap-8">
-      <div className="w-[802px] flex flex-col justify-start items-start gap-2">
+      <div className="w-full md:w-[802px] flex flex-col justify-start items-start gap-2">
         <div className="self-stretch text-gray-800 text-4xl font-bold font-['Inter'] leading-10">
           Content Management
         </div>
@@ -260,8 +260,8 @@ function ContentManagement() {
           Easily manage hostess profiles, event listings, reviews, and platform content. Keep everything organized and up-to-date.
         </div>
       </div>
-      <div className="self-stretch flex justify-start items-start gap-4">
-        <div className="w-[524px] flex flex-col justify-start items-start gap-4">
+      <div className="self-stretch flex-col md:flex-row flex justify-start items-start gap-4">
+        <div className="w-full md:w-[524px] flex flex-col justify-start items-start gap-4">
           <div className="self-stretch p-4 bg-white rounded-2xl flex flex-col justify-start items-start gap-4">
             <div className="self-stretch flex justify-between items-center">
               <div className="text-gray-800 text-xl font-bold font-['Inter'] leading-normal">
@@ -387,7 +387,7 @@ function ContentManagement() {
             </div>
           </div>
         </div>
-        <div className="w-1/2 flex flex-col justify-start items-start gap-4">
+        <div className="w-full md:w-1/2 flex flex-col justify-start items-start gap-4">
           <div className="self-stretch p-4 bg-white rounded-2xl flex flex-col justify-start items-end gap-4">
             <div className="self-stretch flex justify-between items-center">
               <div className="text-gray-800 text-xl font-bold font-['Inter'] leading-normal">

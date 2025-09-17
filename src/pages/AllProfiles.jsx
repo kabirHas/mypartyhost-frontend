@@ -3,6 +3,7 @@ import axios from "axios";
 import BASE_URLS from "../config";
 import UserSidebar from "../components/UserSIdebar";
 import { formatDistanceToNow } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 const AllProfiles = () => {
   const [users, setUsers] = useState([]);
@@ -15,10 +16,15 @@ const AllProfiles = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [error, setError] = useState(""); // For error messages
+  const  [notificationId,setNotificationId] = useState(null)
+
+  const location = useLocation();
+  
 
   const fetchUsers = () => {
     axios
       .get(`${BASE_URLS.BACKEND_BASEURL}user`, {
+        params: { limit },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -29,52 +35,79 @@ const AllProfiles = () => {
       })
       .catch((err) => console.error(err));
   };
+  
+  useEffect(() => {
+    // fetchUsers();
+    if(location?.state?.role){
+      setRoleFilter(location.state.role);
+    }
+
+    if(location?.state?.user){
+      setSelectedUserId(location.state.user);
+      setNotificationId(location.state.notification|| null);
+    }
+
+  }, [location?.state?.role,location?.state?.user]);
+
   useEffect(() => {
     fetchUsers();
-  }, []);
+    console.log("Fetching users with limit:", limit);
+  },[limit]);
 
   useEffect(() => {
-    let result = [...users];
-
-    // 🔍 Search
-    if (search.trim()) {
-      result = result.filter(
-        (u) =>
-          u.name?.toLowerCase().includes(search.toLowerCase()) ||
-          u.email?.toLowerCase().includes(search.toLowerCase()) ||
-          u._id?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // 👤 Role Filter
-    if (roleFilter) {
-      result = result.filter((u) => u.role === roleFilter);
-    }
-
-    // ✅ Status Filter
-    if (statusFilter === "Active") {
-      result = result.filter((u) => u.isActive === true);
-    } else if (statusFilter === "Inactive") {
-      result = result.filter((u) => u.isActive === false);
-    }
-
-    // 🕒 Last Login
-    if (lastLoginFilter === "1 hr") {
-      result = result.filter(
-        (u) => Date.now() - new Date(u.lastLogin).getTime() < 3600000
-      );
-    } else if (lastLoginFilter === "24 hrs") {
-      result = result.filter(
-        (u) => Date.now() - new Date(u.lastLogin).getTime() < 86400000
-      );
-    }
-
-    // Apply limit
-    result = result.slice(0, limit);
-
-    setFilteredUsers(result);
+    const fetchData = async () => {
+      let result = [...users];
+  
+      // 🔍 Search
+      if (search.trim()) {
+        try {
+          const res = await axios.get(
+            `${BASE_URLS.BACKEND_BASEURL}user/search`,
+            {
+              params: { username: search },
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          result = res.data;
+        } catch (err) {
+          console.error(err);
+        }
+      }
+  
+      // 👤 Role Filter
+      if (roleFilter) {
+        result = result.filter((u) => u.role === roleFilter);
+      }
+  
+      // ✅ Status Filter
+      if (statusFilter === "Active") {
+        result = result.filter((u) => u.isActive === true);
+      } else if (statusFilter === "Inactive") {
+        result = result.filter((u) => u.isActive === false);
+      }
+  
+      // 🕒 Last Login
+      if (lastLoginFilter === "1 hr") {
+        result = result.filter(
+          (u) => Date.now() - new Date(u.lastLogin).getTime() < 3600000
+        );
+      } else if (lastLoginFilter === "24 hrs") {
+        result = result.filter(
+          (u) => Date.now() - new Date(u.lastLogin).getTime() < 86400000
+        );
+      }
+  
+      // Apply limit
+      // result = result.slice(0, limit);
+  
+      setFilteredUsers(result);
+    };
+  
+    fetchData();
   }, [search, roleFilter, statusFilter, lastLoginFilter, users, limit]);
-
+  
   const handleToggleStatus = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -107,7 +140,7 @@ const AllProfiles = () => {
         {error && (
           <div className="text-red-500 text-sm mb-4">{error}</div>
         )}
-        <div className="flex gap-4 justify-between items-center mb-6">
+        <div className="flex gap-4 flex-col justify-between md:flex-row md:items-center mb-6">
           <div className="w-3/4">
             <h1 className="self-stretch justify-start text-[#292929] text-3xl font-bold font-['Inter'] leading-10">
               All Profiles
@@ -347,7 +380,7 @@ const AllProfiles = () => {
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={25}>25</option>
-            <option value={users.length}>All</option>
+            <option value={0}>All</option>
           </select>{" "}
           of {users.length}{" "}
         </div>
@@ -361,6 +394,7 @@ const AllProfiles = () => {
             fetchUsers();
           }}
           isCreate={isCreateMode}
+          notificationId={notificationId}
         />
       )}
     </div>

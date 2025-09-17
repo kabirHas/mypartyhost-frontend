@@ -112,7 +112,7 @@ function SavedProfiles() {
 
       <div className="flex items-center justify-end gap-4 mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-700">Availability</span>
+          <span className="text-sm text-gray-700">Available</span>
           <Switch
             checked={availabilityOnly}
             onCheckedChange={setAvailabilityOnly}

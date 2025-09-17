@@ -8,114 +8,116 @@ import BASE_URLS from "../config";
 const UserTable = ({ users, handleToggle, setSelectedUserId }) => {
   console.log("Users", users);
   return (
-    <table className="w-full rounded-2xl border border-[#ECECEC] ">
-      <thead>
-        <tr className="bg-[#FFFFFF]">
-          <th className="w-48 p-3 border-r not-last:border-[#ECECEC] border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            User Name
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Boost Plan
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Total Views
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Clicks
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            CTR Click (%)
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Total Cost
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Bookings Generated
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Status
-          </th>
-          <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
-            Action
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr
-            key={user.id}
-            className="border-b border-[#656565] hover:bg-gray-50 last:border-b-0"
-          >
-            <td className="w-48 px-3 py-6 border-r border-gray-200">
-              <div className="flex justify-start items-center gap-2">
-                <img
-                  className="w-6 h-6 rounded-full"
-                  src={user.image}
-                  alt={user.name}
-                />
-                <span className="text-[#292929] text-sm font-bold font-['Inter'] leading-tight">
-                  {user.name}
-                </span>
-              </div>
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.boostPlan}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.totalViews.toLocaleString()}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.clicks}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.ctr}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.totalCost}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
-              {user.bookings}
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200">
-              <div className="flex justify-center items-center gap-2.5">
-                <span className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
-                  {user.status}
-                </span>
-                {user.status !== "Pending" && (
-                  <label className="relative inline-block w-10 h-6">
-                    <input
-                      type="checkbox"
-                      checked={user.isActive}
-                      onChange={() => handleToggle(user.id, user.isActive)}
-                      className="opacity-0 w-0 h-0"
-                    />
-                    <span
-                      className={`absolute cursor-pointer top-0 left-0 right-0 bottom-0 rounded-full transition-colors duration-200 ${
-                        user.isActive ? "bg-[#E61E4D]" : "bg-gray-300"
-                      }`}
-                    >
-                      <span
-                        className={`absolute left-1 top-1 bg-[#F9F9F9] w-4 h-4 rounded-full transition-transform duration-200 transform ${
-                          user.isActive ? "translate-x-4" : "translate-x-0"
-                        }`}
-                      />
-                    </span>
-                  </label>
-                )}
-              </div>
-            </td>
-            <td className="px-3 py-6 border-r border-gray-200">
-              <button
-                onClick={() => setSelectedUserId(user.id)}
-                className="px-6 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#FE6E85] text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight"
-              >
-                Manage
-              </button>
-            </td>
+    <div className="overflow-x-auto w-full">
+      <table className=" min-w-[1000px] w-full  rounded-2xl border border-[#ECECEC] ">
+        <thead>
+          <tr className="bg-[#FFFFFF]">
+            <th className="w-48 p-3 border-r not-last:border-[#ECECEC] border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              User Name
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Boost Plan
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Total Views
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Clicks
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              CTR Click (%)
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Total Cost
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Bookings Generated
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Status
+            </th>
+            <th className="p-3 border-r border-[#ECECEC] text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight text-center">
+              Action
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {users.map((user,idx) => (
+            <tr
+              key={idx}
+              className="border-b border-[#656565] hover:bg-gray-50 last:border-b-0"
+            >
+              <td className="w-48 px-3 py-6 border-r border-gray-200">
+                <div className="flex justify-start items-center gap-2">
+                  <img
+                    className="w-6 h-6 rounded-full"
+                    src={user.image}
+                    alt={user.name}
+                  />
+                  <span className="text-[#292929] text-sm font-bold font-['Inter'] leading-tight">
+                    {user.name}
+                  </span>
+                </div>
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.boostPlan}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.totalViews.toLocaleString()}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.clicks}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.ctr}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.totalCost}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200 text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight text-center">
+                {user.bookings}
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200">
+                <div className="flex justify-center items-center gap-2.5">
+                  <span className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                    {user.status}
+                  </span>
+                  {user.status !== "Pending" && (
+                    <label className="relative inline-block w-10 h-6">
+                      <input
+                        type="checkbox"
+                        checked={user.isActive}
+                        onChange={() => handleToggle(user.id, user.isActive)}
+                        className="opacity-0 w-0 h-0"
+                      />
+                      <span
+                        className={`absolute cursor-pointer top-0 left-0 right-0 bottom-0 rounded-full transition-colors duration-200 ${
+                          user.isActive ? "bg-[#E61E4D]" : "bg-gray-300"
+                        }`}
+                      >
+                        <span
+                          className={`absolute left-1 top-1 bg-[#F9F9F9] w-4 h-4 rounded-full transition-transform duration-200 transform ${
+                            user.isActive ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </span>
+                    </label>
+                  )}
+                </div>
+              </td>
+              <td className="px-3 py-6 border-r border-gray-200">
+                <button
+                  onClick={() => setSelectedUserId(user.id)}
+                  className="px-6 py-2 bg-[#FFFFFF] rounded-full outline outline-1 outline-offset-[-1px] outline-[#FE6E85] text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight"
+                >
+                  Manage
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -335,7 +337,7 @@ const BoostedProfiles = () => {
 
   return (
     boostedData && (
-      <div className="self-stretch relative inline-flex flex-col justify-start items-start gap-2.5">
+      <div className="self-stretch w-full relative inline-flex flex-col justify-start items-start gap-2.5">
         <div className="self-stretch flex flex-col justify-start items-start gap-4">
           <div className="w-full flex flex-col justify-start items-start gap-2">
             <h1 className="self-stretch text-[#292929] text-4xl font-bold font-['Inter'] leading-10">
@@ -409,7 +411,7 @@ const BoostedProfiles = () => {
                         +{boostedData.boostRevenue.earningsGrowth}%
                       </span>
                     </div>
-                    <span className="flex-1 text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
+                    <span className="flex-1 w-fit text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-none">
                       vs. previous month
                     </span>
                   </div>
@@ -432,7 +434,7 @@ const BoostedProfiles = () => {
               <h2 className="self-stretch text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
                 Boosted Profiles List
               </h2>
-              <div className="self-stretch flex flex-col justify-start items-start gap-6">
+              <div className="self-stretch overflow-auto flex flex-col justify-start items-start gap-6">
                 <div className="self-stretch inline-flex justify-between items-center flex-wrap gap-4">
                   <div className="relative bg-white rounded-lg w-full sm:w-1/3 pr-3 bg-zinc-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-400 inline-flex justify-start items-center gap-3 overflow-hidden">
                     <div className="p-2 bg-pink-100 flex justify-start items-center">
@@ -481,19 +483,21 @@ const BoostedProfiles = () => {
                     </div>
                   </div>
                 </div>
-                <UserTable
-                  users={filteredUsers}
-                  handleToggle={handleToggle}
-                  setSelectedUserId={setSelectedUserId}
-                />
               </div>
             </div>
           </div>
         </div>
+        <UserTable
+          users={filteredUsers}
+          handleToggle={handleToggle}
+          setSelectedUserId={setSelectedUserId}
+        />
         {selectedUserId && (
           <BoostSidebar
-          user={boostedData.boostedProfiles.find((user) => user.id === selectedUserId)}
-            onClose={() =>{
+            user={boostedData.boostedProfiles.find(
+              (user) => user.id === selectedUserId
+            )}
+            onClose={() => {
               setSelectedUserId(null);
               fetchData(); // Refresh data when sidebar is closed
             }}

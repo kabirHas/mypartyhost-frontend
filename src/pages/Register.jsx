@@ -82,17 +82,18 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BASE_URLS.API}/auth/register`, {
+      const res = await axios.post(`${BASE_URLS.BACKEND_BASEURL}auth/register`, {
         name,
         email,
         phone,
         role,
       });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', res.data.user.role);
+      console.log("Registration Response:", res.data);
+      // localStorage.setItem('token', res.data.token);
+      // localStorage.setItem('role', res.data.user.role);
       Notify.success("Account created successfully!");
-      window.dispatchEvent(new Event("user-logged-in"));
-      navigate("/success");
+      // window.dispatchEvent(new Event("user-logged-in"));
+      navigate("/login");
     } catch (err) {
       console.error(err);
       Notify.error("Registration failed. Please try again.");

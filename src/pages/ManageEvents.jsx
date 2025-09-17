@@ -57,12 +57,20 @@ const ManageEvents = () => {
   }));
 
   // Get unique event types and locations for dropdowns
-  const uniqueEventTypes = [...new Set(events.map((event) => event.staffCategory))];
+  const uniqueEventTypes = [
+    ...new Set(events.map((event) => event.staffCategory)),
+  ];
   const uniqueLocations = [...new Set(events.map((event) => event.city))];
 
   // Filter events based on search and dropdowns
   const filtered = mappedEvents.filter((e) => {
-    const matchesSearch = (e.name + e.organizer + e.location + e.date + e.status)
+    const matchesSearch = (
+      e.name +
+      e.organizer +
+      e.location +
+      e.date +
+      e.status
+    )
       .toLowerCase()
       .includes(search.toLowerCase());
 
@@ -105,9 +113,9 @@ const ManageEvents = () => {
           </p>
         </div>
         <button
-        onClick={() => navigate("/multi-step")}
-        type="button"
-          className="px-6 py-3 rounded-lg inline-flex justify-center items-center gap-2 text-white text-base font-medium font-['Inter'] leading-snug overflow-hidden"
+          onClick={() => navigate("/multi-step")}
+          type="button"
+          className="px-6 py-3 w-full md:w-fit rounded-lg inline-flex justify-center items-center gap-2 text-white text-base font-medium font-['Inter'] leading-snug overflow-hidden"
           style={{
             background:
               "linear-gradient(272deg, #E31F87 1.58%, #E61E4D 98.73%)",
@@ -205,8 +213,9 @@ const ManageEvents = () => {
       </div>
 
       {/* Table */}
-      <div className="w-full h-full overflow-hidden rounded-2xl border border-[#ECECEC] flex flex-col zole-table mt-4">
-        <div className="flex w-full bg-white items-center table-heads">
+      <div className="w-full h-full shrink-0 overflow-x-auto md:overflow-hidden rounded-2xl border border-[#ECECEC] flex flex-col zole-table mt-4">
+        {/* Table Head */}
+        <div className="flex w-full min-w-[800px] bg-white items-center table-heads">
           {[
             "Event Name",
             "Organizer",
@@ -229,10 +238,11 @@ const ManageEvents = () => {
           ))}
         </div>
 
+        {/* Table Body */}
         {filtered.map((event, index) => (
           <div
             key={index}
-            className="flex w-full border-b border-[#656565] items-center table-bodies"
+            className="flex w-full min-w-[800px] border-b border-[#656565] items-center table-bodies"
           >
             <div className="p-3 border-r border-[#ECECEC] flex-[1.5] justify-start items-center flex font-semibold text-sm text-[#292929]">
               {event.name}
@@ -269,8 +279,9 @@ const ManageEvents = () => {
           </div>
         ))}
 
+        {/* Empty State */}
         {filtered.length === 0 && (
-          <div className="text-center text-sm text-gray-500 py-6">
+          <div className="text-center text-sm text-gray-500 py-6 min-w-[800px]">
             No events found.
           </div>
         )}

@@ -191,4 +191,88 @@ h6 {
     .stars {
         margin-top: 5px;
     }
+
+    .d-flex .accordion {
+        flex: 0 0 100%;
+    }
+
+    .right-boost .staff-list .staff-card {
+        flex: 0 0 calc(50% - 5px);
+    }
+
+    .right-boost .staff-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .right-boost .staff-list .staff-card .staff-info {
+        margin: 0 !important;
+        max-height: 200px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+    }
+
+    .right-boost .staff-info .icons {
+        padding: 0;
+        font-size: 15px;
+        position: static;
+        line-height: 15px;
+        margin-top: 10px;
+    }
+
+    .right-boost .staff-info .stars {
+        display: none;
+    }
+
+    .right-boost .staff-card .staff-info h3 a {
+        font-size: 16px;
+        line-height: 21px;
+    }
+
+    .staff-card .staff-info h3 {
+        width: 100%;
+    }
+
+    .dyn-con {
+        flex-direction: column;
+        gap: 80px;
+    }
+
+    .dyn-con .part-item {
+        flex-basis: 100%;
+        display: flex;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .dyn-con .featuring-imgs {
+        margin-bottom: 0;
+        flex: 0 0 100px;
+    }
+
+    .dyn-con .featuring-imgs img {
+        height: 100px;
+        width: 100px;
+    }
+    .dyn-con:before {
+    display: none;
+}
+.part-item:nth-child(2):before {
+    width: 100px;
+    height: 80px;
+    top: -80px;
+    left: unset;
+    transform: rotate(90deg);
+}
+.part-item:nth-child(2):after {
+    width: 100px;
+    height: 80px;
+    right: unset;
+    bottom: -80px;
+    transform: rotate(90deg);
+    top: unset;
+}
 }

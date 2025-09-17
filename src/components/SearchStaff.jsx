@@ -36,9 +36,25 @@ const SearchStaff = () => {
 
   const renderPageNumbers = () => {
     const pages = [];
-
-    if (page > 2) pages.push(<span key="startDots">...</span>);
-    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages, page + 1); i++) {
+  
+    // Always show page 1
+    pages.push(
+      <button
+        key={1}
+        className={page === 1 ? "active-page" : ""}
+        onClick={() => goToPage(1)}
+      >
+        1
+      </button>
+    );
+  
+    // Add dots if there’s a gap between page 1 and the start of the loop
+    if (page > 3) {
+      pages.push(<span key="startDots">...</span>);
+    }
+  
+    // Loop for pages around the current page, excluding page 1 and totalPages
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
       pages.push(
         <button
           key={i}
@@ -49,15 +65,25 @@ const SearchStaff = () => {
         </button>
       );
     }
-    if (page < totalPages - 1) pages.push(<span key="endDots">...</span>);
-    if (page !== totalPages && totalPages > 1) {
+  
+    // Add dots if there’s a gap between the loop and the last page
+    if (page < totalPages - 2) {
+      pages.push(<span key="endDots">...</span>);
+    }
+  
+    // Always show the last page if totalPages > 1
+    if (totalPages > 1) {
       pages.push(
-        <button key={totalPages} onClick={() => goToPage(totalPages)}>
+        <button
+          key={totalPages}
+          className={page === totalPages ? "active-page" : ""}
+          onClick={() => goToPage(totalPages)}
+        >
           {totalPages}
         </button>
       );
     }
-
+  
     return pages;
   };
 
@@ -134,12 +160,12 @@ const SearchStaff = () => {
           Previous
         </button>
 
-        <button
+        {/* <button
           className={page === 1 ? "active-page" : ""}
           onClick={() => goToPage(1)}
         >
           1
-        </button>
+        </button> */}
 
         {renderPageNumbers()}
 
