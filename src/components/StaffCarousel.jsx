@@ -115,6 +115,7 @@ const StaffSlider = () => {
                 <div className="staff-card" key={person._id}>
                   <div
                     className="staff-info p-2"
+                    className="staff-info"
                     style={{
                       backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
                     }}
