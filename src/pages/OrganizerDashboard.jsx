@@ -312,7 +312,7 @@ const OrganizerDashboard = () => {
                       : item.type === "cancelledBooking"
                       ? "Booking cancelled for"
                       : "wants to join"}{" "}
-                    <b>{item.metadata?.jobTitle}</b> -{item.type}{" "}
+                    <b>{item.metadata?.jobTitle}</b> -{" "}
                     {item.type === "job_invite" && " Let's Start the Party!"}
                     <span
                       onClick={() =>

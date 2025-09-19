@@ -8,6 +8,7 @@ function BookingDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showCancelPopup, setShowCancelPopup] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,7 +39,6 @@ function BookingDetails() {
         : (apiBooking.duration || 0) * (apiBooking.rateOffered || 0);
 
     const avgRating = (reviews = []) => {
-      console.log(reviews);
       if (!reviews.length) return "N/A";
       const validRatings = reviews
         .map((r) => r.rating)
@@ -56,11 +56,11 @@ function BookingDetails() {
       status:
         apiBooking.status.charAt(0).toUpperCase() +
           apiBooking.status.slice(1) || "Unknown",
-      statusColor: getStatusColor(apiBooking.status), // Helper function to map status to color
+      statusColor: getStatusColor(apiBooking.status),
       applicationOffer: apiBooking.application
-        ? `${apiBooking.application?.currency} - ${
-            apiBooking.application?.offer
-          }/${apiBooking.application?.duration === "day" ? "-" : "hr"}`
+        ? `${apiBooking.application.currency} ${apiBooking.application.offer}/${
+            apiBooking.application.duration === "day" ? "day" : "hr"
+          }`
         : null,
       role: apiBooking.jobTitle || "Unknown Role",
       rate: `${apiBooking.currency || "USD"} ${apiBooking.rateOffered || 0}/${
@@ -133,35 +133,106 @@ function BookingDetails() {
   };
 
   // Fetch booking data from API if no state data is available
-  const getBookingData = () => {
-    if (bookingFromState) {
+  const getBookingData = async () => {
+    if (bookingFromState && bookingFromState.id === id) {
       setBooking(bookingFromState);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    axios
-      .get(`${BASE_URLS.BACKEND_BASEURL}jobs/${id}`, {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-      .then((response) => {
-        console.log("Response ::", response.data);
-        const transformedBooking = transformApiBooking(response.data);
-        console.log(transformedBooking);
-        setBooking(transformedBooking);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching booking:", error);
-        setError("Failed to fetch booking details");
-        setLoading(false);
       });
+      const transformedBooking = transformApiBooking(response.data);
+      setBooking(transformedBooking);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      setError("Failed to fetch booking details");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     getBookingData();
   }, [id]);
+
+  const handleCancelBooking = () => {
+    setShowCancelPopup(true);
+  };
+
+  const confirmCancelBooking = async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${booking.jobId}/cancel-booking`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      console.log("Booking cancelled successfully:", response.data);
+      // Update booking status to reflect cancellation
+      setBooking((prev) => ({
+        ...prev,
+        status: "Cancelled",
+        statusColor: "bg-gray-200",
+        message: `Booking cancelled for ${prev.eventName} on ${new Date(
+          prev.date
+        ).toLocaleDateString("en-AU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })}`,
+      }));
+      setShowCancelPopup(false);
+      setShowSuccessPopup(true); // Show success popup after cancellation
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      alert("Failed to cancel booking. Please try again.");
+      setShowCancelPopup(false);
+    }
+  };
+
+  const closeCancelPopup = () => {
+    setShowCancelPopup(false);
+  };
+
+  const closeSuccessPopup = () => {
+    setShowSuccessPopup(false);
+    navigate("/dashboard"); // Navigate to dashboard after closing success popup
+  };
+
+  const handleAction = (id, status) => {
+    if (status === "Confirmed" || status === "Open") {
+      navigate(`/dashboard/messages`, { state: { userId: booking.organizer._id } });
+    } else if (status === "Pending") {
+      axios
+        .post(
+          `${BASE_URLS.BACKEND_BASEURL}jobs/${id}/confirm`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          }
+        )
+        .then((response) => {
+          console.log("Booking confirmed:", response.data);
+          setBooking((prev) => ({
+            ...prev,
+            status: "Confirmed",
+            statusColor: "bg-lime-100",
+          }));
+        })
+        .catch((error) => {
+          console.error("Error confirming booking:", error);
+          alert("Failed to confirm booking. Please try again.");
+        });
+    } else if (status === "Completed") {
+      navigate(`/dashboard/reviews`, { state: { bookingId: id } });
+    }
+  };
 
   if (loading) {
     return (
@@ -171,7 +242,7 @@ function BookingDetails() {
     );
   }
 
-  if (error || !booking) {
+  if (error || !booking || booking.id !== id) {
     return (
       <div className="p-4 text-[#292929] text-xl font-bold font-['Inter']">
         {error || "Booking not found"}
@@ -179,45 +250,8 @@ function BookingDetails() {
     );
   }
 
-  const handleCancelBooking = () => {
-    setShowCancelPopup(true);
-  };
-
-  const confirmCancelBooking = () => {
-    console.log(`Cancelling booking with ID: ${booking.jobId}`);
-    axios
-      .post(
-        `${BASE_URLS.BACKEND_BASEURL}jobs/${booking.jobId}/cancel-booking`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      )
-      .then((response) => {
-        console.log("Booking cancelled successfully:", response.data);
-        setShowCancelPopup(false);
-        navigate("/dashboard");
-      })
-      .catch((error) => {
-        console.error("Error cancelling booking:", error);
-        setShowCancelPopup(false);
-      });
-  };
-
-  const closePopup = () => {
-    setShowCancelPopup(false);
-  };
-
-  const handleAction = (id, status) => {
-    console.log(`Action for booking ID: ${id}, Status: ${status}`);
-    // Implement actions based on status:
-    // - Confirmed: Open messaging modal
-    // - Pending: Confirm booking API call
-    // - Completed: Open review modal
-  };
-
   return (
-    <div className="self-stretch bg-[#F9F9F9] w-full h-screen p-12 inline-flex justify-center items-start">
+    <div className="self-stretch bg-[#F9F9F9] w-full min-h-screen p-12 inline-flex justify-center items-start">
       <div className="flex-1 self-stretch max-w-[1024px] inline-flex flex-col justify-start items-start gap-8">
         <button
           onClick={() => navigate(-1)}
@@ -237,20 +271,20 @@ function BookingDetails() {
                     {booking.title}
                   </div>
                   <div className="self-stretch justify-start text-[#656565] text-base font-normal font-['Inter'] leading-snug">
-                    {booking.eventType || "Event"}
+                    {booking.eventType}
                   </div>
                 </div>
-                <div className="self-stretch  inline-flex flex-col md:flex-row gap-2 justify-between md:items-center">
+                <div className="self-stretch inline-flex flex-col md:flex-row gap-2 justify-between md:items-center">
                   <div className="justify-start text-[#292929] text-base font-bold font-['Inter'] leading-snug">
                     Rate: {booking.applicationOffer || booking.rate}
                   </div>
                   <div
-                    className={`px-4 py-2 ${booking.statusColor} w-fit  rounded-full flex justify-center items-center gap-2.5`}
+                    className={`px-4 py-2 ${booking.statusColor} w-fit rounded-full flex justify-center items-center gap-2.5`}
                   >
-                    <div className="justify-start text-[#292929] text-xs text-base font-medium font-['Inter'] leading-snug">
+                    <div className="justify-start text-[#292929] text-xs font-normal font-['Inter'] leading-none">
                       {booking.status === "Confirmed"
                         ? "Upcoming – Confirmed"
-                        : booking.status == "Open"
+                        : booking.status === "Open"
                         ? "Upcoming"
                         : booking.status}
                     </div>
@@ -269,13 +303,51 @@ function BookingDetails() {
                     Date: {booking.date}
                   </div>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    Time: {booking.time} (
-                    {booking.duration || "Duration not specified"})
+                    Time: {booking.time} ({booking.duration})
                   </div>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    Description:{" "}
-                    {booking.description ||
-                      "No additional description provided."}
+                    Description: {booking.description}
+                  </div>
+                </div>
+              </div>
+              <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-bold font-['Inter'] leading-tight">
+                  Payment Info
+                </div>
+                <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                  <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                    <div className="self-stretch inline-flex justify-between items-center">
+                      <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                        Total Hours Booked
+                      </div>
+                      <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+                        {booking.paymentInfo.totalHours}
+                      </div>
+                    </div>
+                    <div className="self-stretch inline-flex justify-between items-center">
+                      <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                        Event Fee
+                      </div>
+                      <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+                        {booking.paymentInfo.eventFee}
+                      </div>
+                    </div>
+                    <div className="self-stretch inline-flex justify-between items-center">
+                      <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                        Booking Fee
+                      </div>
+                      <div className="justify-start text-[#292929] text-base font-normal font-['Inter'] leading-snug">
+                        {booking.paymentInfo.bookingFee}
+                      </div>
+                    </div>
+                    <div className="self-stretch inline-flex justify-between items-center">
+                      <div className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
+                        Paid to Hostess
+                      </div>
+                      <div className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
+                        {booking.paymentInfo.paidToHostess}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -284,8 +356,7 @@ function BookingDetails() {
             <div className="inline-flex justify-start items-center gap-6">
               <button
                 className={`py-1 rounded-lg flex justify-center items-center gap-2 overflow-hidden ${
-                  booking.status === "Cancelled" ||
-                  booking.status === "Completed"
+                  booking.status === "Cancelled" || booking.status === "Completed"
                     ? "hidden"
                     : ""
                 }`}
@@ -296,23 +367,17 @@ function BookingDetails() {
                 </span>
               </button>
               <button
-                className={`px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 ${
-                  booking.status === "Cancelled" ? "hidden" : ""
-                } overflow-hidden`}
-                onClick={() =>
-                  booking.status === "Confirmed" || booking.status === "Open"
-                    ? navigate(`/dashboard/messages`, {
-                        state: { userId: booking.organizer._id },
-                      })
-                    : console.log("Message Organizer")
-                }
+                className={`px-4 py-2 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 overflow-hidden`}
+                onClick={() => handleAction(booking.jobId, booking.status)}
               >
                 <span className="justify-start text-[#FFFFFF] text-sm font-medium font-['Inter'] leading-tight">
                   {booking.status === "Confirmed" || booking.status === "Open"
                     ? "Message Organizer"
                     : booking.status === "Pending"
                     ? "Confirm Booking"
-                    : "Leave a Review"}
+                    : booking.status === "Completed"
+                    ? "Leave a Review"
+                    : "View Details"}
                 </span>
               </button>
             </div>
@@ -324,30 +389,29 @@ function BookingDetails() {
             <div className="self-stretch inline-flex justify-start items-start gap-2">
               <img
                 className="w-12 h-12 rounded-full"
-                src={booking.organizer?.image || "https://placehold.co/48x48"}
+                src={booking.organizer.image}
                 alt="Organizer avatar"
               />
               <div className="flex-1 inline-flex flex-col justify-start items-start gap-6">
                 <div className="self-stretch flex flex-col justify-start items-start gap-1">
                   <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                    {booking.organizer?.name || "Unknown Organizer"}
+                    {booking.organizer.name}
                   </div>
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <i className="ri-map-pin-2-line text-[#656565] w-4 h-4"></i>
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      {booking.organizer?.city || "Unknown"},{" "}
-                      {booking.organizer?.country || "Unknown"}
+                      {booking.organizer.city}, {booking.organizer.country}
                     </div>
                   </div>
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="flex justify-start items-center gap-1">
                       <i className="ri-star-fill text-orange-500 w-4 h-4"></i>
                       <div className="justify-start text-orange-500 text-sm font-medium font-['Inter'] leading-tight">
-                        {booking.organizer?.rating || "N/A"}
+                        {booking.organizer.rating}
                       </div>
                     </div>
                     <div className="justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight">
-                      {booking.organizer?.reviews
+                      {booking.organizer.reviews
                         ? `(${booking.organizer.reviews} Reviews)`
                         : "(No Reviews)"}
                     </div>
@@ -359,10 +423,10 @@ function BookingDetails() {
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-2">
                     <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      Phone: {booking.organizer?.phone || "Not provided"}
+                      Phone: {booking.organizer.phone}
                     </div>
                     <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                      Email: {booking.organizer?.email || "Not provided"}
+                      Email: {booking.organizer.email}
                     </div>
                   </div>
                 </div>
@@ -380,7 +444,7 @@ function BookingDetails() {
                   Confirm Cancellation
                 </div>
                 <button
-                  onClick={closePopup}
+                  onClick={closeCancelPopup}
                   className="p-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#ECECEC] flex justify-start items-center gap-2.5"
                 >
                   <i className="ri-close-line text-[#656565] w-6 h-6"></i>
@@ -388,20 +452,17 @@ function BookingDetails() {
               </div>
               <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
               <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                Booking cancellations within 7 days of an event incur a{" "}
-                <span className="font-bold">$50 penalty charge.</span>
+                Are you sure you want to cancel this booking? Cancellations within 7 days of an event incur a{" "}
+                <span className="font-bold">{booking.paymentInfo.currency} 50 penalty charge</span>.
                 <br />
-                <span className="font-bold">No-shows</span> will also result in
-                a $50 penalty charge and{" "}
-                <span className="font-bold">
-                  possible removal from the site.
-                </span>
+                <span className="font-bold">No-shows</span> will also result in a {booking.paymentInfo.currency} 50 penalty charge and{" "}
+                <span className="font-bold">possible removal from the site</span>.
               </div>
             </div>
             <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
             <div className="self-stretch inline-flex justify-end items-center gap-4">
               <button
-                onClick={closePopup}
+                onClick={closeCancelPopup}
                 className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-center items-center gap-2 overflow-hidden"
               >
                 <span className="justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
@@ -414,6 +475,47 @@ function BookingDetails() {
               >
                 <span className="justify-start text-[#FFFFFF] text-base font-medium font-['Inter'] leading-snug">
                   Yes, Cancel Booking
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="md:w-[594px] p-6 bg-[#E6FFE6] rounded-2xl inline-flex flex-col justify-start items-start gap-6">
+            <div className="self-stretch flex flex-col justify-start items-start gap-4">
+              <div className="self-stretch inline-flex justify-start items-center gap-4">
+                <div className="flex-1 justify-start text-[#292929] text-2xl font-bold font-['Inter'] leading-7">
+                  Booking Cancelled Successfully
+                </div>
+                <button
+                  onClick={closeSuccessPopup}
+                  className="p-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#ECECEC] flex justify-start items-center gap-2.5"
+                >
+                  <i className="ri-close-line text-[#656565] w-6 h-6"></i>
+                </button>
+              </div>
+              <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
+              <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                Your booking for <span className="font-bold">{booking.title}</span> has been successfully cancelled.
+                {new Date(booking.date).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 && (
+                  <>
+                    <br />
+                    As this cancellation occurred within 7 days of the event, a{" "}
+                    <span className="font-bold">{booking.paymentInfo.currency} 50 penalty charge</span> may apply.
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
+            <div className="self-stretch inline-flex justify-end items-center gap-4">
+              <button
+                onClick={closeSuccessPopup}
+                className="px-6 py-3 bg-gradient-to-l from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 overflow-hidden"
+              >
+                <span className="justify-start text-[#FFFFFF] text-base font-medium font-['Inter'] leading-snug">
+                  Return to Dashboard
                 </span>
               </button>
             </div>

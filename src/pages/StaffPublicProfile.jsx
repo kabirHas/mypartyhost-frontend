@@ -86,36 +86,34 @@ function StaffPublicProfile() {
 
   const sections = user
     ? [
-        {
-          title: "ABOUT ME",
-          content: user.bio,
-        },
-        {
-          title: "RATES",
-          content: `Base Rate: $${user.baseRate}/hour\nDaily Rate: $${
-            user?.dailyRate
-          }/day\nInstant Booking Rate: $${
-            user?.instantBookingRate
+      {
+        title: "ABOUT ME",
+        content: user.bio,
+      },
+      {
+        title: "RATES",
+        content: `Base Rate: $${user.baseRate}/hour\nDaily Rate: $${user?.dailyRate
+          }/day\nInstant Booking Rate: $${user?.instantBookingRate
           }/booking\nAdditional Rates:\n${user?.additionalRates
             ?.map((r) => `${r.label}: $${r.amount}`)
             .join("\n")}`,
-        },
-        {
-          title: "AVAILABLE FOR",
-          content: `Skills:\n${user?.skills
-            ?.map((s) => `${s.title} ($${s.pricePerHour}/hr)`)
-            .join("\n")}\n\nAvailable Dates: ${user.availableDates
+      },
+      {
+        title: "AVAILABLE FOR",
+        content: `Skills:\n${user?.skills
+          ?.map((s) => `${s.title} ($${s.pricePerHour}/hr)`)
+          .join("\n")}\n\nAvailable Dates: ${user.availableDates
             ?.map((d) => new Date(d).toDateString())
             .join(", ")}`,
-        },
-        {
-          title: "JOB HISTORY",
-          content:
-            user.reviews?.length === 0
-              ? "No job history yet."
-              : user.reviews?.map((r) => r.comment).join("\n"),
-        },
-      ]
+      },
+      {
+        title: "JOB HISTORY",
+        content:
+          user.reviews?.length === 0
+            ? "No job history yet."
+            : user.reviews?.map((r) => r.comment).join("\n"),
+      },
+    ]
     : [];
 
   const times = ["5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM"];
@@ -235,16 +233,16 @@ function StaffPublicProfile() {
       bookingType: isActive ? "Daily" : "Hourly",
       date: isActive
         ? {
-            startDate: selectedStartDate
-              ? selectedStartDate.toDateString()
-              : "Not selected",
-            endDate: selectedEndDate
-              ? selectedEndDate.toDateString()
-              : "Not selected",
-          }
+          startDate: selectedStartDate
+            ? selectedStartDate.toDateString()
+            : "Not selected",
+          endDate: selectedEndDate
+            ? selectedEndDate.toDateString()
+            : "Not selected",
+        }
         : selectedDate
-        ? selectedDate.toDateString()
-        : "Not selected",
+          ? selectedDate.toDateString()
+          : "Not selected",
       startTime: isActive ? "N/A" : selectedStartTime,
       endTime: isActive ? "N/A" : getEndTime(),
       duration: isActive ? `${quantity} Days` : `${selectedHours} Hours`,
@@ -260,7 +258,7 @@ function StaffPublicProfile() {
   const averageRating =
     user && user.reviews.length > 0
       ? user.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-        user.reviews.length
+      user.reviews.length
       : 0;
   const roundedStars = Math.max(0, Math.min(5, Math.round(averageRating)));
 
@@ -445,7 +443,13 @@ function StaffPublicProfile() {
               </div>
               <div className="self-stretch inline-flex justify-start items-center gap-2">
                 <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start gap-2">
-                  <i className="ri-calendar-check-line w-8 h-8 text-[#292929]"></i>
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M26 5H6C5.44772 5 5 5.44772 5 6V26C5 26.5523 5.44772 27 6 27H26C26.5523 27 27 26.5523 27 26V6C27 5.44772 26.5523 5 26 5Z" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M22 3V7" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10 3V7" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M5 11H27" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M11.5 19L14.5 22L20.5 16" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight">
                     Confirm Booking
                   </div>
@@ -454,7 +458,11 @@ function StaffPublicProfile() {
                   <i className="ri-arrow-right-line w-4 h-4 text-[#292929]"></i>
                 </div>
                 <div className="flex-1 inline-flex flex-col justify-center items-start gap-2">
-                  <i className="ri-chat-3-line w-8 h-8 text-[#292929]"></i>
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 13H20" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 17H20" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M13.1337 24L15.1337 27.5C15.2211 27.6533 15.3475 27.7808 15.5001 27.8694C15.6527 27.9581 15.826 28.0047 16.0025 28.0047C16.179 28.0047 16.3523 27.9581 16.5049 27.8694C16.6575 27.7808 16.7839 27.6533 16.8713 27.5L18.8713 24H27C27.2652 24 27.5196 23.8946 27.7071 23.7071C27.8946 23.5196 28 23.2652 28 23V7C28 6.73478 27.8946 6.48043 27.7071 6.29289C27.5196 6.10536 27.2652 6 27 6H5C4.73478 6 4.48043 6.10536 4.29289 6.29289C4.10536 6.48043 4 6.73478 4 7V23C4 23.2652 4.10536 23.5196 4.29289 23.7071C4.48043 23.8946 4.73478 24 5 24H13.1337Z" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight">
                     Connect with Hostess
                   </div>
@@ -463,7 +471,12 @@ function StaffPublicProfile() {
                   <i className="ri-arrow-right-line w-4 h-4 text-[#292929]"></i>
                 </div>
                 <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <i className="ri-money-dollar-circle-line w-8 h-8 text-[#292929]"></i>
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M30 23.3489C18.545 28.9451 13.455 18.0551 2 23.6514V8.65137C13.455 3.05512 18.545 13.9451 30 8.34887V23.3489Z" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M16 19C17.6569 19 19 17.6569 19 16C19 14.3431 17.6569 13 16 13C14.3431 13 13 14.3431 13 16C13 17.6569 14.3431 19 16 19Z" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M6 12V18" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M26 14V20" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight">
                     Pay with Cash on the Day
                   </div>
@@ -472,7 +485,15 @@ function StaffPublicProfile() {
                   <i className="ri-arrow-right-line w-4 h-4 text-[#292929]"></i>
                 </div>
                 <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start gap-2">
-                  <i className="ri-cake-3-line w-8 h-8 text-[#292929]"></i>
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.06107 25.6901L11.6248 7.64255C11.6806 7.48836 11.7745 7.35077 11.8977 7.24253C12.0208 7.13429 12.1693 7.05891 12.3294 7.02338C12.4895 6.98785 12.656 6.99332 12.8134 7.03928C12.9708 7.08524 13.114 7.17021 13.2298 7.2863L24.7148 18.7713C24.8306 18.8872 24.9153 19.0305 24.961 19.1878C25.0067 19.3451 25.0119 19.5114 24.9763 19.6713C24.9407 19.8312 24.8652 19.9795 24.757 20.1025C24.6488 20.2256 24.5114 20.3193 24.3573 20.375L6.30982 26.9388C6.13553 27.0025 5.94668 27.015 5.7655 26.975C5.58433 26.9349 5.41836 26.8439 5.28716 26.7127C5.15595 26.5815 5.06497 26.4155 5.02491 26.2344C4.98486 26.0532 4.9974 25.8643 5.06107 25.6901Z" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 9C21 9 21 6 24 6C27 6 27 3 27 3" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M18 2V5" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M27 14L29 16" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M27 10L30 9" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9.76172 12.7612L19.2392 22.2387" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12.6388 24.6388L7.36133 19.3613" stroke="#292929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   <div className="self-stretch justify-start text-[#3D3D3D] text-sm font-medium font-['Inter'] leading-tight">
                     It’s Party Time!
                   </div>
@@ -491,15 +512,13 @@ function StaffPublicProfile() {
                         {section.title}
                       </div>
                       <i
-                        className={`ri-arrow-right-down-line w-5 h-5 text-[#292929] transition-transform duration-300 ${
-                          openIndex === index ? "rotate-180" : ""
-                        }`}
+                        className={`ri-arrow-right-down-line w-5 h-5 text-[#292929] transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""
+                          }`}
                       ></i>
                     </div>
                     <div
-                      className={`self-stretch p-2 ${
-                        openIndex === index ? "opacity-100" : "opacity-0 h-0"
-                      } inline-flex justify-start items-center gap-2.5 transition-all duration-100`}
+                      className={`self-stretch p-2 ${openIndex === index ? "opacity-100" : "opacity-0 h-0"
+                        } inline-flex justify-start items-center gap-2.5 transition-all duration-100`}
                     >
                       <div className="flex-1 justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight whitespace-pre-line">
                         {section.content}
@@ -546,7 +565,7 @@ function StaffPublicProfile() {
               The Party{" "}
             </span>
             <span className="text-white text-7xl font-thin font-['Inter'] uppercase leading-[80px]">
-              Starts Here!
+              Starts <br /> Here!
             </span>
           </div>
           <div className="w-[509px] left-[760px] top-[233px] absolute justify-start text-[#FFFFFF] text-base font-normal font-['Inter'] leading-snug">
@@ -664,19 +683,17 @@ function StaffPublicProfile() {
                                   ? "active"
                                   : "Default"
                               }
-                              className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 ${
-                                selectedEventType === type
-                                  ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
-                                  : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
-                              } cursor-pointer`}
+                              className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 ${selectedEventType === type
+                                ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
+                                : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
+                                } cursor-pointer`}
                               onClick={() => setSelectedEventType(type)}
                             >
                               <div
-                                className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${
-                                  selectedEventType === type
-                                    ? "text-[#E61E4D]"
-                                    : "text-[#3D3D3D]"
-                                }`}
+                                className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${selectedEventType === type
+                                  ? "text-[#E61E4D]"
+                                  : "text-[#3D3D3D]"
+                                  }`}
                               >
                                 {type}
                               </div>
@@ -699,14 +716,12 @@ function StaffPublicProfile() {
                                   onChange={handleToggle}
                                 />
                                 <div
-                                  className={`w-11 h-6 rounded-full ${
-                                    isActive ? "bg-[#E61E4D]" : "bg-gray-400"
-                                  } flex items-center px-1 transition-colors`}
+                                  className={`w-11 h-6 rounded-full ${isActive ? "bg-[#E61E4D]" : "bg-gray-400"
+                                    } flex items-center px-1 transition-colors`}
                                 >
                                   <div
-                                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                                      isActive ? "translate-x-5" : ""
-                                    }`}
+                                    className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${isActive ? "translate-x-5" : ""
+                                      }`}
                                   ></div>
                                 </div>
                               </label>
@@ -715,9 +730,8 @@ function StaffPublicProfile() {
                         </div>
                       )}
                       <div
-                        className={`self-stretch flex flex-col justify-start items-start gap-6 ${
-                          !isActive ? "hidden" : ""
-                        }`}
+                        className={`self-stretch flex flex-col justify-start items-start gap-6 ${!isActive ? "hidden" : ""
+                          }`}
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-3">
                           <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
@@ -804,7 +818,7 @@ function StaffPublicProfile() {
                                         const isSelected =
                                           selectedStartDate &&
                                           selectedStartDate.toDateString() ===
-                                            d.date.toDateString();
+                                          d.date.toDateString();
                                         if (isSelected) prop = "Selected";
                                         else if (isAvailable)
                                           prop = "available";
@@ -837,11 +851,10 @@ function StaffPublicProfile() {
                                           <div
                                             key={j}
                                             data-property-1={prop}
-                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${
-                                              d.type === "Default"
-                                                ? "cursor-pointer"
-                                                : ""
-                                            }`}
+                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${d.type === "Default"
+                                              ? "cursor-pointer"
+                                              : ""
+                                              }`}
                                             onClick={() => {
                                               if (d.type === "Default") {
                                                 setSelectedStartDate(d.date);
@@ -965,7 +978,7 @@ function StaffPublicProfile() {
                                         const isSelected =
                                           selectedEndDate &&
                                           selectedEndDate.toDateString() ===
-                                            d.date.toDateString();
+                                          d.date.toDateString();
                                         if (isSelected) prop = "Selected";
                                         else if (isAvailable)
                                           prop = "available";
@@ -998,13 +1011,12 @@ function StaffPublicProfile() {
                                           <div
                                             key={j}
                                             data-property-1={prop}
-                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${
-                                              d.type === "Default" &&
+                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${d.type === "Default" &&
                                               (!selectedStartDate ||
                                                 d.date >= selectedStartDate)
-                                                ? "cursor-pointer"
-                                                : ""
-                                            }`}
+                                              ? "cursor-pointer"
+                                              : ""
+                                              }`}
                                             onClick={() => {
                                               if (
                                                 d.type === "Default" &&
@@ -1053,9 +1065,8 @@ function StaffPublicProfile() {
                         </div>
                       </div>
                       <div
-                        className={`${
-                          isActive ? "hidden" : "flex flex-col gap-[24px]"
-                        }`}
+                        className={`${isActive ? "hidden" : "flex flex-col gap-[24px]"
+                          }`}
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-3">
                           <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
@@ -1142,7 +1153,7 @@ function StaffPublicProfile() {
                                         const isSelected =
                                           selectedDate &&
                                           selectedDate.toDateString() ===
-                                            d.date.toDateString();
+                                          d.date.toDateString();
                                         if (isSelected) prop = "Selected";
                                         else if (isAvailable)
                                           prop = "available";
@@ -1175,11 +1186,10 @@ function StaffPublicProfile() {
                                           <div
                                             key={j}
                                             data-property-1={prop}
-                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${
-                                              d.type === "Default"
-                                                ? "cursor-pointer"
-                                                : ""
-                                            }`}
+                                            className={`flex-1 h-8 p-3 rounded inline-flex flex-col justify-center items-center gap-2.5 ${bg} ${d.type === "Default"
+                                              ? "cursor-pointer"
+                                              : ""
+                                              }`}
                                             onClick={() => {
                                               if (d.type === "Default")
                                                 setSelectedDate(d.date);
@@ -1198,7 +1208,7 @@ function StaffPublicProfile() {
                               )}
                             </div>
                           </div>
-                          <div className="w-[530px] p-3 bg-[#FFF1F2] rounded-lg inline-flex justify-start items-start gap-1">
+                          {/* <div className="w-[530px] p-3 bg-[#FFF1F2] rounded-lg inline-flex justify-start items-start gap-1">
                             <img
                               src="/images/info.png"
                               alt="info"
@@ -1209,7 +1219,7 @@ function StaffPublicProfile() {
                               invitations on this date, instant book now to
                               secure your booking
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                         <div className="self-stretch flex flex-col justify-start items-start gap-3">
                           <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
@@ -1222,19 +1232,17 @@ function StaffPublicProfile() {
                                 data-property-1={
                                   selectedStartTime === t ? "active" : "Default"
                                 }
-                                className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 cursor-pointer ${
-                                  selectedStartTime === t
-                                    ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
-                                    : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
-                                }`}
+                                className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 cursor-pointer ${selectedStartTime === t
+                                  ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
+                                  : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
+                                  }`}
                                 onClick={() => setSelectedStartTime(t)}
                               >
                                 <div
-                                  className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${
-                                    selectedStartTime === t
-                                      ? "text-[#E61E4D]"
-                                      : "text-[#3D3D3D]"
-                                  }`}
+                                  className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${selectedStartTime === t
+                                    ? "text-[#E61E4D]"
+                                    : "text-[#3D3D3D]"
+                                    }`}
                                 >
                                   {t}
                                 </div>
@@ -1261,19 +1269,17 @@ function StaffPublicProfile() {
                                 data-property-1={
                                   selectedHours === h ? "active" : "Default"
                                 }
-                                className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 cursor-pointer ${
-                                  selectedHours === h
-                                    ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
-                                    : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
-                                }`}
+                                className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 cursor-pointer ${selectedHours === h
+                                  ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
+                                  : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
+                                  }`}
                                 onClick={() => setSelectedHours(h)}
                               >
                                 <div
-                                  className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${
-                                    selectedHours === h
-                                      ? "text-[#E61E4D]"
-                                      : "text-[#3D3D3D]"
-                                  }`}
+                                  className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${selectedHours === h
+                                    ? "text-[#E61E4D]"
+                                    : "text-[#3D3D3D]"
+                                    }`}
                                 >
                                   {h}
                                 </div>
@@ -1363,10 +1369,10 @@ function StaffPublicProfile() {
                     onClick={handleConfirmInvite}
                   >
                     <div className="justify-start text-[#fff] text-base font-medium font-['Inter'] leading-snug">
-                      {stateUser ? "Send Invite" : "Login to send invite"}
+                      {stateUser ? `Confirm Booking $${total}` : "Login to send invite"}
                     </div>
                   </div>
-                  {/* <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="flex-1 h-0 bg-Token-BG-Neutral-Light-2 outline outline-1 outline-offset-[-0.50px] outline-gray-200"></div>
                     <div className="justify-start text-neutral-500 text-xs font-normal font-['Inter'] leading-none">
                       or
@@ -1377,7 +1383,7 @@ function StaffPublicProfile() {
                     <div className="justify-start text-[#E61E4D] text-base font-medium font-['Inter'] leading-snug">
                       Invite to Existing Event
                     </div>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             </div>
