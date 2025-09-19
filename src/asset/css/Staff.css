@@ -29,6 +29,9 @@
     margin: 0 10px;
     padding: 15px;
 }
+.genric-page-container .staff-info {
+    padding: 0;
+}
 
 .boost-staff {
     background: linear-gradient(to right, #fff0f5, #fff);
