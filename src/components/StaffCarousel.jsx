@@ -36,7 +36,7 @@ const StaffSlider = () => {
   };
 
 
-  
+
 
   useEffect(() => {
     const checkWidth = () => {
@@ -105,87 +105,87 @@ const StaffSlider = () => {
           )}
         </div> */}
 
-            <div className="slider-container">
-      {staff.length > 0 ? (
-        !isMobile ? ( // Only render slider when width > 500px
-          <Slider {...settings}>
-            {staff
-              .filter((person) => person.user.isBoosted === true)
-              .map((person) => (
-                <div className="staff-card" key={person._id}>
-                  <div
-                    className="staff-info p-2"
-                    style={{
-                      backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
-                    }}
-                  >
-                    <h3>
-                      <Link
-                        to={`/staff-profile/${person.user._id}`}
-                        className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
+        <div className="slider-container">
+          {staff.length > 0 ? (
+            !isMobile ? ( // Only render slider when width > 500px
+              <Slider {...settings}>
+                {staff
+                  .filter((person) => person.user.isBoosted === true)
+                  .map((person) => (
+                    <div className="staff-card" key={person._id}>
+                      <div
+                        className="staff-info p-2"
+                        style={{
+                          backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
+                        }}
                       >
-                        {person.user.name.toUpperCase()}
-                      </Link>
-                    </h3>
+                        <h3>
+                          <Link
+                            to={`/staff-profile/${person.user._id}`}
+                            className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
+                          >
+                            {person.user.name.toUpperCase()}
+                          </Link>
+                        </h3>
 
-                    <div className="stars">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar key={i} color="red" />
-                      ))}
+                        <div className="stars">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar key={i} color="red" />
+                          ))}
+                        </div>
+                        <div className="icons">
+                          {person.skills.map((skill, index) => (
+                            <span key={index}>
+                              <i className={skill.icon}></i>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <div className="icons">
-                      {person.skills.map((skill, index) => (
-                        <span key={index}>
-                          <i className={skill.icon}></i>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </Slider>
-        ) : (
-          <div className="staff-list">
-            {staff
-              .filter((person) => person.user.isBoosted === true)
-              .map((person) => (
-                <div className="staff-card" key={person._id}>
-                  <div
-                    className="staff-info"
-                    style={{
-                      backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
-                    }}
-                  >
-                    <h3>
-                      <Link
-                        to={`/staff-profile/${person.user._id}`}
-                        className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
+                  ))}
+              </Slider>
+            ) : (
+              <div className="staff-list">
+                {staff
+                  .filter((person) => person.user.isBoosted === true)
+                  .map((person) => (
+                    <div className="staff-card" key={person._id}>
+                      <div
+                        className="staff-info"
+                        style={{
+                          backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
+                        }}
                       >
-                        {person.user.name.toUpperCase()}
-                      </Link>
-                    </h3>
+                        <h3>
+                          <Link
+                            to={`/staff-profile/${person.user._id}`}
+                            className="text-white text-[20px] font-bold uppercase leading-[21px] tracking-[0.6px] break-words no-underline"
+                          >
+                            {person.user.name.toUpperCase()}
+                          </Link>
+                        </h3>
 
-                    <div className="stars">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar key={i} color="red" />
-                      ))}
+                        <div className="stars">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar key={i} color="red" />
+                          ))}
+                        </div>
+                        <div className="icons">
+                          {person.skills.map((skill, index) => (
+                            <span key={index}>
+                              <i className={skill.icon}></i>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <div className="icons">
-                      {person.skills.map((skill, index) => (
-                        <span key={index}>
-                          <i className={skill.icon}></i>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        )
-      ) : (
-        <p>Loading popular staff...</p>
-      )}
-    </div>
+                  ))}
+              </div>
+            )
+          ) : (
+            <p>Loading popular staff...</p>
+          )}
+        </div>
 
       </div>
     </div>

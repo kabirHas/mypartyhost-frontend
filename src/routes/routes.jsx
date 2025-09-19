@@ -50,6 +50,7 @@ import CreateEventMultiStepForm from "../pages/CreateEventMultiStepForm";
 import BoostPaymentSuccess from "../pages/BoostPaymentSuccess";
 import HirePaymentSuccess from "../pages/HirePaymentSuccess";
 import HireInvitePaymentSuccess from "../pages/HireInvitePaymentSuccess";
+import HireCancel from "../pages/HireCancel";
 
 // export const getStaticRoutes = (isLoggedIn, userRole) => {
 //   // const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -519,6 +520,7 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
     />,
     <Route path="/payment-success" element={<BoostPaymentSuccess />} />,
     <Route path="/hire-payment-success" element={<HirePaymentSuccess />} />,
+    <Route path="/hire-cancel" element={<HireCancel />} />,
     <Route
       path="/hire-invite-payment-success"
       element={<HireInvitePaymentSuccess />}

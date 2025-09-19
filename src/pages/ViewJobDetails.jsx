@@ -443,7 +443,7 @@ function ViewJobDetails() {
                           {a.averageRating || "4.9"}
                         </span>
                         <span className="underline text-[#656565]">
-                          ({a.staff.reviews.length} Reviews)
+                          ({a.staff?.reviews?.length} Reviews)
                         </span>
                       </div>
                     </div>

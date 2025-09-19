@@ -8,7 +8,7 @@ export default function DashboardLayout() {
   const { notifications } = ChatState();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const {user} = ChatState();
-  console.log(user);
+  console.log('Sidebar :',user);
 
   const handleLogout = async () => {
     try {

@@ -1351,7 +1351,7 @@ const StaffDashboard = () => {
                   ? `invited you to `
                   : "wants to join"}{" "}
                 {item.type === "job_invite" ? (
-                  <span style={{ fontWeight: "bold" }}>
+                  <span className="cursor-pointer" onClick={() => navigate(`/invites/${item.metadata.inviteId._id}`)} style={{ fontWeight: "bold" }}>
                     {item.metadata.jobTitle}
                   </span>
                 ) : (
