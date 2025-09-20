@@ -16,10 +16,9 @@ const AllProfiles = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [error, setError] = useState(""); // For error messages
-  const  [notificationId,setNotificationId] = useState(null)
+  const [notificationId, setNotificationId] = useState(null);
 
   const location = useLocation();
-  
 
   const fetchUsers = () => {
     axios
@@ -30,34 +29,34 @@ const AllProfiles = () => {
         },
       })
       .then((res) => {
-        setUsers(res.data);
-        setFilteredUsers(res.data);
+        // Filter out superadmin users
+        const nonSuperadminUsers = res.data.filter((user) => user.role !== "superadmin");
+        setUsers(nonSuperadminUsers);
+        setFilteredUsers(nonSuperadminUsers);
       })
       .catch((err) => console.error(err));
   };
-  
+
   useEffect(() => {
-    // fetchUsers();
-    if(location?.state?.role){
+    if (location?.state?.role && location.state.role !== "superadmin") {
       setRoleFilter(location.state.role);
     }
 
-    if(location?.state?.user){
+    if (location?.state?.user) {
       setSelectedUserId(location.state.user);
-      setNotificationId(location.state.notification|| null);
+      setNotificationId(location.state.notification || null);
     }
-
-  }, [location?.state?.role,location?.state?.user]);
+  }, [location?.state?.role, location?.state?.user]);
 
   useEffect(() => {
     fetchUsers();
     console.log("Fetching users with limit:", limit);
-  },[limit]);
+  }, [limit]);
 
   useEffect(() => {
     const fetchData = async () => {
       let result = [...users];
-  
+
       // 🔍 Search
       if (search.trim()) {
         try {
@@ -70,24 +69,25 @@ const AllProfiles = () => {
               },
             }
           );
-          result = res.data;
+          // Filter out superadmin users from search results
+          result = res.data.filter((user) => user.role !== "superadmin");
         } catch (err) {
           console.error(err);
         }
       }
-  
+
       // 👤 Role Filter
       if (roleFilter) {
         result = result.filter((u) => u.role === roleFilter);
       }
-  
+
       // ✅ Status Filter
       if (statusFilter === "Active") {
         result = result.filter((u) => u.isActive === true);
       } else if (statusFilter === "Inactive") {
         result = result.filter((u) => u.isActive === false);
       }
-  
+
       // 🕒 Last Login
       if (lastLoginFilter === "1 hr") {
         result = result.filter(
@@ -98,16 +98,13 @@ const AllProfiles = () => {
           (u) => Date.now() - new Date(u.lastLogin).getTime() < 86400000
         );
       }
-  
-      // Apply limit
-      // result = result.slice(0, limit);
-  
+
       setFilteredUsers(result);
     };
-  
+
     fetchData();
   }, [search, roleFilter, statusFilter, lastLoginFilter, users, limit]);
-  
+
   const handleToggleStatus = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -118,7 +115,7 @@ const AllProfiles = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // 👈 Send token
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -195,7 +192,7 @@ const AllProfiles = () => {
                 <option value="">User Type</option>
                 <option value="organiser">Organiser</option>
                 <option value="staff">Staff</option>
-                <option value="superadmin">Superadmin</option>
+                {/* Removed superadmin option */}
               </select>
               <div className="absolute right-2 pointer-events-none">
                 <div className="w-5 h-5 relative flex items-center justify-center">
@@ -330,7 +327,7 @@ const AllProfiles = () => {
                             checked={u?.isActive}
                             onChange={() =>
                               handleToggleStatus(u._id, u.isActive)
-                            } // 👈 Fix
+                            }
                           />
                           <div
                             className={`w-11 h-6 rounded-full ${
