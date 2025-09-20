@@ -102,8 +102,8 @@ const PaymentPage = () => {
             }),
             id: item.stripeTransactionId || "N/A",
             type,
-            description: item.jobId.eventName || "N/A",
-            jobTitle: item.jobId.jobTitle || "N/A",
+            description: item.jobId?.eventName || "N/A",
+            jobTitle: item.jobId?.jobTitle || "N/A",
             status: displayStatus,
             statusColor,
             // Add payment details for invoice
