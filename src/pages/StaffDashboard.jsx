@@ -721,8 +721,8 @@ const StaffDashboard = () => {
                 key={idx}
                 className="self-stretch justify-start text-[#656565] text-xs font-normal font-['Inter'] leading-tight"
               >
-                {notif.sender.name} wants to book you for{" "}
-                {notif.metadata.jobTitle}
+                {notif?.sender?.name} wants to book you for{" "}
+                {notif?.metadata?.jobTitle}
               </div>
             ))}
           </div>
