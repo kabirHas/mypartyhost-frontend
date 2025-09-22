@@ -155,7 +155,7 @@ const AdminDashboard = () => {
         },
       });
       setNotification(res.data);
-      console.log("Notification API Response:", res.data); // Debug API response
+      console.log("Notification API Response:", res.data);
     } catch (error) {
       console.error("Error fetching notification:", error);
     }
@@ -173,10 +173,9 @@ const AdminDashboard = () => {
         }
       );
 
-      console.log("User Growth API Response:", res.data); // Debug API response
+      console.log("User Growth API Response:", res.data);
       const { newUsers = [], returningUsers = [] } = res.data;
 
-      // Validate API response
       if (!Array.isArray(newUsers) || !Array.isArray(returningUsers)) {
         console.error(
           "Invalid API response: newUsers or returningUsers is not an array"
@@ -260,7 +259,6 @@ const AdminDashboard = () => {
         });
       }
 
-      // Calculate max value for dynamic y-axis scaling
       const maxUsers = Math.max(...newUsersData, ...returningUsersData, 10);
 
       setUserGrowthData({
@@ -313,7 +311,7 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Error fetching user growth data:", err);
       if (err.status === 401) {
-        localStorage.clear(); // Clear only the token
+        localStorage.clear();
         navigate("/login");
         setError("Session expired. Please log in again.");
         setIsLoading(false);
@@ -324,7 +322,6 @@ const AdminDashboard = () => {
     }
   }
 
-  // Memoized user growth options
   const userGrowthOptions = useMemo(() => {
     const maxUsers = Math.max(
       ...(userGrowthData.datasets[0]?.data || [0]),
@@ -350,7 +347,7 @@ const AdminDashboard = () => {
           },
         },
         tooltip: { enabled: false },
-        centerText: false, // Disable centerTextPlugin for Line chart
+        centerText: false,
       },
       scales: {
         x: {
@@ -381,7 +378,6 @@ const AdminDashboard = () => {
     };
   }, [userGrowthData, timePeriod]);
 
-  // Fetch revenue data (unchanged)
   async function fetchRevenueData() {
     try {
       const res = await axios.get(`${BASE_URLS.BACKEND_BASEURL}admin/revenue`, {
@@ -399,7 +395,6 @@ const AdminDashboard = () => {
     }
   }
 
-  // Handle dropdown change
   const handleTimePeriodChange = (e) => {
     setTimePeriod(e.target.value);
     setIsLoading(true);
@@ -430,13 +425,11 @@ const AdminDashboard = () => {
     getData();
   }, []);
 
-  // Fetch data on mount and when timePeriod changes
   useEffect(() => {
     getUserGrowthData();
     fetchRevenueData();
     getNotification();
 
-    // Polling every 60 seconds
     const interval = setInterval(() => {
       getUserGrowthData();
       fetchRevenueData();
@@ -445,14 +438,12 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, [timePeriod]);
 
-  // Check if all data is loaded
   useEffect(() => {
     if (growthData && revenueData && !isRevenueLoading) {
       setIsLoading(false);
     }
   }, [growthData, revenueData, isRevenueLoading]);
 
-  // Memoized doughnut data (unchanged)
   const commissionRevenue = revenueData
     ? Math.max(0, revenueData.totalEarnings - revenueData.boostEarnings)
     : 0;
@@ -501,27 +492,27 @@ const AdminDashboard = () => {
   }
 
   return (
-    growthData && (
-      <div className="kaab-dashboard">
-        <h2 className="kaab-heading">Welcome, Admin!</h2>
-        <p className="kaab-subheading">
-          Your control center for managing our platform quickly and efficiently.
-        </p>
+    <div className="kaab-dashboard">
+      <h2 className="kaab-heading">Welcome, Admin!</h2>
+      <p className="kaab-subheading">
+        Your control center for managing our platform quickly and efficiently.
+      </p>
 
-        <div className="kaab-stats flex flex-col md:flex-row">
-          <div className="kaab-card">
-            <p className="first-child">
-              Total Users{" "}
-              <i
-                onClick={() => navigate("/dashboard/all-profiles")}
-                className="ri-arrow-right-up-line cursor-pointer"
-              ></i>
-            </p>
+      <div className="kaab-stats flex flex-col md:flex-row">
+        <div className="kaab-card">
+          <p className="first-child">
+            Total Users{" "}
+            <i
+              onClick={() => navigate("/dashboard/all-profiles")}
+              className="ri-arrow-right-up-line cursor-pointer"
+            ></i>
+          </p>
+          {growthData ? (
             <h3>
               {growthData.totalUsers}{" "}
               <span
                 className={
-                  growthData.percentUserGrowth.startsWith("-")
+                  growthData.percentUserGrowth?.startsWith("-")
                     ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
                     : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
                 }
@@ -530,63 +521,75 @@ const AdminDashboard = () => {
               </span>
               <p className="kaab-muted">vs. last month</p>
             </h3>
-          </div>
-          <div className="kaab-card">
-            <p className="first-child">
-              Active Event Staff{" "}
-              <i
-                onClick={() =>
-                  navigate("/dashboard/all-profiles", {
-                    state: { role: "staff" },
-                  })
-                }
-                className="ri-arrow-right-up-line cursor-pointer"
-              ></i>
-            </p>
+          ) : (
+            <h3>No Data</h3>
+          )}
+        </div>
+        <div className="kaab-card">
+          <p className="first-child">
+            Active Event Staff{" "}
+            <i
+              onClick={() =>
+                navigate("/dashboard/all-profiles", {
+                  state: { role: "staff" },
+                })
+              }
+              className="ri-arrow-right-up-line cursor-pointer"
+            ></i>
+          </p>
+          {growthData ? (
             <h3>
               {growthData.staffCount}{" "}
               <span
                 className={
-                  growthData.percentStaffGrowth.startsWith("-")
+                  growthData?.percentStaffGrowth && typeof growthData.percentStaffGrowth === "string" && growthData.percentStaffGrowth.startsWith("-")
                     ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
                     : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
                 }
               >
-                {growthData.percentStaffGrowth}%
+                {growthData?.percentStaffGrowth ? `${growthData.percentStaffGrowth}%` : "0%"}
               </span>
               <p className="kaab-muted">vs. last month</p>
             </h3>
-          </div>
-          <div className="kaab-card">
-            <p className="first-child">
-              Active Event Organizers{" "}
-              <i
-                onClick={() =>
-                  navigate("/dashboard/all-profiles", {
-                    state: { role: "organiser" },
-                  })
-                }
-                className="ri-arrow-right-up-line cursor-pointer"
-              ></i>
-            </p>
+          ) : (
+            <h3>No Data</h3>
+          )}
+        </div>
+        <div className="kaab-card">
+          <p className="first-child">
+            Active Event Organizers{" "}
+            <i
+              onClick={() =>
+                navigate("/dashboard/all-profiles", {
+                  state: { role: "organiser" },
+                })
+              }
+              className="ri-arrow-right-up-line cursor-pointer"
+            ></i>
+          </p>
+          {growthData ? (
             <h3>
               {growthData.organiserCount}{" "}
               <p className="kaab-muted">Stable compared to last month</p>
             </h3>
-          </div>
-          <div className="kaab-card">
-            <p className="first-child">
-              Monthly Revenue{" "}
-              <i
-                onClick={() => navigate("/dashboard/transactions")}
-                className="ri-arrow-right-up-line cursor-pointer"
-              ></i>
-            </p>
+          ) : (
+            <h3>No Data</h3>
+          )}
+        </div>
+        <div className="kaab-card">
+          <p className="first-child">
+            Monthly Revenue{" "}
+            <i
+              onClick={() => navigate("/dashboard/transactions")}
+              className="ri-arrow-right-up-line cursor-pointer"
+            ></i>
+          </p>
+          {growthData ? (
             <h3>
               ${growthData.currentMonthEarnings}{" "}
               <span
                 className={
-                  growthData.precentChangeInEarnings.startsWith("-")
+                  growthData.precentChangeInEarnings?.startsWith("-")
                     ? "bg-red-500 text-xs font-normal text-white px-2 rounded-full py-1"
                     : "bg-green-500 text-xs font-normal text-white px-2 rounded-full py-1"
                 }
@@ -595,141 +598,137 @@ const AdminDashboard = () => {
               </span>
               <p className="kaab-muted">vs. previous month</p>
             </h3>
-          </div>
+          ) : (
+            <h3>No Data</h3>
+          )}
         </div>
+      </div>
 
-        <div className="kaab-main  md:flex-row">
-          <div className="kaab-notifications w-[100%] md:w-[57%]">
-            <h3>Recent Notifications</h3>
-            {notification && notification.length > 0 ? (
-              notification.map((n, i) => (
-                <div key={i} className="kaab-notification">
-                  <strong className="capitalize">
-                    {n.type === "job_applied"
-                      ? "New Job Application"
-                      : n.type === "ticket_submission"
+      <div className="kaab-main md:flex-row">
+        <div className="kaab-notifications w-[100%] md:w-[57%]">
+          <h3>Recent Notifications</h3>
+          {notification && notification.length > 0 ? (
+            notification.map((n, i) => (
+              <div key={i} className="kaab-notification">
+                <strong className="capitalize">
+                  {n.type === "job_applied"
+                    ? "New Job Application"
+                    : n.type === "ticket_submission"
                       ? "New Ticket Raised"
                       : n.type}
-                  </strong>{" "}
-                  <span>{getRelativeTime(n.createdAt)}</span>
-                  <p dangerouslySetInnerHTML={{ __html: n.message }} />
-                  <div className="">
-                    {n.type === "ticket_submission" ? (
+                </strong>{" "}
+                <span>{getRelativeTime(n.createdAt)}</span>
+                <p dangerouslySetInnerHTML={{ __html: n.message }} />
+                <div className="">
+                  {n.type === "ticket_submission" ? (
+                    <button
+                      onClick={() => navigate("/dashboard/support/ticket")}
+                      className="px-4 py-2 bg-gradient-to-l text-sm font-medium from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 text-white"
+                    >
+                      View Ticket
+                    </button>
+                  ) : n.type === "registration" ? (
+                    <div className="flex gap-4 items-center">
                       <button
-                        onClick={() => navigate("/dashboard/support/ticket")}
-                        className="px-4 py-2 bg-gradient-to-l text-sm font-medium from-pink-600 to-rose-600 rounded-lg flex justify-center items-center gap-2 text-white"
+                        onClick={() =>
+                          navigate("/dashboard/all-profiles", {
+                            state: { user: n.sender._id, notification: n._id },
+                          })
+                        }
+                        className="text-sm font-medium text-rose-600"
                       >
-                        View Ticket
+                        Review Profile
                       </button>
-                    ) : n.type === "registration" ? (
-                      <div className="flex gap-4 items-center">
-                        <button
-                          onClick={() =>
-                            navigate("/dashboard/all-profiles", {
-                              state: { user: n.sender._id, notification: n._id },
-                            })
-                          }
-                          className="text-sm font-medium text-rose-600"
-                        >
-                          Review Profile
-                        </button>
-                        <button
-                          onClick={() => handleApprove(n.sender._id, n._id)}
-                          className={`px-4 py-2 border-1 border-rose-600 ${
-                            n.read
-                              ? "text-rose-600 text-xs"
-                              : "bg-gradient-to-l px-4 py-2 from-pink-600 to-rose-600 text-white"
-                          }  text-sm font-medium  rounded-lg flex justify-center items-center gap-2 `}
-                        >
-                          {n.read
-                            ?  "Registration Approved"
-                            : "Approve Registraion"}
-                        </button>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </div>
+                      <button
+                        onClick={() => handleApprove(n.sender._id, n._id)}
+                        className={`px-4 py-2 border-1 border-rose-600 ${n.read
+                            ? "text-rose-600 text-xs"
+                            : "bg-gradient-to-l px-4 py-2 from-pink-600 to-rose-600 text-white"
+                          } text-sm font-medium rounded-lg flex justify-center items-center gap-2 `}
+                      >
+                        {n.read ? "Registration Approved" : "Approve Registration"}
+                      </button>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </div>
-              ))
+              </div>
+            ))
+          ) : (
+            <div>No notifications available</div>
+          )}
+        </div>
+
+        <div className="kaab-charts">
+          <div className="kaab-graph">
+            <div className="kaab-graph-header">
+              <h4>
+                User Growth <i className="ri-arrow-right-up-line"></i>
+              </h4>
+            </div>
+            <div className="absolute inline-flex items-center right-[16px]">
+              <select
+                className="kaab-dropdown pl-3 pr-[25px] py-2 bg-[#FFFFFF] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
+                value={timePeriod}
+                onChange={handleTimePeriodChange}
+              >
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+              <div className="absolute right-2 pointer-events-none">
+                <div className="w-5 h-5 relative flex items-center justify-center">
+                  <i className="ri-arrow-down-s-line"></i>
+                </div>
+              </div>
+            </div>
+            {userGrowthData.datasets.length > 0 ? (
+              <Line
+                ref={chartRef}
+                data={userGrowthData}
+                options={userGrowthOptions}
+                plugins={[addLegendSpacing]}
+              />
             ) : (
-              <div>No notifications available</div>
+              <div>No user growth data available</div>
             )}
           </div>
 
-          <div className="kaab-charts">
-            <div className="kaab-graph">
-              <div className="kaab-graph-header">
-                <h4>
-                  User Growth <i className="ri-arrow-right-up-line"></i>
-                </h4>
-              </div>
-              <div className="absolute inline-flex items-center right-[16px]">
-                <select
-                  className="kaab-dropdown pl-3 pr-[25px] py-2 bg-[#FFFFFF] text-Token-Text-Secondary text-sm font-medium font-['Inter'] leading-tight appearance-none"
-                  value={timePeriod}
-                  onChange={handleTimePeriodChange}
-                >
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
-                <div className="absolute right-2 pointer-events-none">
-                  <div className="w-5 h-5 relative flex items-center justify-center">
-                    <i className="ri-arrow-down-s-line"></i>
-                  </div>
-                </div>
-              </div>
-              {userGrowthData.datasets.length > 0 ? (
-                <Line
-                  ref={chartRef}
-                  data={userGrowthData}
-                  options={userGrowthOptions}
-                  plugins={[addLegendSpacing]}
-                />
-              ) : (
-                <div>No user growth data available</div>
-              )}
-            </div>
-
-            <div className="kaab-revenue">
-              <h4>
-                Revenue Breakdown <i className="ri-arrow-right-up-line"></i>
-              </h4>
-              <div className="d-flex">
-                {isRevenueLoading ? (
-                  <div>Loading revenue data...</div>
-                ) : (
+          <div className="kaab-revenue">
+            <h4>
+              Revenue Breakdown <i className="ri-arrow-right-up-line"></i>
+            </h4>
+            <div className="d-flex">
+              {isRevenueLoading ? (
+                <div>Loading revenue data...</div>
+              ) : revenueData && totalEarnings > 0 ? (
+                <>
                   <Doughnut data={doughnutData} options={doughnutOptions} />
-                )}
-                <ul className="kaab-revenue-list">
-                  {revenueData && totalEarnings > 0 ? (
-                    <>
-                      <li>
-                        <span className="kaab-dot red"></span> Commission
-                        Revenue — ${commissionRevenue.toFixed(2)} (
-                        {((commissionRevenue / totalEarnings) * 100).toFixed(1)}
-                        %)
-                      </li>
-                      <li>
-                        <span className="kaab-dot pink"></span> Boosted Profile
-                        — ${boostRevenue.toFixed(2)} (
-                        {((boostRevenue / totalEarnings) * 100).toFixed(1)}%)
-                      </li>
-                      <li className="kaab-total-revenue">
-                        Total Revenue: ${totalEarnings.toFixed(2)}
-                      </li>
-                    </>
-                  ) : (
-                    <li>No revenue data available</li>
-                  )}
-                </ul>
-              </div>
+                  <ul className="kaab-revenue-list">
+                    <li>
+                      <span className="kaab-dot red"></span> Commission Revenue
+                      — ${commissionRevenue.toFixed(2)} (
+                      {((commissionRevenue / totalEarnings) * 100).toFixed(1)}%)
+                    </li>
+                    <li>
+                      <span className="kaab-dot pink"></span> Boosted Profile —
+                      ${boostRevenue.toFixed(2)} (
+                      {((boostRevenue / totalEarnings) * 100).toFixed(1)}%)
+                    </li>
+                    <li className="kaab-total-revenue">
+                      Total Revenue: ${totalEarnings.toFixed(2)}
+                    </li>
+                  </ul>
+                </>
+              ) : (
+                <div>No revenue data available</div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    )
+    </div>
   );
 };
 
