@@ -18,13 +18,13 @@ useEffect(() => {
         const { confirmedBookings, invitesReceived } = response.data;
         const allEvents = [
           ...confirmedBookings.map(b => ({
-            date: new Date(b.jobDate).toISOString().split("T")[0],
-            label: b.eventName,
+            date: new Date(b?.jobDate).toISOString().split("T")[0],
+            label: b?.eventName,
             type: "confirmed",
           })),
           ...invitesReceived.map(i => ({
-            date: new Date(i.job.jobDate).toISOString().split("T")[0],
-            label: i.job.eventName,
+            date: new Date(i.job?.jobDate).toISOString().split("T")[0],
+            label: i.job?.eventName,
             type: "invitation",
           })),
         ];
@@ -43,7 +43,7 @@ useEffect(() => {
   const startDay = new Date(year, month, 1).getDay();
 
   const formatDate = (d) => `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-  const isAvailable = (day) => availableDates.includes(formatDate(day));
+  const isAvailable = (day) => availableDates?.includes(formatDate(day));
 
   const toggleAvailability = (day) => {
     const dateStr = formatDate(day);
@@ -56,7 +56,7 @@ useEffect(() => {
     const dayNum = i - startDay + 1;
     if (dayNum < 1 || dayNum > daysInMonth) return { empty: true };
     const iso = formatDate(dayNum);
-    const dayEvents = events.filter((e) => e.date === iso);
+    const dayEvents = events.filter((e) => e?.date === iso);
     return { day: dayNum, events: dayEvents };
   });
 

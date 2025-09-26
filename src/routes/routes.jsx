@@ -51,6 +51,7 @@ import BoostPaymentSuccess from "../pages/BoostPaymentSuccess";
 import HirePaymentSuccess from "../pages/HirePaymentSuccess";
 import HireInvitePaymentSuccess from "../pages/HireInvitePaymentSuccess";
 import HireCancel from "../pages/HireCancel";
+import ConfirmPaymentNewMethod from "../pages/ConfirmPaymentNewMethod";
 
 // export const getStaticRoutes = (isLoggedIn, userRole) => {
 //   // const hasAccess = (allowedRoles) => allowedRoles.includes(userRole);
@@ -396,6 +397,7 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
           >
             <Route index element={<ManageJobs />} />
             <Route path=":id/view" element={<ViewJobDetails />} />
+            
           </Route>
           <Route
             path="/dashboard/saved-profile"
@@ -460,8 +462,13 @@ export const getStaticRoutes = (isLoggedIn, userRole) => {
       key="manage-bookings"
     />,
     <Route
-      path="/accept-booking/"
+      path="/accept-booking/:id"
       element={isLoggedIn ? <AcceptBookingReq /> : <Navigate to="/login" />}
+      key="manage-bookings"
+    />,
+    <Route
+      path="/confirm-hire-new"
+      element={isLoggedIn ? <ConfirmPaymentNewMethod /> : <Navigate to="/login" />}
       key="manage-bookings"
     />,
     <Route

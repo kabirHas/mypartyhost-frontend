@@ -504,15 +504,16 @@ function ViewJobDetails() {
                           });
                           console.log(selectedApplication);
                           // setShowPaymentModal(true);
-                          handleProceedToPayment(
-                            jobDetail._id,
-                            a._id,
-                            a.offer,
-                            a.currency,
-                            a.duration,
-                            a.staff._id,
-                            jobDetail
-                          );
+                          // handleProceedToPayment(
+                          //   jobDetail._id,
+                          //   a._id,
+                          //   a.offer,
+                          //   a.currency,
+                          //   a.duration,
+                          //   a.staff._id,
+                          //   jobDetail
+                          // );
+                          navigate(`/accept-booking/${a._id}`,{state : {applicationData : a}})
                         }}
                         className="border-[#E61E4D] flex place-items-center gap-2 border-2 text-[#e31f82] font-semibold py-1 px-4 rounded-lg"
                       >

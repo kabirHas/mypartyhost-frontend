@@ -67,7 +67,7 @@ function InvitesReceived() {
     if (booking && booking.id === id) return; // Skip if valid booking exists
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:4000/api/user/invite/${id}`, {
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}user/invite/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
