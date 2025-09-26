@@ -11,21 +11,21 @@ import RemixIconPicker from "../components/RemixIconPicker";
 
 
 function StaffSinglePage() {
-  const {user,setUser} = ChatState();
+  const { user, setUser } = ChatState();
   const navigate = useNavigate();
   // const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [isProfileVisible, setIsProfileVisible] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    return userInfo.isPublic ?? true; 
+    return userInfo.isPublic ?? true;
   });
 
 
 
   const [isDailyBooking, setIsDailyBooking] = useState(true);
   const [isInstantBook, setIsInstantBook] = useState(() => {
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      return userInfo.instantBook ?? true;
-    });
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return userInfo.instantBook ?? true;
+  });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAddRateOpen, setIsAddRateOpen] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
@@ -37,295 +37,295 @@ function StaffSinglePage() {
   ]);
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
-const [visibleReviews, setVisibleReviews] = useState(5);
+  const [visibleReviews, setVisibleReviews] = useState(5);
 
 
 
 
-const [reviews, setReviews] = useState([]);
-const [avgRating, setAvgRating] = useState(0);
-const [flagUrl, setFlagUrl] = useState("")
-const [location, setLocation] = useState("Loading...");
-const [name, setName] = useState("Loading...");
-const[bio, setBio] = useState("Loading;..")
-const [skills, setSkills] = useState([]);
-const [availableDates, setAvailableDates] = useState([]);
-const[availableFor, setAvailableFor] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [avgRating, setAvgRating] = useState(0);
+  const [flagUrl, setFlagUrl] = useState("")
+  const [location, setLocation] = useState("Loading...");
+  const [name, setName] = useState("Loading...");
+  const [bio, setBio] = useState("Loading;..")
+  const [skills, setSkills] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [availableFor, setAvailableFor] = useState([]);
 
-const [hourlyRate, setHourlyRate] = useState(() => {
-  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  return userInfo.baseRate;
-});
-const [initialHourlyRate, setInitialHourlyRate] = useState(hourlyRate);
-const [isHourlyRateModified, setIsHourlyRateModified] = useState(false);
-
-const [staffdailyRate, setStaffdailyRate] = useState(() => {
-  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  return userInfo.dailyRate || 0;
-});
-
-const [initialStaffdailyRate, setInitialStaffdailyRate] = useState(staffdailyRate);
-const [isDailyRateModified, setIsDailyRateModified] = useState(false);
-
-const[serviceOptions, setServiceOptions] = useState([]);
-const [initialAdditionalRates, setInitialAdditionalRates] = useState([]);
-
-// Modal for BIO
-  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
-const [editedBio, setEditedBio] = useState(""); 
-
-
-const [jobHistory, setJobHistory] = useState({
-  completed: 0,
-  cancelled: 0,
-  noShows: 0, // Keep noShows as 0 or fetch if available
-});
-
-const [profileImage, setProfileImage] = useState(() => {
-  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  return userInfo.profileImage || "https://images.unsplash.com/photo-1536924430914-91f9e2041b83?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW9kZWxzfGVufDB8fDB8fHww";
-});
-
-const fileInputRef = useRef(null);
-
-
-const handleProfileImageUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) {
-    alert("Please select an image file.");
-    return;
-  }
-
-  const validImageTypes = ["image/jpeg", "image/png", "image/jpg"];
-  if (!validImageTypes.includes(file.type)) {
-    alert("Please select a valid image file (JPEG, PNG, or JPG).");
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Image size should not exceed 5MB.");
-    return;
-  }
-
-  try {
+  const [hourlyRate, setHourlyRate] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    const userId = userInfo._id;
-    const token = localStorage.getItem("token");
+    return userInfo.baseRate;
+  });
+  const [initialHourlyRate, setInitialHourlyRate] = useState(hourlyRate);
+  const [isHourlyRateModified, setIsHourlyRateModified] = useState(false);
 
-    if (!userId || !token) {
-      console.error("User not authenticated.");
+  const [staffdailyRate, setStaffdailyRate] = useState(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return userInfo.dailyRate || 0;
+  });
+
+  const [initialStaffdailyRate, setInitialStaffdailyRate] = useState(staffdailyRate);
+  const [isDailyRateModified, setIsDailyRateModified] = useState(false);
+
+  const [serviceOptions, setServiceOptions] = useState([]);
+  const [initialAdditionalRates, setInitialAdditionalRates] = useState([]);
+
+  // Modal for BIO
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [editedBio, setEditedBio] = useState("");
+
+
+  const [jobHistory, setJobHistory] = useState({
+    completed: 0,
+    cancelled: 0,
+    noShows: 0, // Keep noShows as 0 or fetch if available
+  });
+
+  const [profileImage, setProfileImage] = useState(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return userInfo.profileImage || "https://images.unsplash.com/photo-1536924430914-91f9e2041b83?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW9kZWxzfGVufDB8fDB8fHww";
+  });
+
+  const fileInputRef = useRef(null);
+
+
+  const handleProfileImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      alert("Please select an image file.");
       return;
     }
 
-    // Fetch staff data to get the staff._id
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const staff = response.data.data.find((u) => u._id === userId);
-
-    if (!staff) {
+    const validImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validImageTypes.includes(file.type)) {
+      alert("Please select a valid image file (JPEG, PNG, or JPG).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size should not exceed 5MB.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("profileImage", file);
-    formData.append("staffId", staff._id); // Include staffId in FormData
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userId = userInfo._id;
+      const token = localStorage.getItem("token");
 
-    const uploadResponse = await axios.patch(
-      `${BASE_URLS.BACKEND_BASEURL}staff`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+      if (!userId || !token) {
+        console.error("User not authenticated.");
+        return;
       }
-    );
 
-    const newImageUrl = uploadResponse.data.data?.profileImage || uploadResponse.data.profileImage;
+      // Fetch staff data to get the staff._id
+      // const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
+      // const staff = response.data.data.find((u) => u._id === userId);
 
-    setProfileImage(newImageUrl);
-    localStorage.setItem(
-      "userInfo",
-      JSON.stringify({ ...userInfo, profileImage: newImageUrl })
-    );
-    alert("Profile image updated successfully!");
-  } catch (error) {
-    console.error("Error uploading profile image:", {
-      message: error.message,
-      response: error.response ? error.response.data : null,
-      status: error.response ? error.response.status : null,
-    });
-    alert("Failed to update profile image. Please try again.");
-  }
-};
+      // if (!staff) {
+      //   return;
+      // }
+
+      const formData = new FormData();
+      formData.append("profileImage", file);
+      // formData.append("staffId", staff._id); // Include staffId in FormData
+
+      const uploadResponse = await axios.patch(
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const newImageUrl = uploadResponse.data.data?.profileImage || uploadResponse.data.profileImage;
+
+      setProfileImage(newImageUrl);
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({ ...userInfo, profileImage: newImageUrl })
+      );
+      alert("Profile image updated successfully!");
+    } catch (error) {
+      console.error("Error uploading profile image:", {
+        message: error.message,
+        response: error.response ? error.response.data : null,
+        status: error.response ? error.response.status : null,
+      });
+      alert("Failed to update profile image. Please try again.");
+    }
+  };
 
 
 
   useEffect(() => {
-  const fetchStaffData = async () => {
-    try {
-      const userInfo = localStorage.getItem("userInfo");
-      const userId = userInfo ? JSON.parse(userInfo)?._id : null;
+    const fetchStaffData = async () => {
+      try {
+        const userInfo = localStorage.getItem("userInfo");
+        const userId = userInfo ? JSON.parse(userInfo)?._id : null;
 
-      if (!userId) {
-        console.error("No user ID found in localStorage");
+        if (!userId) {
+          console.error("No user ID found in localStorage");
+          return;
+        }
+
+        // const response = await axios.get("https://mypartyhost.onrender.com/api/staff", {
+        //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        // });
+        // const staff = response.data.data.find(u => u._id === userId);
+
+        const token = localStorage.getItem("token");
+        const [staffResponse, bookingsResponse] = await Promise.all([
+          axios.get(`${BASE_URLS.BACKEND_BASEURL}auth/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        console.log("staffResponse:", staffResponse.data);
+
+        const staff = staffResponse.data;
+
+        if (staff && staff.user) {
+          setProfileImage(staff.profileImage || profileImage);
+          setPhotos(staff.photos || []);
+          const staffReviews = staff.reviews || [];
+          setReviews(staffReviews);
+          const totalRating = staffReviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+          const avg = staffReviews.length > 0 ? totalRating / staffReviews.length : 0;
+          setAvgRating(avg.toFixed(1));
+          setLocation(`${staff.city}, ${staff.country}`);
+          setFlagUrl(staff.flag || "");
+          setName(`${staff.name}` || "N/A");
+          setBio(staff.bio);
+          setSkills(staff.skills || []);
+          setAvailableDates(staff.availableDates.map(date => date.split('T')[0]) || []);
+          setAvailableFor(staff.availableFor || []);
+          setHourlyRate(staff.baseRate || []);
+          setInitialHourlyRate(staff.baseRate || []);
+
+          setAdditionalRates(
+            staff.additionalRates.map((rate) => ({
+              label: rate.label,
+              amount: rate.amount,
+            })) || []
+          );
+          setInitialAdditionalRates(
+            JSON.parse(
+              JSON.stringify(
+                staff.additionalRates.map((rate) => ({
+                  label: rate.label,
+                  amount: rate.amount,
+                })) || []
+              )
+            )
+          );
+
+          setStaffdailyRate(staff.dailyRate || []);
+          setIsProfileVisible(staff.isPublic ?? true);
+          setIsInstantBook(staff.instantBook ?? true);
+          // setServiceOptions(staff.skills || []);
+
+
+          const allLabels = new Set();
+          (staff.skills || []).forEach(skill => {
+            allLabels.add(skill.title);
+          });
+          setServiceOptions([...allLabels].sort());
+
+          setJobHistory({
+            pastBookings: bookingsResponse.data.pastBookings?.length || 0,
+            cancelledBookings: bookingsResponse.data.cancelledBookings?.length || 0,
+            noShows: 0, // Static as per original code
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching staff data:", error);
+      }
+    };
+    fetchStaffData();
+  }, []);
+
+
+
+  const [photos, setPhotos] = useState([]);
+  const addPhotoInputRef = useRef(null);
+
+  const handleAddPhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      alert("Please select an image file.");
+      return;
+    }
+
+    const validImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validImageTypes.includes(file.type)) {
+      alert("Please select a valid image file (JPEG, PNG, or JPG).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size should not exceed 5MB.");
+      return;
+    }
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userId = userInfo._id;
+      const token = localStorage.getItem("token");
+
+      if (!userId || !token) {
+        console.error("User not authenticated.");
+        alert("Please log in to add a photo.");
         return;
       }
 
-      // const response = await axios.get("https://mypartyhost.onrender.com/api/staff", {
-      //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      // });
-      // const staff = response.data.data.find(u => u._id === userId);
-
-      const token = localStorage.getItem("token");
-      const [staffResponse, bookingsResponse] = await Promise.all([
-        axios.get(`${BASE_URLS.BACKEND_BASEURL}auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs/manage-bookings`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      console.log("staffResponse:", staffResponse.data);
-
-      const staff = staffResponse.data;
-
-      if (staff && staff.user) {
-        setProfileImage(staff.profileImage || profileImage);
-        setPhotos(staff.photos || []);
-        const staffReviews = staff.reviews || [];
-        setReviews(staffReviews);
-        const totalRating = staffReviews.reduce((sum, review) => sum + (review.rating || 0), 0);
-        const avg = staffReviews.length > 0 ? totalRating / staffReviews.length : 0;
-        setAvgRating(avg.toFixed(1));
-        setLocation(`${staff.city}, ${staff.country}`); 
-        setFlagUrl(staff.flag || ""); 
-        setName(`${staff.name}` || "N/A");
-        setBio(staff.bio);
-        setSkills(staff.skills || []);
-        setAvailableDates(staff.availableDates.map(date => date.split('T')[0]) || []);
-        setAvailableFor(staff.availableFor || []);
-        setHourlyRate(staff.baseRate || []);
-        setInitialHourlyRate(staff.baseRate || []); 
-        
-        setAdditionalRates(
-          staff.additionalRates.map((rate) => ({
-            label: rate.label,
-            amount: rate.amount,
-          })) || []
-        );
-        setInitialAdditionalRates(
-          JSON.parse(
-            JSON.stringify(
-              staff.additionalRates.map((rate) => ({
-                label: rate.label,
-                amount: rate.amount,
-              })) || []
-            )
-          )
-        );
-
-        setStaffdailyRate(staff.dailyRate || []);
-        setIsProfileVisible(staff.isPublic ?? true); 
-        setIsInstantBook(staff.instantBook ?? true);
-        // setServiceOptions(staff.skills || []);
-
-
-        const allLabels = new Set();
-        (staff.skills || []).forEach(skill => {
-          allLabels.add(skill.title);
-        });
-        setServiceOptions([...allLabels].sort());
-
-        setJobHistory({
-        pastBookings: bookingsResponse.data.pastBookings?.length || 0,
-        cancelledBookings: bookingsResponse.data.cancelledBookings?.length || 0,
-        noShows: 0, // Static as per original code
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      } 
+      // const staff = response.data.data.find((u) => u._id === userId);
+      // if (!staff) {
+      //   console.error("Staff profile not found for user ID:", userId);
+      //   alert("Staff profile not found.");
+      //   return;
+      // }
+
+      const formData = new FormData();
+      formData.append("photos", file); // Changed from "photo" to "photos"
+      // formData.append("staffId", staff._id);
+
+      const uploadResponse = await axios.patch(
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const updatedPhotos = uploadResponse.data.data?.photos || uploadResponse.data.photos || [];
+      setPhotos(updatedPhotos);
+      alert("Photo added successfully!");
     } catch (error) {
-      console.error("Error fetching staff data:", error);
+      console.error("Error adding photo:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      alert("Failed to add photo. Please try again.");
     }
   };
-  fetchStaffData();
-}, []);
 
 
-
-const [photos, setPhotos] = useState([]);
-const addPhotoInputRef = useRef(null);
-
-const handleAddPhotoUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) {
-    alert("Please select an image file.");
-    return;
+  const handleAddPhoto = () => {
+    addPhotoInputRef.current.click();
   }
-
-  const validImageTypes = ["image/jpeg", "image/png", "image/jpg"];
-  if (!validImageTypes.includes(file.type)) {
-    alert("Please select a valid image file (JPEG, PNG, or JPG).");
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Image size should not exceed 5MB.");
-    return;
-  }
-
-  try {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    const userId = userInfo._id;
-    const token = localStorage.getItem("token");
-
-    if (!userId || !token) {
-      console.error("User not authenticated.");
-      alert("Please log in to add a photo.");
-      return;
-    }
-
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const staff = response.data.data.find((u) => u._id === userId);
-    if (!staff) {
-      console.error("Staff profile not found for user ID:", userId);
-      alert("Staff profile not found.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("photos", file); // Changed from "photo" to "photos"
-    formData.append("staffId", staff._id);
-
-    const uploadResponse = await axios.patch(
-      `${BASE_URLS.BACKEND_BASEURL}staff`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    const updatedPhotos = uploadResponse.data.data?.photos || uploadResponse.data.photos || [];
-    setPhotos(updatedPhotos);
-    alert("Photo added successfully!");
-  } catch (error) {
-    console.error("Error adding photo:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
-    alert("Failed to add photo. Please try again.");
-  }
-};
-
-
-const handleAddPhoto = () => {
-  addPhotoInputRef.current.click();
-}
 
 
   const handleEditBio = () => {
@@ -334,7 +334,7 @@ const handleAddPhoto = () => {
   };
 
   // Add modal component for Bio
-  const renderBioModal = () => { 
+  const renderBioModal = () => {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div className="w-[517px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-4">
@@ -377,239 +377,240 @@ const handleAddPhoto = () => {
 
 
 
-//   const handleSaveBio = async () => {
-//   try {
-//     const userInfo = localStorage.getItem("userInfo");
-//     const userId = userInfo ? JSON.parse(userInfo)?._id : null;
-//     const token = localStorage.getItem("token");
+  //   const handleSaveBio = async () => {
+  //   try {
+  //     const userInfo = localStorage.getItem("userInfo");
+  //     const userId = userInfo ? JSON.parse(userInfo)?._id : null;
+  //     const token = localStorage.getItem("token");
 
-//     if (!userId || !token) {
-//       console.error("User ID or token missing");
-//       alert("Please log in again to update your bio.");
-//       return;
-//     }
+  //     if (!userId || !token) {
+  //       console.error("User ID or token missing");
+  //       alert("Please log in again to update your bio.");
+  //       return;
+  //     }
 
-//     const response = await axios.patch(
-//       `https://mypartyhost.onrender.com/api/staff`,
-//       { bio: editedBio },
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-//     setBio(editedBio); // Update local state
-//     setIsBioModalOpen(false); // Close modal
-//     console.log("Bio updated successfully:", response.data);
-//   } catch (error) {
-//     console.error("Error updating bio:", error);
-//     alert("Failed to update bio. Please try again later."); // 
-//   }
-// }; 
+  //     const response = await axios.patch(
+  //       `https://mypartyhost.onrender.com/api/staff`,
+  //       { bio: editedBio },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setBio(editedBio); // Update local state
+  //     setIsBioModalOpen(false); // Close modal
+  //     console.log("Bio updated successfully:", response.data);
+  //   } catch (error) {
+  //     console.error("Error updating bio:", error);
+  //     alert("Failed to update bio. Please try again later."); // 
+  //   }
+  // }; 
 
-const handleSaveBio = async () => {
-  try {
-    const userInfo = localStorage.getItem("userInfo");
-    const userId = userInfo ? JSON.parse(userInfo)?._id : null;
-    const token = localStorage.getItem("token");
-
-    if (!userId || !token) {
-      console.error("User ID or token missing");
-      alert("Please log in again to update your bio.");
-      return;
-    }
-
-    // Fetch staff data to get the correct staff._id
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const staff = response.data.data.find(u => u._id === userId);
-    if (!staff) {
-      console.error("Staff profile not found for user ID:", userId);
-      alert("Staff profile not found.");
-      return;
-    }
-
-    await axios.patch(
-      `${BASE_URLS.BACKEND_BASEURL}staff/`,
-      { bio: editedBio },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setBio(editedBio);
-    setIsBioModalOpen(false);
-    console.log("Bio updated successfully");
-  } catch (error) {
-    console.error("Error updating bio:", error);
-    alert("Failed to update bio. Please try again later.");
-  }
-};
-
-
-
-// Modal for Skills
-const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
-const [newSkillTitle, setNewSkillTitle] = useState("");
-const [newSkillIcon, setNewSkillIcon] = useState("");
-const [newSkillPrice, setNewSkillPrice] = useState("");
-
-const renderSkillModal = () => {
-  if (!isSkillModalOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="w-[517px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-4">
-        <div className="flex items-start gap-4">
-          <div className="flex-1 flex flex-col gap-1">
-            <div className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
-              Add New Skill
-            </div>
-            <div className="text-[#656565] text-base font-medium font-['Inter'] leading-snug">
-              Enter skill details
-            </div>
-          </div>
-          <button
-            onClick={() => setIsSkillModalOpen(false)}
-            className="p-2 rounded-lg outline outline-1 outline-[#ECECEC] flex items-center gap-2.5"
-          >
-            <i className="ri-close-line text-xl text-[#656565]"></i>
-          </button>
-        </div>
-        <div className="self-stretch flex flex-col gap-4">
-          <div className="self-stretch flex flex-col gap-2">
-            <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
-              Skill Title
-            </div>
-            <input
-              type="text"
-              value={newSkillTitle}
-              onChange={(e) => setNewSkillTitle(e.target.value)}
-              placeholder="Enter skill title"
-              className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
-            />
-          </div>
-          <div className="self-stretch flex flex-col gap-2">
-            <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
-              Icon Class (Remix Icon)
-            </div>
-            <input
-              type="text"
-              value={newSkillIcon}
-              onChange={(e) => setNewSkillIcon(e.target.value)}
-              placeholder="e.g., ri-billiards-line"
-              className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
-            />
-          </div>
-          {/* <RemixIconPicker/> */}
-          <div className="self-stretch flex flex-col gap-2">
-            <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
-              Price Per Hour ($)
-            </div>
-            <input
-              type="number"
-              value={newSkillPrice}
-              onChange={(e) => setNewSkillPrice(e.target.value)}
-              placeholder="Enter price per hour"
-              className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
-            />
-          </div>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setIsSkillModalOpen(false)}
-              className="px-4 py-2 rounded-lg outline outline-1 outline-[#ECECEC] text-[#656565] text-sm font-medium font-['Inter'] leading-tight"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveSkill}
-              className="px-4 py-2 rounded-lg outline outline-1 outline-[#E61E4D] text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-const handleSaveSkill = async () => {
-  console.log("handleSaveSkill called");
-  console.log("Input values:", { newSkillTitle, newSkillIcon, newSkillPrice });
-
-  if (newSkillTitle && newSkillIcon && newSkillPrice && !isNaN(newSkillPrice) && newSkillPrice > 0) {
+  const handleSaveBio = async () => {
     try {
       const userInfo = localStorage.getItem("userInfo");
       const userId = userInfo ? JSON.parse(userInfo)?._id : null;
       const token = localStorage.getItem("token");
 
-      console.log("meri id", userId);
-      console.log("Token:", token ? "Present" : "Missing");
-
       if (!userId || !token) {
-        console.error("User not authenticated. userId:", userId, "token:", token);
-        alert("User not authenticated. Please log in.");
+        console.error("User ID or token missing");
+        alert("Please log in again to update your bio.");
         return;
       }
 
-      const newSkill = {
-        icon: newSkillIcon,
-        title: newSkillTitle,
-        pricePerHour: parseFloat(newSkillPrice),
-      };
+      // // Fetch staff data to get the correct staff._id
+      // const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
+      // console.log("API response for staff fetch:", response.data);
+      // const staff = response.data.data.find(u => u._id === userId);
+      // if (!staff) {
+      //   console.error("Staff profile not found for user ID:", userId);
+      //   alert("Staff profile not found.");
+      //   return;
+      // }
 
-      // Fetch staff data for the specific user
-      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("API response:", response.data);
-      const staff = response.data.data.find(u => u._id === userId);
-      if (!staff) {
-        console.error("Staff profile not found for user ID:", userId);
-        alert("Staff profile not found.");
-        return;
-      }
-      console.log("Found staff:", staff);
-      const currentSkills = staff.skills || [];
-
-      // Update skills array with new skill
-      const updatedSkills = [...currentSkills, newSkill];
       await axios.patch(
-        `${BASE_URLS.BACKEND_BASEURL}staff`, // Changed endpoint
-        { staffId: staff._id, skills: updatedSkills }, // Include staffId in payload
+        `${BASE_URLS.BACKEND_BASEURL}staff/`,
+        { bio: editedBio },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Update local state
-      setSkills(updatedSkills);
-      setIsSkillModalOpen(false);
-      setNewSkillTitle("");
-      setNewSkillIcon("");
-      setNewSkillPrice("");
-      alert("Skill added successfully!");
+      setBio(editedBio);
+      setIsBioModalOpen(false);
+      console.log("Bio updated successfully");
     } catch (error) {
-      console.error("Error adding skill:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers,
-      });
-      alert("Failed to add skill. Please try again.");
+      console.error("Error updating bio:", error);
+      alert("Failed to update bio. Please try again later.");
     }
-  } else {
-    console.log("Validation failed:", {
-      newSkillTitle,
-      newSkillIcon,
-      newSkillPrice,
-      isNaN: !isNaN(newSkillPrice),
-      priceGtZero: newSkillPrice > 0,
-    });
-    alert("Please fill in all fields with valid data.");
-  }
-};
+  };
 
 
-const handleSkillEdit = () => {
-  setIsSkillModalOpen(true);
-  setNewSkillTitle("");
-  setNewSkillIcon("");
-  setNewSkillPrice("");
-};
+
+  // Modal for Skills
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [newSkillTitle, setNewSkillTitle] = useState("");
+  const [newSkillIcon, setNewSkillIcon] = useState("");
+  const [newSkillPrice, setNewSkillPrice] = useState("");
+
+  const renderSkillModal = () => {
+    if (!isSkillModalOpen) return null;
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="w-[517px] p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-1 flex flex-col gap-1">
+              <div className="text-[#292929] text-xl font-bold font-['Inter'] leading-normal">
+                Add New Skill
+              </div>
+              <div className="text-[#656565] text-base font-medium font-['Inter'] leading-snug">
+                Enter skill details
+              </div>
+            </div>
+            <button
+              onClick={() => setIsSkillModalOpen(false)}
+              className="p-2 rounded-lg outline outline-1 outline-[#ECECEC] flex items-center gap-2.5"
+            >
+              <i className="ri-close-line text-xl text-[#656565]"></i>
+            </button>
+          </div>
+          <div className="self-stretch flex flex-col gap-4">
+            <div className="self-stretch flex flex-col gap-2">
+              <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
+                Skill Title
+              </div>
+              <input
+                type="text"
+                value={newSkillTitle}
+                onChange={(e) => setNewSkillTitle(e.target.value)}
+                placeholder="Enter skill title"
+                className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
+              />
+            </div>
+            <div className="self-stretch flex flex-col gap-2">
+              <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
+                Icon Class (Remix Icon)
+              </div>
+              <input
+                type="text"
+                value={newSkillIcon}
+                onChange={(e) => setNewSkillIcon(e.target.value)}
+                placeholder="e.g., ri-billiards-line"
+                className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
+              />
+            </div>
+            {/* <RemixIconPicker/> */}
+            <div className="self-stretch flex flex-col gap-2">
+              <div className="text-[#656565] text-base font-bold font-['Inter'] leading-snug">
+                Price Per Hour ($)
+              </div>
+              <input
+                type="number"
+                value={newSkillPrice}
+                onChange={(e) => setNewSkillPrice(e.target.value)}
+                placeholder="Enter price per hour"
+                className="self-stretch p-2 rounded-lg outline outline-1 outline-[#292929] text-[#3D3D3D] text-base font-normal font-['Inter']"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsSkillModalOpen(false)}
+                className="px-4 py-2 rounded-lg outline outline-1 outline-[#ECECEC] text-[#656565] text-sm font-medium font-['Inter'] leading-tight"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSkill}
+                className="px-4 py-2 rounded-lg outline outline-1 outline-[#E61E4D] text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+  const handleSaveSkill = async () => {
+    console.log("handleSaveSkill called");
+    console.log("Input values:", { newSkillTitle, newSkillIcon, newSkillPrice });
+
+    if (newSkillTitle && newSkillIcon && newSkillPrice && !isNaN(newSkillPrice) && newSkillPrice > 0) {
+      try {
+        const userInfo = localStorage.getItem("userInfo");
+        const userId = userInfo ? JSON.parse(userInfo)?._id : null;
+        const token = localStorage.getItem("token");
+
+        console.log("meri id", userId);
+        console.log("Token:", token ? "Present" : "Missing");
+
+        if (!userId || !token) {
+          console.error("User not authenticated. userId:", userId, "token:", token);
+          alert("User not authenticated. Please log in.");
+          return;
+        }
+
+        const newSkill = {
+          icon: newSkillIcon,
+          title: newSkillTitle,
+          pricePerHour: parseFloat(newSkillPrice),
+        };
+
+        // Fetch staff data for the specific user
+        // const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // });
+        // console.log("API response:", response.data);
+        // const staff = response.data.data.find(u => u._id === userId);
+        // if (!staff) {
+        //   console.error("Staff profile not found for user ID:", userId);
+        //   alert("Staff profile not found.");
+        //   return;
+        // }
+        // console.log("Found staff:", staff);
+        // const currentSkills = staff.skills || [];
+
+        // Update skills array with new skill
+        const updatedSkills = [...user.skills, newSkill];
+        await axios.patch(
+          `${BASE_URLS.BACKEND_BASEURL}staff`, // Changed endpoint
+          { skills: updatedSkills }, // Include staffId in payload
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Update local state
+        setSkills(updatedSkills);
+        setIsSkillModalOpen(false);
+        setNewSkillTitle("");
+        setNewSkillIcon("");
+        setNewSkillPrice("");
+        // alert("Skill added successfully!");
+      } catch (error) {
+        console.error("Error adding skill:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          headers: error.response?.headers,
+        });
+        alert("Failed to add skill. Please try again.");
+      }
+    } else {
+      console.log("Validation failed:", {
+        newSkillTitle,
+        newSkillIcon,
+        newSkillPrice,
+        isNaN: !isNaN(newSkillPrice),
+        priceGtZero: newSkillPrice > 0,
+      });
+      alert("Please fill in all fields with valid data.");
+    }
+  };
+
+
+  const handleSkillEdit = () => {
+    setIsSkillModalOpen(true);
+    setNewSkillTitle("");
+    setNewSkillIcon("");
+    setNewSkillPrice("");
+  };
 
 
 
@@ -631,7 +632,7 @@ const handleSkillEdit = () => {
   };
 
   // Modified Profile Public Visibility section
-const toggleProfileVisibility = async () => {
+  const toggleProfileVisibility = async () => {
     const newVisibility = !isProfileVisible;
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     const userId = userInfo._id;
@@ -666,7 +667,7 @@ const toggleProfileVisibility = async () => {
   };
 
 
-const toggleInstantBook = async () => {
+  const toggleInstantBook = async () => {
     const newInstantBook = !isInstantBook;
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     const userId = userInfo._id;
@@ -726,13 +727,13 @@ const toggleInstantBook = async () => {
   };
 
   const handleDateClick = (date) => {
-  const dateString = date.toISOString().split("T")[0];
-  setAvailableDates((prev) =>
-    prev.includes(dateString)
-      ? prev.filter((d) => d !== dateString)
-      : [...prev, dateString].sort((a, b) => new Date(a) - new Date(b))
-  );
-};
+    const dateString = date.toISOString().split("T")[0];
+    setAvailableDates((prev) =>
+      prev.includes(dateString)
+        ? prev.filter((d) => d !== dateString)
+        : [...prev, dateString].sort((a, b) => new Date(a) - new Date(b))
+    );
+  };
   const handleSelectAll = () => {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
@@ -767,8 +768,8 @@ const toggleInstantBook = async () => {
         navigate("/login");
         return;
       }
-      const response = await axios.patch(`${BASE_URLS.BACKEND_BASEURL}staff`,{
-        availableDates : availableDates,
+      const response = await axios.patch(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        availableDates: availableDates,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -785,7 +786,7 @@ const toggleInstantBook = async () => {
     }
   };
 
-      
+
 
 
 
@@ -797,151 +798,151 @@ const toggleInstantBook = async () => {
   };
 
 
-  
-const handleSaveRate = async () => {
-  if (isNaN(hourlyRate) || hourlyRate <= 0 || isNaN(staffdailyRate) || staffdailyRate <= 0) {
-    alert("Please enter valid rates.");
-    return;
-  }
-  try {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    const userId = userInfo._id;
-    const token = localStorage.getItem("token");
-    if (!userId || !token) {
-      console.error("User not authenticated.");
-      alert("Please log in to update rates.");
+
+  const handleSaveRate = async () => {
+    if (isNaN(hourlyRate) || hourlyRate <= 0 || isNaN(staffdailyRate) || staffdailyRate <= 0) {
+      alert("Please enter valid rates.");
       return;
     }
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const staff = response.data.data.find((u) => u._id === userId);
-    if (!staff) {
-      console.error("Staff profile not found for user ID:", userId);
-      alert("Staff profile not found.");
-      return;
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userId = userInfo._id;
+      const token = localStorage.getItem("token");
+      if (!userId || !token) {
+        console.error("User not authenticated.");
+        alert("Please log in to update rates.");
+        return;
+      }
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const staff = response.data.data.find((u) => u._id === userId);
+      if (!staff) {
+        console.error("Staff profile not found for user ID:", userId);
+        alert("Staff profile not found.");
+        return;
+      }
+      const updatedData = {
+        baseRate: parseFloat(hourlyRate),
+        dailyRate: parseFloat(staffdailyRate),
+        additionalRates: additionalRates.map((rate) => ({
+          label: rate.label,
+          amount: rate.amount,
+        })),
+      };
+      console.log("Data being sent to API:", updatedData);
+      await axios.patch(
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
+        updatedData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setInitialHourlyRate(updatedData.baseRate);
+      setInitialStaffdailyRate(updatedData.dailyRate);
+      setInitialAdditionalRates([...updatedData.additionalRates]);
+      setIsHourlyRateModified(false);
+      setIsDailyRateModified(false);
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          ...userInfo,
+          baseRate: updatedData.baseRate,
+          dailyRate: updatedData.dailyRate,
+          additionalRates: updatedData.additionalRates,
+        })
+      );
+      alert("Rates updated successfully!");
+    } catch (error) {
+      console.error("Error saving rates:", error);
+      alert("Failed to save rates. Please try again.");
     }
-    const updatedData = {
-      baseRate: parseFloat(hourlyRate),
-      dailyRate: parseFloat(staffdailyRate),
-      additionalRates: additionalRates.map((rate) => ({
-        label: rate.label,
-        amount: rate.amount,
-      })),
-    };
-    console.log("Data being sent to API:", updatedData);
-    await axios.patch(
-      `${BASE_URLS.BACKEND_BASEURL}staff`,
-      updatedData,
-      { headers: { Authorization: `Bearer ${token}` } }
+  };
+
+
+
+
+  // Update isModified to include daily rate changes
+  const isAdditionalModified =
+    JSON.stringify(
+      initialAdditionalRates.map(item => ({ label: item.label, amount: item.amount }))
+    ) !==
+    JSON.stringify(
+      additionalRates.map(item => ({ label: item.label, amount: item.amount }))
     );
-    setInitialHourlyRate(updatedData.baseRate);
-    setInitialStaffdailyRate(updatedData.dailyRate);
-    setInitialAdditionalRates([...updatedData.additionalRates]);
-    setIsHourlyRateModified(false);
-    setIsDailyRateModified(false);
-    localStorage.setItem(
-      "userInfo",
-      JSON.stringify({
-        ...userInfo,
-        baseRate: updatedData.baseRate,
-        dailyRate: updatedData.dailyRate,
-        additionalRates: updatedData.additionalRates,
-      })
-    );
-    alert("Rates updated successfully!");
-  } catch (error) {
-    console.error("Error saving rates:", error);
-    alert("Failed to save rates. Please try again.");
-  }
-};
-
-
-
-
-// Update isModified to include daily rate changes
-  const isAdditionalModified = 
-  JSON.stringify(
-    initialAdditionalRates.map(item => ({ label: item.label, amount: item.amount }))
-  ) !== 
-  JSON.stringify(
-    additionalRates.map(item => ({ label: item.label, amount: item.amount }))
-  );
   const isModified = isHourlyRateModified || isDailyRateModified || isAdditionalModified;
 
 
 
-const handleDeleteRate = async (index) => {
-  const updatedRates = additionalRates.filter((_, i) => i !== index);
-  try {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    const userId = userInfo._id;
-    const token = localStorage.getItem("token");
-    if (!userId || !token) {
-      console.error("User not authenticated.");
-      alert("Please log in to update rates.");
-      return;
+  const handleDeleteRate = async (index) => {
+    const updatedRates = additionalRates.filter((_, i) => i !== index);
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userId = userInfo._id;
+      const token = localStorage.getItem("token");
+      if (!userId || !token) {
+        console.error("User not authenticated.");
+        alert("Please log in to update rates.");
+        return;
+      }
+      const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const staff = response.data.data.find(u => u._id === userId);
+      if (!staff) {
+        console.error("Staff profile not found for user ID:", userId);
+        alert("Staff profile not found.");
+        return;
+      }
+      await axios.patch(
+        `${BASE_URLS.BACKEND_BASEURL}staff`,
+        { additionalRates: updatedRates },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAdditionalRates(updatedRates);
+      localStorage.setItem("userInfo", JSON.stringify({ ...userInfo, additionalRates: updatedRates }));
+      alert("Rate deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting rate:", error);
+      alert("Failed to delete rate. Please try again.");
     }
-    const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const staff = response.data.data.find(u => u._id === userId);
-    if (!staff) {
-      console.error("Staff profile not found for user ID:", userId);
-      alert("Staff profile not found.");
-      return;
-    }
-    await axios.patch(
-      `${BASE_URLS.BACKEND_BASEURL}staff`,
-      { additionalRates: updatedRates },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setAdditionalRates(updatedRates);
-    localStorage.setItem("userInfo", JSON.stringify({ ...userInfo, additionalRates: updatedRates }));
-    alert("Rate deleted successfully!");
-  } catch (error) {
-    console.error("Error deleting rate:", error);
-    alert("Failed to delete rate. Please try again.");
-  }
-};
+  };
 
 
   const renderCalendar = () => {
-      const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-      const startDay = startOfMonth.getDay();
-      const daysInMonth = endOfMonth.getDate();
-      const days = [];
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const startDay = startOfMonth.getDay();
+    const daysInMonth = endOfMonth.getDate();
+    const days = [];
 
-      const prevMonthDays = startDay === 0 ? 6 : startDay;
-      const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
-      for (let i = prevMonthDays - 1; i >= 0; i--) {
-        days.push({
-          date: new Date(prevMonth.getFullYear(), prevMonth.getMonth(), prevMonth.getDate() - i),
-          isCurrentMonth: false,
-        });
-      }
+    const prevMonthDays = startDay === 0 ? 6 : startDay;
+    const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
+    for (let i = prevMonthDays - 1; i >= 0; i--) {
+      days.push({
+        date: new Date(prevMonth.getFullYear(), prevMonth.getMonth(), prevMonth.getDate() - i),
+        isCurrentMonth: false,
+      });
+    }
 
-      for (let i = 1; i <= daysInMonth; i++) {
-        days.push({
-          date: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i),
-          isCurrentMonth: true,
-        });
-      }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        date: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i),
+        isCurrentMonth: true,
+      });
+    }
 
-      const totalDays = days.length;
-      const nextMonthDays = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
-      for (let i = 1; i <= nextMonthDays; i++) {
-        days.push({
-          date: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i),
-          isCurrentMonth: false,
-        });
-      }
+    const totalDays = days.length;
+    const nextMonthDays = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
+    for (let i = 1; i <= nextMonthDays; i++) {
+      days.push({
+        date: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i),
+        isCurrentMonth: false,
+      });
+    }
 
-      const weeks = [];
-      for (let i = 0; i < days.length; i += 7) {
-        weeks.push(days.slice(i, i + 7));
-      }
+    const weeks = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
+    }
 
     return (
       <div className="md:w-[479px] w-full p-6 bg-white rounded-2xl shadow-[0px_0px_231px_9px_rgba(0,0,0,0.2)] outline outline-1 outline-[#ECECEC] flex flex-col gap-2.5">
@@ -954,7 +955,7 @@ const handleDeleteRate = async (index) => {
               <div className="text-[#292929] text-base font-medium font-['Inter'] leading-snug">
                 {/* {selectedDates.length} Date Selected */}
                 {availableDates.length} Date Selected
-                
+
               </div>
             </div>
             <button
@@ -1006,15 +1007,14 @@ const handleDeleteRate = async (index) => {
                         onClick={() =>
                           day.isCurrentMonth && handleDateClick(day.date)
                         }
-                        className={`flex-1 h-8 md:p-3 p-1  rounded ${
-                          day.isCurrentMonth
+                        className={`flex-1 h-8 md:p-3 p-1  rounded ${day.isCurrentMonth
                             ? isSelected
                               ? "bg-[#E61E4D] text-white outline outline-1 outline-[#B11235]"
                               : isToday
-                              ? "text-[#E61E4D]"
-                              : "text-[#292929]"
+                                ? "text-[#E61E4D]"
+                                : "text-[#292929]"
                             : "text-zinc-500"
-                        } flex justify-center items-center`}
+                          } flex justify-center items-center`}
                         disabled={!day.isCurrentMonth}
                       >
                         <div className="text-center text-sm font-normal font-['Inter'] leading-tight">
@@ -1038,7 +1038,7 @@ const handleDeleteRate = async (index) => {
                 <i className="ri-check-line text-[#3D3D3D]"></i>
               </button>
               <button
-               onClick={() => setAvailableDates([])}
+                onClick={() => setAvailableDates([])}
                 className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-[#3D3D3D] flex items-center gap-2"
               >
                 <div className="text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
@@ -1123,19 +1123,19 @@ const handleDeleteRate = async (index) => {
               Cancel
             </button>
             <button
-              // onClick={handleSaveRate}
-             onClick={() => {
-              if (newService && newRate && !isNaN(newRate) && newRate > 0) {
-                const newRateObj = { label: newService, amount: parseFloat(newRate) };
-                setAdditionalRates([...additionalRates, newRateObj]);
-                setNewService("");
-                setNewRate("");
-                setIsAddRateOpen(false);
-                setShowInstantPopup(true); // Reopen Manage Instant Booking to show the new rate
-              } else {
-                alert("Please select a service and enter a valid rate.");
-              }
-            }}
+              onClick={handleSaveRate}
+              //  onClick={() => {
+              //   if (newService && newRate && !isNaN(newRate) && newRate > 0) {
+              //     const newRateObj = { label: newService, amount: parseFloat(newRate) };
+              //     setAdditionalRates([...additionalRates, newRateObj]);
+              //     setNewService("");
+              //     setNewRate("");
+              //     setIsAddRateOpen(false);
+              //     setShowInstantPopup(true); // Reopen Manage Instant Booking to show the new rate
+              //   } else {
+              //     alert("Please select a service and enter a valid rate.");
+              //   }
+              // }}
               className="px-4 py-2 rounded-lg outline outline-1 outline-[#E61E4D] text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight"
             >
               Save
@@ -1185,13 +1185,13 @@ const handleDeleteRate = async (index) => {
                     <i class="ri-camera-line text-3xl text-[#3f3f3f]"></i>
                   </label>
                   <input
-                      id="profileImageInput"
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      onChange={handleProfileImageUpload}
-                      className="hidden"
-                    />
+                    id="profileImageInput"
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleProfileImageUpload}
+                    className="hidden"
+                  />
                 </div>
                 <div className="self-stretch inline-flex justify-start items-start gap-1.5">
                   <div className="flex-1 h-28 flex justify-start items-start gap-2">
@@ -1235,7 +1235,7 @@ const handleDeleteRate = async (index) => {
                     Add Photo
                   </div>
                   {/* <i className="ri-add-line text-xl text-[#656565]"></i> */}
-                    <i class="ri-camera-line text-2xl text-[#3f3f3f]"></i>
+                  <i class="ri-camera-line text-2xl text-[#3f3f3f]"></i>
                 </button>
                 <button
                   onClick={handleAddVoiceNote}
@@ -1257,7 +1257,7 @@ const handleDeleteRate = async (index) => {
                     <div className="flex justify-start items-center gap-1">
                       <i className="ri-star-s-fill text-orange-500"></i>
                       <div className="justify-start text-orange-500 text-sm font-medium font-['Inter'] leading-tight">
-                       {avgRating}/5
+                        {avgRating}/5
                       </div>
                     </div>
                     {/* <button
@@ -1273,32 +1273,32 @@ const handleDeleteRate = async (index) => {
                 </div>
                 <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-[#ECECEC]"></div>
                 <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                    {reviews.slice(0, 3).map((review, index) => (
-                  <div className="self-stretch pb-4 border-b border-[#ECECEC] flex flex-col justify-start items-start gap-2">
-                    <div className="self-stretch inline-flex justify-start items-start gap-3">
-                      <img
-                        className="w-12 h-12 rounded-full"
-                        src="https://images.unsplash.com/photo-1613991917225-836ecf204c77?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDJ8fHxlbnwwfHx8fHw%3D"
-                        alt="Reviewer"
-                      />
-                      <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                        <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
-                          {review.reviewerName || "Anonymous"}
-                        </div>
-                        <div className="inline-flex justify-start items-start gap-1.5">
-                          {[...Array(5)].map((_, i) => (
-                            <i
-                              key={i}
-                              className={`ri-star-s-fill ${i < review.rating ? "text-orange-500" : "text-gray-300"}`}
-                            ></i>
-                          ))}
+                  {reviews.slice(0, 3).map((review, index) => (
+                    <div className="self-stretch pb-4 border-b border-[#ECECEC] flex flex-col justify-start items-start gap-2">
+                      <div className="self-stretch inline-flex justify-start items-start gap-3">
+                        <img
+                          className="w-12 h-12 rounded-full"
+                          src="https://images.unsplash.com/photo-1613991917225-836ecf204c77?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDJ8fHxlbnwwfHx8fHw%3D"
+                          alt="Reviewer"
+                        />
+                        <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                          <div className="self-stretch justify-start text-[#292929] text-base font-medium font-['Inter'] leading-snug">
+                            {review.reviewerName || "Anonymous"}
+                          </div>
+                          <div className="inline-flex justify-start items-start gap-1.5">
+                            {[...Array(5)].map((_, i) => (
+                              <i
+                                key={i}
+                                className={`ri-star-s-fill ${i < review.rating ? "text-orange-500" : "text-gray-300"}`}
+                              ></i>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                      <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                        {review.comment || "No comment provided."}
+                      </div>
                     </div>
-                    <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                      {review.comment || "No comment provided."}
-                    </div>
-                  </div>
                   ))}
                   {reviews.length === 0 && (
                     <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
@@ -1307,12 +1307,12 @@ const handleDeleteRate = async (index) => {
                   )}
                 </div>
                 {reviews.length > visibleReviews && (
-                <button
-                  onClick={handleViewMore}
-                  className="justify-start my-4 text-[#E61E4D] text-base font-bold font-['Inter'] leading-snug"
-                >
-                  View More
-                </button>
+                  <button
+                    onClick={handleViewMore}
+                    className="justify-start my-4 text-[#E61E4D] text-base font-bold font-['Inter'] leading-snug"
+                  >
+                    View More
+                  </button>
                 )}
               </div>
             </div>
@@ -1355,9 +1355,9 @@ const handleDeleteRate = async (index) => {
                     <div className="w-0 h-2 hidden md:block outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
                     <div className="flex justify-start items-center gap-2">
                       {/* <i className="ri-flag-2-fill text-[#3D3D3D]"></i> */}
-                        {flagUrl && (
-                          <img src={flagUrl} alt="Flag" className="w-22 h-8 md:w-10 md:h-6" />
-                        )}
+                      {flagUrl && (
+                        <img src={flagUrl} alt="Flag" className="w-22 h-8 md:w-10 md:h-6" />
+                      )}
                       <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                         {/* Sydney, NSW */}
 
@@ -1366,28 +1366,28 @@ const handleDeleteRate = async (index) => {
                     </div>
                   </div>
                   {isBioModalOpen && renderBioModal()}
+                  <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                    <div className="capitalize self-stretch justify-start text-[#292929] text-6xl font-bold font-['Inter'] leading-[60.60px]">
+                      {/* Samantha Lee */}
+                      {name}
+                    </div>
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                      <div className="capitalize self-stretch justify-start text-[#292929] text-6xl font-bold font-['Inter'] leading-[60.60px]">
-                        {/* Samantha Lee */}
-                        {name}
-                      </div>
-                      <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                        <div className="self-stretch inline-flex justify-between items-center">
-                          <div className="justify-start text-[#292929] text-sm font-medium font-['Inter'] leading-tight">
-                            About Me
-                          </div>
-                          <button onClick={handleEditBio} className="w-4 h-4">
-                            <i className="ri-edit-box-line text-[#656565]"></i>
-                          </button>
+                      <div className="self-stretch inline-flex justify-between items-center">
+                        <div className="justify-start text-[#292929] text-sm font-medium font-['Inter'] leading-tight">
+                          About Me
                         </div>
-                        <textarea
-                          className="self-stretch h-40 p-3 outline outline-1 outline-offset-[-1px] outline-[#292929] resize-none"
-                          value={bio}
-                          readOnly
-                        ></textarea>
+                        <button onClick={handleEditBio} className="w-4 h-4">
+                          <i className="ri-edit-box-line text-[#656565]"></i>
+                        </button>
                       </div>
+                      <textarea
+                        className="self-stretch h-40 p-3 outline outline-1 outline-offset-[-1px] outline-[#292929] resize-none"
+                        value={bio}
+                        readOnly
+                      ></textarea>
                     </div>
                   </div>
+                </div>
 
 
                 {isSkillModalOpen && renderSkillModal()}
@@ -1403,23 +1403,23 @@ const handleDeleteRate = async (index) => {
                   <div className="self-stretch inline-flex justify-start items-end gap-3 flex-wrap">
                     {skills.length > 0 ? (
                       skills.map((skill, i) => (
-                      <div
-                        key={i}
-                        className="inline-flex flex-col justify-center items-center gap-2"
-                      >
-                        <div className="w-8 h-8 flex items-center justify-center rounded-2xl outline outline-dotted outline-1 outline-offset-[-1px] outline-[#656565]">
-                          <i className={skill.icon || "ri-vip-crown-line text-[#3D3D3D]"}></i>
+                        <div
+                          key={i}
+                          className="inline-flex flex-col justify-center items-center gap-2"
+                        >
+                          <div className="w-8 h-8 flex items-center justify-center rounded-2xl outline outline-dotted outline-1 outline-offset-[-1px] outline-[#656565]">
+                            <i className={skill.icon || "ri-vip-crown-line text-[#3D3D3D]"}></i>
+                          </div>
+                          <div className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-tight">
+                            {skill.title}
+                          </div>
                         </div>
-                        <div className="text-[#3D3D3D] text-xs font-normal font-['Inter'] leading-tight">
-                          {skill.title}
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-[#656565] text-xs font-normal font-['Inter'] leading-tight">
+                        No skills available
                       </div>
-                   ))
-                  ) : (
-                    <div className="text-[#656565] text-xs font-normal font-['Inter'] leading-tight">
-                      No skills available
-                    </div>
-                  )}
+                    )}
                   </div>
                 </div>
               </div>
@@ -1430,14 +1430,12 @@ const handleDeleteRate = async (index) => {
                   </div>
                   <button
                     onClick={toggleProfileVisibility}
-                    className={`w-12 h-6 relative rounded-full ${
-                      isProfileVisible ? "bg-[#E61E4D]" : "bg-[#656565]"
-                    }`}
+                    className={`w-12 h-6 relative rounded-full ${isProfileVisible ? "bg-[#E61E4D]" : "bg-[#656565]"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 absolute top-[6px] ${
-                        isProfileVisible ? "left-[27px]" : "left-[9px]"
-                      } bg-white rounded-full`}
+                      className={`w-3 h-3 absolute top-[6px] ${isProfileVisible ? "left-[27px]" : "left-[9px]"
+                        } bg-white rounded-full`}
                     />
                   </button>
                 </div>
@@ -1469,14 +1467,12 @@ const handleDeleteRate = async (index) => {
                     </div>
                     <button
                       onClick={toggleDailyBooking}
-                      className={`w-12 h-6 relative rounded-full ${
-                        isDailyBooking ? "bg-[#E61E4D]" : "bg-[#656565]"
-                      }`}
+                      className={`w-12 h-6 relative rounded-full ${isDailyBooking ? "bg-[#E61E4D]" : "bg-[#656565]"
+                        }`}
                     >
                       <div
-                        className={`w-3 h-3 absolute top-[6px] ${
-                          isDailyBooking ? "left-[27px]" : "left-[9px]"
-                        } bg-white rounded-full`}
+                        className={`w-3 h-3 absolute top-[6px] ${isDailyBooking ? "left-[27px]" : "left-[9px]"
+                          } bg-white rounded-full`}
                       />
                     </button>
                   </div>
@@ -1503,15 +1499,15 @@ const handleDeleteRate = async (index) => {
                 </div>
                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                   {availableDates.length > 0 ? (
-                  <div className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                    {new Date(availableDates[0]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} –{" "}
-                        {new Date(availableDates[availableDates.length - 1]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                   </div>
-                    ) : (
-                      <div className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                        No available dates
-                      </div>
-                    )}
+                    <div className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                      {new Date(availableDates[0]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} –{" "}
+                      {new Date(availableDates[availableDates.length - 1]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                    </div>
+                  ) : (
+                    <div className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                      No available dates
+                    </div>
+                  )}
                   <button
                     onClick={toggleCalendar}
                     className="text-[#E61E4D] text-sm font-normal font-['Inter'] underline"
@@ -1539,25 +1535,25 @@ const handleDeleteRate = async (index) => {
                   </button>
                 </div>
 
-                  <div className="inline-flex justify-start items-center gap-2">
-                    {availableFor.length > 0 ? (
-                      availableFor.map((event, i) => (
-                        <div
-                          key={i}
-                          className="px-3 py-2 bg-[#F9F9F9] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-center items-center gap-2.5"
-                        >
-                          <div className="text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
-                            {event}
-                          </div>
+                <div className="inline-flex justify-start items-center gap-2">
+                  {availableFor.length > 0 ? (
+                    availableFor.map((event, i) => (
+                      <div
+                        key={i}
+                        className="px-3 py-2 bg-[#F9F9F9] rounded-3xl outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-center items-center gap-2.5"
+                      >
+                        <div className="text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
+                          {event}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
-                        No availability specified
                       </div>
-                    )}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-[#656565] text-sm font-normal font-['Inter'] leading-tight">
+                      No availability specified
+                    </div>
+                  )}
                 </div>
+              </div>
 
               <div className="self-stretch p-6 bg-white rounded-3xl flex flex-col justify-start items-center gap-3">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
@@ -1580,14 +1576,12 @@ const handleDeleteRate = async (index) => {
                   </div>
                   <button
                     onClick={toggleProfileVisibility}
-                    className={`w-12 h-6 relative rounded-full ${
-                      !isProfileVisible ? "bg-[#E61E4D]" : "bg-[#656565]"
-                    }`}
+                    className={`w-12 h-6 relative rounded-full ${!isProfileVisible ? "bg-[#E61E4D]" : "bg-[#656565]"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 absolute top-[6px] ${
-                        !isProfileVisible ? "left-[27px]" : "left-[9px]"
-                      } bg-white rounded-full`}
+                      className={`w-3 h-3 absolute top-[6px] ${!isProfileVisible ? "left-[27px]" : "left-[9px]"
+                        } bg-white rounded-full`}
                     />
                   </button>
                 </div>
@@ -1616,14 +1610,12 @@ const handleDeleteRate = async (index) => {
                   </button> */}
                   <button
                     onClick={toggleInstantBook}
-                    className={`w-12 h-6 relative rounded-full ${
-                      isInstantBook ? "bg-[#E61E4D]" : "bg-[#656565]"
-                    }`}
+                    className={`w-12 h-6 relative rounded-full ${isInstantBook ? "bg-[#E61E4D]" : "bg-[#656565]"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 absolute top-[6px] ${
-                        isInstantBook ? "left-[27px]" : "left-[9px]"
-                      } bg-white rounded-full`}
+                      className={`w-3 h-3 absolute top-[6px] ${isInstantBook ? "left-[27px]" : "left-[9px]"
+                        } bg-white rounded-full`}
                     />
                   </button>
                 </div>
@@ -1675,27 +1667,27 @@ const handleDeleteRate = async (index) => {
                       { label: "Cancels", value: "2" , icon: <FaHourglass /> },
                       { label: "No Shows", value: "1" , icon: <FaStar />  },
                     ].map((item, i) => ( */}
-                    {[        
-                      { label: "Event Completed", value: jobHistory.pastBookings, icon: <PiChampagneFill /> },        { label: "Cancels", value: jobHistory.cancelledBookings, icon: <FaHourglass /> },        
-                      { label: "No Shows", value: jobHistory.noShows, icon: <FaStar /> },      ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="self-stretch inline-flex justify-start items-center gap-2"
-                      >
-                        <div className="p-2 bg-[#FFF1F2] rounded-lg flex justify-start items-center gap-2.5">
-                          {/* <i className="ri-goblet-fill text-[#E61E4D]"></i> */}
-                          <div className="text-lg text-[#E61E4D]">{item.icon}</div>
+                    {[
+                      { label: "Event Completed", value: jobHistory.pastBookings, icon: <PiChampagneFill /> }, { label: "Cancels", value: jobHistory.cancelledBookings, icon: <FaHourglass /> },
+                      { label: "No Shows", value: jobHistory.noShows, icon: <FaStar /> },].map((item, i) => (
+                        <div
+                          key={i}
+                          className="self-stretch inline-flex justify-start items-center gap-2"
+                        >
+                          <div className="p-2 bg-[#FFF1F2] rounded-lg flex justify-start items-center gap-2.5">
+                            {/* <i className="ri-goblet-fill text-[#E61E4D]"></i> */}
+                            <div className="text-lg text-[#E61E4D]">{item.icon}</div>
+                          </div>
+                          <div className="justify-start">
+                            <span className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                              {item.label}:{" "}
+                            </span>
+                            <span className="text-[#3D3D3D] text-base font-bold font-['Inter'] leading-snug">
+                              {item.value}
+                            </span>
+                          </div>
                         </div>
-                        <div className="justify-start">
-                          <span className="text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                            {item.label}:{" "}
-                          </span>
-                          <span className="text-[#3D3D3D] text-base font-bold font-['Inter'] leading-snug">
-                            {item.value}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               </div>
@@ -1728,10 +1720,10 @@ const handleDeleteRate = async (index) => {
                       Base Hourly Rate
                     </div>
                     <input
-                        type="number"
-                        value={hourlyRate}
-                        onChange={handleHourlyRateChange} className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5"/>
-                        {/* <input
+                      type="number"
+                      value={hourlyRate}
+                      onChange={handleHourlyRateChange} className="w-1/5 px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center gap-2.5" />
+                    {/* <input
                           type="number"
                           value={baseRate}
                           onChange={handleBaseRateChange} className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug"/>
@@ -1773,25 +1765,25 @@ const handleDeleteRate = async (index) => {
                       </div>
                       <div className="flex justify-start items-center gap-2">
                         {/* <div className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center"> */}
-                          <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                            {/* ${item.amount} */}
-                            {/* ${item.rate} */}
-                          </div>
+                        <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
+                          {/* ${item.amount} */}
+                          {/* ${item.rate} */}
                         </div>
-                            <input
-                              type="number"
-                              value={item.amount}
-                              onChange={(e) => {
-                                const newAmount = parseFloat(e.target.value) || 0;
-                                const updatedRates = [...additionalRates];
-                                updatedRates[index] = { ...item, amount: newAmount };
-                                setAdditionalRates(updatedRates);
-                                setIsHourlyRateModified(true); // Trigger modification flag
-                              }}
-                            className="w-1/4 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center"/>
-                        <button onClick={() => handleDeleteRate(index)}>
-                          <i className="ri-subtract-line bg-[#656565] text-sm px-1 py-1 rounded-sm text-white"></i>
-                        </button>
+                      </div>
+                      <input
+                        type="number"
+                        value={item.amount}
+                        onChange={(e) => {
+                          const newAmount = parseFloat(e.target.value) || 0;
+                          const updatedRates = [...additionalRates];
+                          updatedRates[index] = { ...item, amount: newAmount };
+                          setAdditionalRates(updatedRates);
+                          setIsHourlyRateModified(true); // Trigger modification flag
+                        }}
+                        className="w-1/4 px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#292929] flex justify-center items-center" />
+                      <button onClick={() => handleDeleteRate(index)}>
+                        <i className="ri-subtract-line bg-[#656565] text-sm px-1 py-1 rounded-sm text-white"></i>
+                      </button>
                       {/* </div> */}
                     </div>
                   ))}
@@ -1803,7 +1795,7 @@ const handleDeleteRate = async (index) => {
                   className="px-4 py-2 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] inline-flex justify-center items-center gap-2 overflow-hidden"
                 >
                   <div className="justify-start text-[#E61E4D] text-sm font-medium font-['Inter'] leading-tight">
-                     {isModified ? "Save" : "Add New"}
+                    {isModified ? "Save" : "Add New"}
                   </div>
                 </button>
               </div>

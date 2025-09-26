@@ -96,7 +96,7 @@ const Register = () => {
       navigate("/login");
     } catch (err) {
       console.error(err);
-      Notify.error("Registration failed. Please try again.");
+      Notify.error(err.response.data.message || "Registration failed");
     }
   };
 
@@ -152,80 +152,80 @@ const Register = () => {
   //     )}
   //   </div>
   // );
-return (
-  <div className="register-container">
-    {step === 1 ? (
-      
-      <div className="role-selection">
-        <button className="back-button" onClick={() => navigate('/login')}>
-          <i class="fa-solid fa-arrow-left"></i> Back
-        </button>
-        <div className="form-header">
-          <h2>Create Account</h2>
-          <Link to="/login" className="create-account">Login</Link>
-        </div>
-        <div
-          className="role-card"
-          onClick={() => handleRoleSelect("organiser")}
-        >
-          <img src="/images/event.png" alt="organiser" />
-          <div>
-            <h3>Event Organiser</h3>
-            <p>Host events, hire staff</p>
+  return (
+    <div className="register-container">
+      {step === 1 ? (
+
+        <div className="role-selection">
+          <button className="back-button" onClick={() => navigate('/login')}>
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <div className="form-header">
+            <h2>Create Account</h2>
+            <Link to="/login" className="create-account">Login</Link>
           </div>
-        </div>
-        <div className="role-card" onClick={() => handleRoleSelect("staff")}>
-          <img src="/images/hostess.png" alt="hostess" />
-          <div>
-            <h3>Event Hostess</h3>
-            <p>Host parties, get booked</p>
+          <div
+            className="role-card"
+            onClick={() => handleRoleSelect("organiser")}
+          >
+            <img src="/images/event.png" alt="organiser" />
+            <div>
+              <h3>Event Organiser</h3>
+              <p>Host events, hire staff</p>
+            </div>
           </div>
+          <div className="role-card" onClick={() => handleRoleSelect("staff")}>
+            <img src="/images/hostess.png" alt="hostess" />
+            <div>
+              <h3>Event Hostess</h3>
+              <p>Host parties, get booked</p>
+            </div>
+          </div>
+
         </div>
-        
-      </div>
-    ) : (
-      <form className="register-form" onSubmit={handleSubmit}>
-        <button
-          className="back-button"
-          type="button"
-          onClick={() => setStep(1)}
-        >
-          <i class="fa-solid fa-arrow-left"></i> Back
-        </button>
-        <div className="form-header">
-          <h2>Create Account</h2>
-          <Link to="/login" className="create-account">Login</Link>
-        </div>
-        <label>Name</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your Name"
-          required
-        />
-        <label>Email</label>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter Email"
-          required
-        />
-        <label>Phone</label>
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter Phone"
-          required
-        />
-        <input type="hidden" value={role} readOnly />
-        <button className="button-app" type="submit">
-          Create Account
-        </button>
-        
-      </form>
-    )}
-  </div>
-);
+      ) : (
+        <form className="register-form" onSubmit={handleSubmit}>
+          <button
+            className="back-button"
+            type="button"
+            onClick={() => setStep(1)}
+          >
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <div className="form-header">
+            <h2>Create Account</h2>
+            <Link to="/login" className="create-account">Login</Link>
+          </div>
+          <label>Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your Name"
+            required
+          />
+          <label>Email</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter Email"
+            required
+          />
+          <label>Phone</label>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Enter Phone"
+            required
+          />
+          <input type="hidden" value={role} readOnly />
+          <button className="button-app" type="submit">
+            Create Account
+          </button>
+
+        </form>
+      )}
+    </div>
+  );
 
 };
 
