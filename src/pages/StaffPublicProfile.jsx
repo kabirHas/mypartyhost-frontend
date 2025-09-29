@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChatState } from "../Context/ChatProvider";
 import BASE_URLS from "../config";
 
@@ -94,7 +94,7 @@ function Calendar({ onSelect, selected, eventDates, close, currentMonth, current
           const hasEvent = eventDates.has(day.date.toDateString());
           const isSelected = selected && selected.toDateString() === day.date.toDateString();
           const isCurrent = day.type === 'Default';
-          const className = `p-2 rounded-lg cursor-pointer ${isCurrent ? '' : 'text-gray-400'} ${hasEvent ? 'bg-[#fff2f3]' : 'text-gray-300 cursor-not-allowed'} ${isSelected ? 'bg-[#e61e4c] text-white' : ''}`;
+          const className = `p-2 rounded-lg cursor-pointer ${isCurrent ? '' : 'text-gray-400'} ${hasEvent ? 'bg-[#fff2f3]' : 'text-gray-300 cursor-not-allowed'} ${isSelected ? 'bg-[#e61e4c] text-rose-600 outline outline-1 outline-rose-600' : ''}`;
           return (
             <div
               key={i}
@@ -1099,7 +1099,7 @@ function StaffPublicProfile() {
                       )}
                       {events.length === 0 && (
                         <div className="self-stretch justify-start text-red-500 text-base font-medium font-['Inter'] leading-snug">
-                          No events available. Please create an event to book.
+                          No events available. Please create an event to book. <span className='cursor-pointer underline' onClick={()=>  navigate("/multi-step")}>(Click Here)</span>
                         </div>
                       )}
                       <div
