@@ -104,13 +104,13 @@ function FindJobs() {
 
   const filteredJobs = sortByLatest
     ? jobs
-        .filter((job) =>
-          job.title.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .sort((a, b) => new Date(b.jobDate) - new Date(a.jobDate))
-    : jobs.filter((job) =>
+      .filter((job) =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      )
+      .sort((a, b) => new Date(b.jobDate) - new Date(a.jobDate))
+    : jobs.filter((job) =>
+      job.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const calculateDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Earth's radius in km
@@ -119,9 +119,9 @@ function FindJobs() {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in km
   };
@@ -436,21 +436,22 @@ function FindJobs() {
         const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}jobs`);
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0);
-        const activeJobs = response.data.filter((job) => {
-          if (!job.isActive) return false;
-          const jobDate = new Date(job.jobDate);
-          jobDate.setHours(0, 0, 0, 0);
-          return jobDate >= currentDate;
-        });
+
+        const activeJobs = response.data.filter(
+          (job) =>
+            job.isActive &&
+            job.isPublic && // 👈 filter added
+            new Date(job.jobDate).setHours(0, 0, 0, 0) >= currentDate
+        );
+
         console.log(
           "Filtered jobs:",
           activeJobs.map((job) => ({
             id: job._id,
             jobDate: job.jobDate,
             parsedDate: new Date(job.jobDate).toISOString(),
-            location: `${job.suburb || ""}, ${job.city || ""}, ${
-              job.country || ""
-            }`,
+            location: `${job.suburb || ""}, ${job.city || ""}, ${job.country || ""
+              }`,
           }))
         );
 
@@ -458,9 +459,8 @@ function FindJobs() {
           id: job._id,
           title: job.jobTitle,
           category: job.staffCategory,
-          location: `${job.suburb || ""}, ${job.city || ""}, ${
-            job.country || ""
-          }`,
+          location: `${job.suburb || ""}, ${job.city || ""}, ${job.country || ""
+            }`,
           datetime: `${new Date(job.jobDate).toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",
@@ -473,9 +473,8 @@ function FindJobs() {
             "en-US",
             { hour: "numeric", minute: "2-digit", hour12: true }
           )}`,
-          rate: `${job.currency} ${job.rateOffered}/${
-            job.paymentType === "hourly" ? "h" : "fixed"
-          }`,
+          rate: `${job.currency} ${job.rateOffered}/${job.paymentType === "hourly" ? "h" : "fixed"
+            }`,
           gender: job.lookingFor,
           organiser: {
             name: job.organiser.name || "Unknown Organizer",
@@ -506,9 +505,8 @@ function FindJobs() {
               `https://nominatim.openstreetmap.org/search`,
               {
                 params: {
-                  q: `${job.suburb || ""}${job.suburb ? "," : ""} ${
-                    job.city || ""
-                  }${job.city ? "," : ""} ${job.country || ""}`
+                  q: `${job.suburb || ""}${job.suburb ? "," : ""} ${job.city || ""
+                    }${job.city ? "," : ""} ${job.country || ""}`
                     .trim()
                     .replace(/,+/g, ","),
                   format: "json",
@@ -528,8 +526,7 @@ function FindJobs() {
                 )
               );
               console.log(
-                `Geocoding success for ${job.suburb || ""}, ${
-                  job.city || ""
+                `Geocoding success for ${job.suburb || ""}, ${job.city || ""
                 }, ${job.country || ""}:`,
                 {
                   lat: parseFloat(geoResponse.data[0].lat),
@@ -539,8 +536,7 @@ function FindJobs() {
               );
             } else {
               console.warn(
-                `Geocoding failed for ${job.suburb || ""}, ${job.city || ""}, ${
-                  job.country || ""
+                `Geocoding failed for ${job.suburb || ""}, ${job.city || ""}, ${job.country || ""
                 }: No results, retrying with city and country`
               ); // comment-4: Improved logging for retry
               // Retry with city and country only
@@ -548,9 +544,8 @@ function FindJobs() {
                 `https://nominatim.openstreetmap.org/search`,
                 {
                   params: {
-                    q: `${job.city || ""}${job.city ? "," : ""} ${
-                      job.country || ""
-                    }`
+                    q: `${job.city || ""}${job.city ? "," : ""} ${job.country || ""
+                      }`
                       .trim()
                       .replace(/,+/g, ","),
                     format: "json",
@@ -570,8 +565,7 @@ function FindJobs() {
                   )
                 );
                 console.log(
-                  `Geocoding success on retry for ${job.city || ""}, ${
-                    job.country || ""
+                  `Geocoding success on retry for ${job.city || ""}, ${job.country || ""
                   }:`,
                   {
                     lat: parseFloat(geoResponse.data[0].lat),
@@ -581,8 +575,7 @@ function FindJobs() {
                 );
               } else {
                 console.warn(
-                  `Geocoding failed for ${job.city || ""}, ${
-                    job.country || ""
+                  `Geocoding failed for ${job.city || ""}, ${job.country || ""
                   }: No results`
                 ); // comment-6: Log final geocoding failure
                 updatedJobs.push(formatJob(job));
@@ -590,8 +583,7 @@ function FindJobs() {
             }
           } catch (error) {
             console.error(
-              `Geocoding error for ${job.suburb || ""}, ${job.city || ""}, ${
-                job.country || ""
+              `Geocoding error for ${job.suburb || ""}, ${job.city || ""}, ${job.country || ""
               }:`,
               error.message
             ); // comment-7: Enhanced error logging
@@ -616,11 +608,9 @@ function FindJobs() {
           ? JSON.parse(localStorage.getItem("userData"))
           : null;
         if (userData) {
-          let userQuery = `${userData.suburb || ""}${
-            userData.suburb ? "," : ""
-          } ${userData.city || ""}${userData.city ? "," : ""} ${
-            userData.state || ""
-          }`
+          let userQuery = `${userData.suburb || ""}${userData.suburb ? "," : ""
+            } ${userData.city || ""}${userData.city ? "," : ""} ${userData.state || ""
+            }`
             .trim()
             .replace(/,+/g, ",");
           let geocoded = false;
@@ -745,11 +735,10 @@ function FindJobs() {
             <div className="flex justify-start items-center gap-4">
               <div
                 onClick={() => setShowMap(false)}
-                className={`p-2 rounded-lg cursor-pointer ${
-                  !showMap
-                    ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] text-[#E61E4D] outline-[#FE6E85]"
-                    : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
-                }`}
+                className={`p-2 rounded-lg cursor-pointer ${!showMap
+                  ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] text-[#E61E4D] outline-[#FE6E85]"
+                  : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
+                  }`}
               >
                 <div className="w-8 h-8 flex items-center justify-center">
                   <i className="ri-menu-line text-xl"></i>
@@ -758,11 +747,10 @@ function FindJobs() {
 
               <div
                 onClick={() => setShowMap(true)}
-                className={`p-2 rounded-lg cursor-pointer ${
-                  showMap
-                    ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] text-[#FE6E85] outline-[#FE6E85]"
-                    : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
-                }`}
+                className={`p-2 rounded-lg cursor-pointer ${showMap
+                  ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] text-[#FE6E85] outline-[#FE6E85]"
+                  : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
+                  }`}
               >
                 <div className="w-8 h-8 flex items-center justify-center">
                   <i className="ri-map-2-line text-xl"></i>
@@ -774,11 +762,10 @@ function FindJobs() {
               {/* Near Me Button */}
               <div
                 onClick={handleNearMe}
-                className={`px-2 py-1 rounded-3xl flex justify-start items-center gap-1.5 cursor-pointer ${
-                  showMap
-                    ? "bg-[#FFF1F2] "
-                    : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
-                }`}
+                className={`px-2 py-1 rounded-3xl flex justify-start items-center gap-1.5 cursor-pointer ${showMap
+                  ? "bg-[#FFF1F2] "
+                  : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
+                  }`}
               >
                 <i className="ri-map-pin-line text-[#343330] text-xl"></i>
 
@@ -796,10 +783,9 @@ function FindJobs() {
               <div
                 onClick={handleSortLatest}
                 className={`px-2 py-1 rounded-3xl flex justify-start items-center gap-1 cursor-pointer
-                  ${
-                    sortByLatest && !showMap
-                      ? "bg-[#FFF1F2] "
-                      : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
+                  ${sortByLatest && !showMap
+                    ? "bg-[#FFF1F2] "
+                    : "bg-white outline outline-1 outline-offset-[-1px] text-[#656565] outline-[#ECECEC]"
                   }`}
               >
                 <button className=" text-base font-normal font-['Inter'] leading-snug text-[#3D3D3D] ">
@@ -864,11 +850,10 @@ function FindJobs() {
                       <div className="inline-flex justify-start items-center gap-6">
                         {/* <div className="px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-[#E61E4D] flex justify-center items-center gap-2 overflow-hidden"> */}
                         <div
-                          className={`px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-2 overflow-hidden ${
-                            savedJobs.includes(job.id)
-                              ? "bg-[#FFF1F2] outline-[#E61E4D] text-[#E61E4D]"
-                              : "outline-[#E61E4D] text-[#E61E4D]"
-                          }`}
+                          className={`px-6 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-2 overflow-hidden ${savedJobs.includes(job.id)
+                            ? "bg-[#FFF1F2] outline-[#E61E4D] text-[#E61E4D]"
+                            : "outline-[#E61E4D] text-[#E61E4D]"
+                            }`}
                           onClick={() => handleSaveJob(job.id)}
                         >
                           <button className="justify-start text-base font-medium font-['Inter'] leading-snug">
@@ -879,9 +864,8 @@ function FindJobs() {
                         </button> */}
                           <div className="w-6 h-6 relative">
                             <i
-                              className={`ri-heart-3-${
-                                savedJobs.includes(job.id) ? "fill" : "line"
-                              } text-[#E61E4D]`}
+                              className={`ri-heart-3-${savedJobs.includes(job.id) ? "fill" : "line"
+                                } text-[#E61E4D]`}
                             ></i>
                             {/* <i className="ri-heart-3-line text-[#E61E4D]"></i> */}
                           </div>
@@ -908,11 +892,10 @@ function FindJobs() {
                       className="px-3 py-2 opacity-50 rounded-lg flex justify-center items-center gap-2" 
                     > */}
                     <div
-                      className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2 ${
-                        currentPage === 1
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      }`}
+                      className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2 ${currentPage === 1
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                        }`}
                       onClick={() =>
                         currentPage > 1 && setCurrentPage(currentPage - 1)
                       }
@@ -933,11 +916,10 @@ function FindJobs() {
                         <button
                           key={n}
                           onClick={() => setCurrentPage(n)}
-                          className={`px-3 py-1 rounded-md ${
-                            n === currentPage
-                              ? "bg-[#FFCCD3] text-[#292929]"
-                              : "text-gray-600"
-                          }`}
+                          className={`px-3 py-1 rounded-md ${n === currentPage
+                            ? "bg-[#FFCCD3] text-[#292929]"
+                            : "text-gray-600"
+                            }`}
                         >
                           {n}
                         </button>
@@ -956,15 +938,14 @@ function FindJobs() {
                       ))} */}
                     </div>
                     <div
-                      className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2 ${
-                        currentPage ===
+                      className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2 ${currentPage ===
                         Math.ceil(filteredJobs.length / jobsPerPage)
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      }`}
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                        }`}
                       onClick={() =>
                         currentPage <
-                          Math.ceil(filteredJobs.length / jobsPerPage) &&
+                        Math.ceil(filteredJobs.length / jobsPerPage) &&
                         setCurrentPage(currentPage + 1)
                       }
                     >
@@ -1108,7 +1089,7 @@ function FindJobs() {
                           >
                             <div className="flex justify-between items-start">
                               <div>
-                                <Link to={`/bookings/${job.id}`}  className="text-base font-bold text-decoration-none text-[#292929]">
+                                <Link to={`/bookings/${job.id}`} className="text-base font-bold text-decoration-none text-[#292929]">
                                   {job.title}
                                 </Link>
                                 <p className="text-xs text-[#656565]">
@@ -1132,20 +1113,18 @@ function FindJobs() {
                           </button> */}
 
                               <button
-                                className={`px-4 py-2 border-2 font-semibold border-[#E61E4D] text-[#E61E4D] text-sm rounded-lg flex items-center gap-1 ${
-                                  savedJobs.includes(job.id)
-                                    ? "bg-[#FFF1F2]"
-                                    : ""
-                                }`}
+                                className={`px-4 py-2 border-2 font-semibold border-[#E61E4D] text-[#E61E4D] text-sm rounded-lg flex items-center gap-1 ${savedJobs.includes(job.id)
+                                  ? "bg-[#FFF1F2]"
+                                  : ""
+                                  }`}
                                 onClick={() => handleSaveJob(job.id)}
                               >
                                 {savedJobs.includes(job.id)
                                   ? "Saved"
                                   : "Save Job"}
                                 <i
-                                  className={`ri-heart-3-${
-                                    savedJobs.includes(job.id) ? "fill" : "line"
-                                  }`}
+                                  className={`ri-heart-3-${savedJobs.includes(job.id) ? "fill" : "line"
+                                    }`}
                                 ></i>
                               </button>
                               <button

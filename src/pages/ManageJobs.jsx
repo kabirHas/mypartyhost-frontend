@@ -19,7 +19,7 @@ function ManageJobs() {
       .then((response) => {
         console.log(response.data);
         // Ensure jobs is an array, even if response.data.jobs is undefined
-        setJobs(Array.isArray(response.data) ? response.data : []);
+        setJobs(Array.isArray(response.data) ? response.data.filter((job) => job.isPublic) : []);
         setLoading(false);
       })
       .catch((error) => {
