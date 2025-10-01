@@ -1206,14 +1206,14 @@ function StaffPublicProfile() {
                           </div>
                         </div>
                       )}
-                      {events.length === 0 && (
+                      {!stateUser && (
                         <div className="self-stretch justify-start text-red-500 text-base font-medium font-['Inter'] leading-snug">
-                          No events available. Please create an event to book. <span className='cursor-pointer underline' onClick={() => navigate("/multi-step")}>(Click Here)</span>
+                          Login to book a Staff <span className='cursor-pointer underline' onClick={() => navigate("/login")}>(Click Here)</span>
                         </div>
                       )}
                       <div
                         className={`self-stretch flex flex-col justify-start items-start gap-6 ${!isActive ? "hidden" : ""
-                          } ${events.length === 0 ? "pointer-events-none opacity-50" : ""}`}
+                          } ${!stateUser ? "pointer-events-none opacity-50" : ""}`}
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-3 relative">
                           {/* <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
