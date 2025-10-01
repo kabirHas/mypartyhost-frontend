@@ -10,6 +10,8 @@ import BASE_URLS from "../config";
 const stripePromise = loadStripe('pk_test_51Nu8PEAnJrnEEoOOb6LEggK6o8vitWWhQ7IbZu5boQxovKxsHjfB5U7SaoVCPOf9c1gQj8FZXVsuaPXTznGjF3IV00CSDD14EY');
 
 function Calendar({ onSelect, selected, eventDates, close, currentMonth, currentYear, setCurrentMonth, setCurrentYear }) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time for comparison
   const monthName = new Date(currentYear, currentMonth, 1).toLocaleString("default", { month: "long" });
 
   const prevMonth = () => {
@@ -18,6 +20,10 @@ function Calendar({ onSelect, selected, eventDates, close, currentMonth, current
     if (newMonth < 0) {
       newMonth = 11;
       newYear--;
+    }
+    // Prevent navigating to months before the current month
+    if (newYear < today.getFullYear() || (newYear === today.getFullYear() && newMonth < today.getMonth())) {
+      return;
     }
     setCurrentMonth(newMonth);
     setCurrentYear(newYear);
@@ -76,7 +82,7 @@ function Calendar({ onSelect, selected, eventDates, close, currentMonth, current
   const calendarDays = getCalendarDays();
 
   return (
-    <div className=" z-10 bg-white p-4 rounded-lg w-full border border-gray-200">
+    <div className="z-10 bg-white p-4 rounded-lg w-full border border-gray-200">
       <div className="flex justify-between items-center mb-4">
         <button onClick={prevMonth}>&lt;</button>
         <div>{monthName} {currentYear}</div>
@@ -91,16 +97,20 @@ function Calendar({ onSelect, selected, eventDates, close, currentMonth, current
         <div>Fri</div>
         <div>Sat</div>
         {calendarDays.map((day, i) => {
+          const isPast = day.date < today;
           const hasEvent = eventDates.has(day.date.toDateString());
           const isSelected = selected && selected.toDateString() === day.date.toDateString();
-          const isCurrent = day.type === 'Default';
-          const className = `p-2 rounded-lg cursor-pointer ${isCurrent ? '' : 'text-gray-400'} ${hasEvent ? 'bg-[#fff2f3]' : 'text-gray-300 cursor-not-allowed'} ${isSelected ? 'bg-[#e61e4c] text-rose-600 outline outline-1 outline-rose-600' : ''}`;
+          const isCurrent = day.type === "Default";
+          const className = `p-2 rounded-lg ${isPast ? "text-gray-400 cursor-not-allowed" : "cursor-pointer"
+            } ${hasEvent ? "bg-[#fff2f3]" : ""} ${isSelected ? "bg-[#e61e4c] text-white outline outline-1 outline-rose-600" : ""
+            } ${!isCurrent ? "text-gray-400" : "text-gray-800"}`;
+
           return (
             <div
               key={i}
               className={className}
               onClick={() => {
-                if (hasEvent && isCurrent) {
+                if (!isPast && isCurrent) {
                   onSelect(day.date);
                   close();
                 }
@@ -153,6 +163,79 @@ function StaffPublicProfile() {
   const [convertedDownPayment, setConvertedDownPayment] = useState(0);
   const [convertedBookingFee, setConvertedBookingFee] = useState(0);
   const [payableAmount, setPayableAmount] = useState(0);
+  const [showInviteModal, setShowInviteModal] = useState(false); // New state for invite modal
+  const [inviteMessage, setInviteMessage] = useState(null);
+
+
+  const handleSendInvite = async () => {
+    if (!selectedEvent) {
+      // onError("Please select an event.");
+      return;
+    }
+    console.log(selectedEvent._id, user.user);
+    try {
+      // Yaha backend API call karna for sending invite
+      await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedEvent._id}/invite/${user.user}`,
+        { message: 'I would like to invite you to my event' },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      setInviteMessage({ type: 'success', text: 'Invite sent successfully!' });
+      // onSuccess("Invite sent successfully!");
+      setShowInviteModal(false);
+      setSelectedEvent("");
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to send invite.';
+      setInviteMessage({ type: 'error', text: errorMsg });
+      // onError(errorMsg);
+    }
+  };
+
+  const createEvent = async (date) => {
+    try {
+      setPaymentLoading(true);
+      const response = await axios.post(
+        `${BASE_URLS.BACKEND_BASEURL}jobs`,
+        {
+          eventName: `Private Event [${date.toISOString().split('T')[0]}]`,
+          jobTitle: selectedEventType,
+          jobDescription: "Automatically created for booking",
+          isPublic: false,
+          country: user?.country || "US",
+          currency: currency,
+          staffCategory: selectedEventType,
+          numberOfPositions: 100,
+          location: user?.city || "TBD",
+          jobDate: date.toISOString(),
+          endDate: isActive && selectedEndDate ? selectedEndDate.toISOString() : null,
+          startTime: isActive ? "N/A" : selectedStartTime,
+          endTime: isActive ? "N/A" : getEndTime(),
+          duration: isActive ? calculateDays() : selectedHours,
+          city: user?.city || "Unknown",
+          paymentType: isActive ? "fixed" : "hourly",
+          rateOffered: getRate(),
+          suburb: "",
+          lookingFor: "any",
+          travelAllowance: "none",
+          requiredSkills: [],
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      const newEvent = response.data.job;
+      // Optionally update local state
+      setEvents([...events, newEvent]);
+      setEventDates(new Set([...eventDates, new Date(newEvent.jobDate).toDateString()]));
+      return newEvent;
+    } catch (error) {
+      console.error("Error creating event:", error);
+      setPaymentError(error.response?.data?.message || "Failed to create event.");
+      return null;
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
 
   const fetchStaffDetails = async () => {
     try {
@@ -257,18 +340,29 @@ function StaffPublicProfile() {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  // Update handleConfirmInvite (for invite flow)
   const handleConfirmInvite = async () => {
     if (!stateUser) {
       navigate('/login');
       return;
     }
-    if (!selectedEvent) {
-      setPaymentError("Please select an event date.");
-      return;
+    let eventId = selectedEvent?._id;
+    if (!eventId) {
+      const dateToUse = isActive ? selectedStartDate : selectedDate;
+      if (!dateToUse) {
+        setPaymentError("Please select a date.");
+        return;
+      }
+      const newEvent = await createEvent(dateToUse);
+      if (!newEvent) {
+        return;
+      }
+      eventId = newEvent._id;
     }
+
     try {
       await axios.post(
-        `${BASE_URLS.BACKEND_BASEURL}jobs/invite/staff/${id}/event/${selectedEvent._id}`,
+        `${BASE_URLS.BACKEND_BASEURL}jobs/invite/staff/${id}/event/${eventId}`,
         {
           eventType: selectedEventType,
           bookingType: isActive ? "Daily" : "Hourly",
@@ -542,21 +636,15 @@ function StaffPublicProfile() {
   // };
 
 
+  // Update handleProceedToPayment
   const handleProceedToPayment = async () => {
     if (!currency) {
       setPaymentError("Currency not detected.");
-      setPaymentLoading(false);
-      return;
-    }
-    if (!selectedEvent) {
-      setPaymentError("Please select an event.");
-      setPaymentLoading(false);
       return;
     }
     const token = localStorage.getItem("token");
     if (!token) {
       setPaymentError("You must be logged in to proceed.");
-      setPaymentLoading(false);
       navigate('/login');
       return;
     }
@@ -565,6 +653,20 @@ function StaffPublicProfile() {
     setPaymentError(null);
 
     try {
+      let eventId = selectedEvent?._id;
+      if (!eventId) {
+        const dateToUse = isActive ? selectedStartDate : selectedDate;
+        if (!dateToUse) {
+          setPaymentError("Please select a date.");
+          return;
+        }
+        const newEvent = await createEvent(dateToUse);
+        if (!newEvent) {
+          return;
+        }
+        eventId = newEvent._id;
+      }
+
       const baseAmount = getTotal();
       const rateRes = await axios.get(
         `https://v6.exchangerate-api.com/v6/9f6020acea6f209461dca627/latest/USD`
@@ -578,7 +680,7 @@ function StaffPublicProfile() {
       const payable = serviceFeeUser + convertedPlatformFee;
       const amountUSDAfterPlatform = baseAmount * 0.1 + platformFee;
 
-      const endpoint = `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedEvent._id}/hire/direct/${id}/initiate`;
+      const endpoint = `${BASE_URLS.BACKEND_BASEURL}jobs/${eventId}/hire/direct/${id}/initiate`;
 
       const payload = {
         currency,
@@ -603,10 +705,9 @@ function StaffPublicProfile() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setPaymentLoading(false);
       if (res.data.stripeRequired) {
         setClientSecret(res.data.clientSecret);
-        return res.data; // Return clientSecret for handleButtonClick
+        return res.data;
       } else {
         navigate('/confirm-hire-new');
         return null;
@@ -614,8 +715,9 @@ function StaffPublicProfile() {
     } catch (error) {
       console.error("Payment Error:", error);
       setPaymentError("Failed to initiate payment.");
-      setPaymentLoading(false);
       throw error;
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -923,12 +1025,12 @@ function StaffPublicProfile() {
             />
           </div>
         </div>
-        <div className="w-[100%] mt-4 h-[738px] relative bg-black overflow-hidden">
+        <div className="w-[100%] mt-4 h-[708px] relative bg-black overflow-hidden">
           <img
             className="w-[747px] object-cover h-[934px] left-[-13px] top-[-44px] absolute"
             src="/images/staffProfiles.png"
           />
-          <div className="w-[859px] left-[380px] top-[57px] absolute text-right justify-start">
+          <div className="w-[859px] right-[180px] top-[57px] absolute text-right justify-start">
             <span className="text-white text-7xl font-bold font-['Inter'] uppercase leading-[80px]">
               The Party{" "}
             </span>
@@ -936,14 +1038,14 @@ function StaffPublicProfile() {
               Starts <br /> Here!
             </span>
           </div>
-          <div className="w-[509px] left-[760px] top-[233px] absolute justify-start text-[#FFFFFF] text-base font-normal font-['Inter'] leading-snug">
+          <div className="w-[509px] right-[180px] top-[233px] absolute justify-start text-[#FFFFFF] text-base font-normal font-['Inter'] leading-snug">
             Get ready to party with our gorgeous, fun, and flirty hostesses.
             Whether you're keeping it classy or turning up the heat, our
             stunning team is here to make your event unforgettable. Every detail
             is designed to dazzle, ensuring that your celebration is nothing
             short of spectacular.
           </div>
-          <div className="w-[498px] left-[735px] top-[578px] absolute inline-flex flex-col justify-center items-end gap-2">
+          <div className="w-[498px] right-[180px] top-[578px] absolute inline-flex flex-col justify-center items-end gap-2">
             <div className="self-stretch text-right justify-start">
               <span className="text-[#FFFFFF] text-5xl font-thin font-['Inter'] uppercase leading-10">
                 THE EVENT
@@ -1020,6 +1122,13 @@ function StaffPublicProfile() {
                 >
                   <i className="ri-close-line text-[32px] leading-[32px]"></i>
                 </div>
+                {paymentLoading && (
+                  <div className="self-stretch flex absolute top-0 left-0 right-0 bottom-0 bg-white/50 z-10 h-full w-full justify-center items-center">
+                    <div className="text-[#3D3D3D] text-xl font-medium font-['Inter']">
+                      Processing...
+                    </div>
+                  </div>
+                )}
                 <div className="self-stretch h-[100%] flex flex-col justify-start items-start gap-8">
                   <div className="self-stretch flex flex-col justify-start items-start gap-6">
                     <div className="self-stretch flex flex-col justify-start items-start gap-6">
@@ -1099,7 +1208,7 @@ function StaffPublicProfile() {
                       )}
                       {events.length === 0 && (
                         <div className="self-stretch justify-start text-red-500 text-base font-medium font-['Inter'] leading-snug">
-                          No events available. Please create an event to book. <span className='cursor-pointer underline' onClick={()=>  navigate("/multi-step")}>(Click Here)</span>
+                          No events available. Please create an event to book. <span className='cursor-pointer underline' onClick={() => navigate("/multi-step")}>(Click Here)</span>
                         </div>
                       )}
                       <div
@@ -1129,7 +1238,9 @@ function StaffPublicProfile() {
                               onSelect={(date) => {
                                 setSelectedStartDate(date);
                                 const ev = events.find(e => new Date(e.jobDate).toDateString() === date.toDateString());
-                                setSelectedEvent(ev);
+                                // setSelectedEvent(ev);
+                                setSelectedEvent(ev || null); // null if no event
+                                setShowSingleCalendar(false);
                               }}
                               selected={selectedStartDate}
                               eventDates={eventDates}
@@ -1166,6 +1277,7 @@ function StaffPublicProfile() {
                                   return;
                                 }
                                 setSelectedEndDate(date);
+                                setShowEndCalendar(false);
                               }}
                               selected={selectedEndDate}
                               eventDates={eventDates}
@@ -1213,7 +1325,8 @@ function StaffPublicProfile() {
                               setSelectedDate(date);
                               console.log(date)
                               const ev = events.find(e => new Date(e.jobDate).toDateString() === date.toDateString());
-                              setSelectedEvent(ev);
+                              setSelectedEvent(ev || null); // null if no event
+                              setShowSingleCalendar(false);
                             }}
                             selected={selectedDate}
                             eventDates={eventDates}
@@ -1431,8 +1544,8 @@ function StaffPublicProfile() {
                     {paymentError && <div className="text-red-500">{paymentError}</div>}
                     {!user?.instantBook && (
                       <button
-                        onClick={handleProceedToPayment}
-                        disabled={paymentLoading || !currency || events.length === 0 || !selectedEvent}
+
+                        onClick={() => setShowInviteModal(true)}
                         className="self-stretch px-6 py-3 border-rose-600 border-2 to-rose-600 rounded-lg inline-flex justify-center items-center gap-2 overflow-hidden "
                       >
                         <div className="justify-start text-rose-600 text-base font-medium font-['Inter'] leading-snug">
@@ -1444,6 +1557,54 @@ function StaffPublicProfile() {
                   </div>
                 </div>
                 <div className="w-2 h-5 left-[565px] top-[483px] absolute bg-zinc-300 rounded-lg" />
+                {showInviteModal && (
+                  <div className="flex justify-center w-full  items-center z-50">
+                    <div className=" rounded-lg  w-full ">
+                      <h2 className="text-lg font-semibold mb-4">Select an Event to Invite</h2>
+                      {inviteMessage && (
+                        <div className={`mb-4 p-2 rounded text-white ${inviteMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+                          {inviteMessage.text}
+                        </div>
+                      )}
+                      <select
+                        value={selectedEvent?._id || ''}
+                        onChange={(e) => {
+                          const ev = events.find((event) => event._id === e.target.value);
+                          setSelectedEvent(ev || null);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+                      >
+                        <option value="">-- Select Event --</option>
+                        {events
+                          .filter(event => event.isPublic)   // 👈 filter only public
+                          .map((event) => (
+                            <option key={event._id} value={event._id}>
+                              {event.eventName} -{" "}
+                              {new Intl.DateTimeFormat("en", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }).format(new Date(event.jobDate))}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => setShowInviteModal(false)}
+                          className="px-4 py-2 bg-gray-200 rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSendInvite}
+                          className="px-4 py-2 bg-rose-600 text-white rounded-lg"
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1477,6 +1638,7 @@ function PaymentForm({
   const elements = useElements();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState("");
+  const [inviteMessage, setInviteMessage] = useState(null);
 
   // ✅ Handle sending invite
   const handleSendInvite = async () => {
@@ -1484,20 +1646,22 @@ function PaymentForm({
       onError("Please select an event.");
       return;
     }
-    console.log(selectedEvent);
+    console.log(selectedEvent, user);
     try {
       // Yaha backend API call karna for sending invite
       await axios.post(
-        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedEvent}/invite/${user._id}`,
-        { message : 'I would like to invite you to my event' },
+        `${BASE_URLS.BACKEND_BASEURL}jobs/${selectedEvent}/invite/${user.user}`,
+        { message: 'I would like to invite you to my event' },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
-
+      setInviteMessage({ type: 'success', text: 'Invite sent successfully!' });
       onSuccess("Invite sent successfully!");
       setShowInviteModal(false);
       setSelectedEvent("");
     } catch (err) {
-      onError("Failed to send invite.");
+      const errorMsg = err.response?.data?.message || 'Failed to send invite.';
+      setInviteMessage({ type: 'error', text: errorMsg });
+      onError(errorMsg);
     }
   };
 
@@ -1678,12 +1842,12 @@ function PaymentForm({
           </div>
         </div>
       </form>
-      
+
       {/* ✅ Modal */}
       {showInviteModal && (
-        <div className="absolute inset-0 bg-zinc-800 bg-opacity-40 flex justify-center p-6 items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-2xl">
-            <h2 className="text-lg font-semibold mb-4">Invite to Event</h2>
+        <div className=" w-full flex justify-center items-center">
+          <div className="bg-white rounded-lg w-full ">
+            <h2 className="text-lg font-semibold mb-4">Select an Event to Invite</h2>
 
             <select
               value={selectedEvent}
@@ -1691,11 +1855,18 @@ function PaymentForm({
               className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
             >
               <option value="">-- Select Event --</option>
-              {events.map(event => (
-                <option key={event._id} value={event._id}>
-                  {event.eventName}
-                </option>
-              ))}
+              {events
+                .filter(event => event.isPublic)   // 👈 filter only public
+                .map((event) => (
+                  <option key={event._id} value={event._id}>
+                    {event.eventName} -{" "}
+                    {new Intl.DateTimeFormat("en", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    }).format(new Date(event.jobDate))}
+                  </option>
+                ))}
             </select>
 
             <div className="flex justify-end gap-3">
@@ -1712,6 +1883,8 @@ function PaymentForm({
                 Send
               </button>
             </div>
+            {/* {inviteMessage && <div className={`${inviteMessage.type === 'success' ? 'text-green-500' : 'text-red-500'} mt-4`}>{inviteMessage.text}</div>} */}
+            {/* {success && <div className="text-green-500">{success}</div>} */}
           </div>
         </div>
       )}
