@@ -1301,7 +1301,7 @@ function StaffPublicProfile() {
                         </div>
                       </div>
                       <div
-                        className={`${isActive ? "hidden" : "flex flex-col gap-[24px]"} ${events.length === 0 ? "pointer-events-none opacity-50" : ""}`}
+                        className={`${isActive ? "hidden" : "flex flex-col gap-[24px]"} ${events.length === 0 ? "" : ""}`}
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-3 relative">
                           {/* <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
