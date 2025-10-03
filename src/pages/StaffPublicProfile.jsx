@@ -166,6 +166,17 @@ function StaffPublicProfile() {
   const [showInviteModal, setShowInviteModal] = useState(false); // New state for invite modal
   const [inviteMessage, setInviteMessage] = useState(null);
 
+  // const increaseViewCount = async ()=>{
+  //   let res = await axios.post(`${BASE_URLS.BACKEND_BASEURL}user/view/${id}`,{},{
+  //     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  //   })
+  //   console.log(res)
+  // };
+
+  // useEffect(() => {
+  //   increaseViewCount()
+  // },[])
+
 
   const handleSendInvite = async () => {
     if (!selectedEvent) {
@@ -291,7 +302,7 @@ function StaffPublicProfile() {
       .then((res) => {
         const userCurrency = res.data.currency;
         setCurrency(userCurrency);
-        console.log("User's currency:", userCurrency);
+        console.log("User's currency: ", userCurrency);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -430,11 +441,11 @@ function StaffPublicProfile() {
 
   const getRate = () => {
     if (!user) return 0;
-    if (isActive) return user.dailyRate || 0;
-    const skill = user.skills?.find(
-      (s) => s.title.toLowerCase() === selectedEventType.toLowerCase()
+    if (isActive) return user.dailyRate || 0; // For daily bookings, use dailyRate
+    const additionalRate = user.additionalRates?.find(
+      (rate) => rate.label.toLowerCase() === selectedEventType.toLowerCase()
     );
-    return skill ? skill.pricePerHour : user.baseRate || 0;
+    return additionalRate ? additionalRate.amount : user.baseRate || 0; // Fallback to baseRate if no matching rate
   };
 
   const getTotal = () => {
@@ -772,15 +783,15 @@ function StaffPublicProfile() {
               <div className="self-stretch flex flex-col justify-start items-start gap-1.5">
                 <img
                   className="self-stretch object-cover object-top h-[630px] relative rounded-lg"
-                  src={`https://mypartyhost.onrender.com${user.profileImage}`}
+                  src={user.profileImage}
                 />
-                <div className="self-stretch inline-flex justify-start items-start gap-1.5">
+                <div className="self-stretch inline-flex justify-between items-start gap-1.5">
                   {user.photos?.length > 0 && (
-                    <div className="flex-1 h-28 flex flex-wrap justify-start items-start gap-2">
+                    <div className="flex-1 h-44 flex flex-wrap justify-start items-start gap-[10.9px]">
                       {user.photos.map((photo, i) => (
                         <img
                           key={i}
-                          className="w-[24%] h-44 object-cover object-top self-stretch rounded-lg"
+                          className="w-[23.5%] h-44 object-cover object-top self-stretch rounded-lg"
                           src={photo}
                         />
                       ))}
@@ -792,7 +803,7 @@ function StaffPublicProfile() {
                 <div className="self-stretch h-32 relative">
                   <div className="left-0 top-0 absolute inline-flex justify-start items-center gap-2">
                     {user.reviews.length === 0 ? (
-                      <div className="w-[480px] max-w-[480px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2">
+                      <div className="w-[580px] max-w-[580px] min-w-[480px] p-4 bg-[#FFFFFF] outline outline-1 outline-offset-[-1px] outline-[#292929] inline-flex flex-col justify-start items-start gap-2">
                         <div className="self-stretch justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
                           No reviews yet.
                         </div>
@@ -866,11 +877,14 @@ function StaffPublicProfile() {
                         ({user.reviews.length} Reviews)
                       </div>
                     </div>
-                    <div className="w-4 h-0 origin-top-left rotate-90 outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
+                    <div className="w-0 h-4 origin-top-left  outline outline-1 outline-offset-[-0.50px] outline-[#656565]"></div>
                     <div className="flex justify-start items-center gap-2">
+                      {user?.flag && (
+                        <img src={user.flag} className="w-6 h-4 object-cover rounded-sm" />
+                      )}
                       <i className="ri-map-pin-line text-blue-900"></i>
                       <div className="justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                        {user.city}, {user.country}
+                        {user.suburb}, {user.country}
                       </div>
                     </div>
                   </div>
@@ -878,11 +892,9 @@ function StaffPublicProfile() {
                     <div className="self-stretch capitalize justify-start text-[#292929] text-6xl font-bold font-['Inter'] leading-[60.60px]">
                       {user.name}
                     </div>
-                    <div className="self-stretch h-40 p-3 relative outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-start gap-3">
-                      <div className="flex-1 justify-start text-[#3D3D3D] text-base font-normal font-['Inter'] leading-snug">
-                        {user.bio}
-                      </div>
-                      <div className="w-2 h-7 left-[552px] top-[4px] absolute bg-neutral-200 rounded-lg" />
+                    <div className="self-stretch h-40  relative outline outline-1 outline-offset-[-1px] outline-[#ECECEC] inline-flex justify-start items-start gap-3">
+                    <div className="self-stretch h-full p-3 w-full overflow-y-scroll whitespace-pre-wrap">{user.bio}</div>
+                      {/* <div className="w-2 h-7 left-[552px] top-[4px] absolute bg-neutral-200 rounded-lg" /> */}
                     </div>
                   </div>
                 </div>
@@ -1152,27 +1164,27 @@ function StaffPublicProfile() {
                           Event type
                         </div>
                         <div className="self-stretch inline-flex justify-start items-start gap-3 flex-wrap content-start">
-                          {eventTypes.map((type, i) => (
+                          {user?.additionalRates.map((type, i) => (
                             <div
                               key={i}
                               data-property-1={
-                                selectedEventType === type
+                                selectedEventType === type.label
                                   ? "active"
                                   : "Default"
                               }
-                              className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 ${selectedEventType === type
+                              className={`px-3 py-2 rounded-lg flex justify-center items-center gap-2.5 ${selectedEventType === type.label
                                 ? "bg-[#FFF1F2] outline outline-1 outline-offset-[-1px] outline-[#E61E4D]"
                                 : "bg-Token-BG-Neutral-Light-1 outline outline-1 outline-offset-[-1px] outline-[#ececec]"
                                 } cursor-pointer`}
-                              onClick={() => setSelectedEventType(type)}
+                              onClick={() => setSelectedEventType(type.label)}
                             >
                               <div
-                                className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${selectedEventType === type
+                                className={`justify-start text-sm font-normal font-['Inter'] leading-tight ${selectedEventType === type.label
                                   ? "text-[#E61E4D]"
                                   : "text-[#3D3D3D]"
                                   }`}
                               >
-                                {type}
+                                {type.label}
                               </div>
                             </div>
                           ))}
@@ -1301,7 +1313,7 @@ function StaffPublicProfile() {
                         </div>
                       </div>
                       <div
-                        className={`${isActive ? "hidden" : "flex flex-col gap-[24px]"} ${events.length === 0 ? "pointer-events-none opacity-50" : ""}`}
+                        className={`${isActive ? "hidden" : "flex flex-col gap-[24px]"} ${events.length === 0 ? "" : ""}`}
                       >
                         <div className="self-stretch flex flex-col justify-start items-start gap-3 relative">
                           {/* <div className="self-stretch justify-start text-Token-Text-Primary text-base font-medium font-['Inter'] leading-snug">
