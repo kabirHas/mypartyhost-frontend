@@ -147,6 +147,7 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    flex-wrap: wrap;
 }
 
 .name-stars {
@@ -155,7 +156,7 @@
     background: linear-gradient(to bottom, rgba(54, 54, 54, 0) 0%, rgb(41, 41, 41) 100%);
     height: 100%;
     width: 100%;
-    padding: 15px 0 15px 15px;
+    padding: 15px 15px 15px 15px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -276,11 +277,11 @@ span.info-icon i {
 
 /* Dropdowns */
 .filter-select {
-    padding: 8px 16px;
+    padding: 7px 14px;
     border: 2px solid black !important;
     border-radius: 6px;
     background-color: white;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
     outline: none !important;
@@ -352,4 +353,19 @@ span.info-icon i {
     padding: 4px 10px;
     border: 1px solid black;
     border-radius: 8px;
+}
+
+
+span.lesgo {
+    display: flex;
+    gap: 2px;
+    flex: 0 0 100%;
+}
+.filters .Search-container .staff-card .staff-info h3 b {
+    font-weight: 700;
+    flex: 0 0 100%;
+}
+
+div#Find-Hostess .filter-select option {
+    font-size: 14px;
 }
