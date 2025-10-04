@@ -116,7 +116,7 @@ const StaffSlider = () => {
                       <div
                         className="staff-info p-2"
                         style={{
-                          backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
+                          backgroundImage: `url(${person.user.profileImage})`,
                         }}
                       >
                         <h3>
@@ -153,7 +153,7 @@ const StaffSlider = () => {
                       <div
                         className="staff-info"
                         style={{
-                          backgroundImage: `url(${BASE_URLS.STATIC}${person.user.profileImage})`,
+                          backgroundImage: `url(${person.user.profileImage})`,
                         }}
                       >
                         <h3>
