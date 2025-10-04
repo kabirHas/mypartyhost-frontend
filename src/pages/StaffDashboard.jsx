@@ -88,7 +88,8 @@ const StaffDashboard = () => {
     "Party Hostess",
     "Topless Waitress",
     "Brand Promotion",
-  ];
+    "Atmosphere Model",
+  ]
 
   const [baseRate, setBaseRate] = useState(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -180,33 +181,19 @@ const StaffDashboard = () => {
       }
       setIsLoading(true);
       try {
-        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}staff`, {
+        const response = await axios.get(`${BASE_URLS.BACKEND_BASEURL}user/my-views`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("API Response:", response.data);
-        const user = response.data.data.find((u) => u._id === userId);
-        if (!user) throw new Error("User not found in staff list");
-        console.log("Profile User Data:", user);
-
-        const views = Array.isArray(user.user?.views) ? user.user.views : [];
-        const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const viewCounts = daysOfWeek.map(() => 0);
-
-        views.forEach((view) => {
-          const date = new Date(view.viewedAt);
-          if (!isNaN(date.getTime())) {
-            const dayIndex = date.getDay();
-            viewCounts[dayIndex]++;
-          }
-        });
-
-        const profileViewsData = daysOfWeek.map((day, index) => ({
-          day,
-          views: viewCounts[index],
-        }));
-
-        console.log("Processed Profile Views Data:", profileViewsData);
-        setProfileViews(profileViewsData);
+        // ✅ Agar API directly days array deta hai
+        const viewsData = Array.isArray(response.data) 
+          ? response.data.map(item => ({
+              day: item.day,
+              views: item.count   // rename "count" -> "views" for graph
+            }))
+          : [];
+        console.log("Processed Profile Views Data:", viewsData);
+        setProfileViews(viewsData);
         setProfileViewsError("");
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.message;
@@ -221,6 +208,7 @@ const StaffDashboard = () => {
     };
     fetchProfileViews();
   }, [userId, navigate]);
+  
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -1127,7 +1115,19 @@ const StaffDashboard = () => {
                 <div className="self-stretch inline-flex justify-end items-center gap-3">
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
-                    onClick={() => setSelectedDates([])}
+                    onClick={() => {
+                      const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                      const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                      const currentMonthDates = [];
+                    
+                      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        currentMonthDates.push(new Date(d).toISOString().split("T")[0]);
+                      }
+                    
+                      setSelectedDates((prev) =>
+                        prev.filter((day) => !currentMonthDates.includes(day))
+                      );
+                    }}
                   >
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
                       Clear All
@@ -1137,25 +1137,16 @@ const StaffDashboard = () => {
                   <div
                     className="px-2 py-1 bg-[#FFF1F2] rounded-lg outline outline-1 outline-offset-[-1px] outline-[#656565] flex justify-start items-center gap-2 cursor-pointer"
                     onClick={() => {
-                      const startDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        1
-                      );
-                      const endDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth() + 1,
-                        0
-                      );
+                      const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                      const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
                       const allDates = [];
-                      for (
-                        let d = new Date(startDate);
-                        d <= endDate;
-                        d.setDate(d.getDate() + 1)
-                      ) {
+                    
+                      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                         allDates.push(new Date(d).toISOString().split("T")[0]);
                       }
-                      setSelectedDates(allDates);
+                    
+                      // ✅ merge with already selected dates (so multiple months bhi possible)
+                      setSelectedDates((prev) => Array.from(new Set([...prev, ...allDates])));
                     }}
                   >
                     <div className="justify-start text-[#3D3D3D] text-sm font-normal font-['Inter'] leading-tight">
